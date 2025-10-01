@@ -76,7 +76,7 @@ await signOut();
 
 **How to use**:
 ```typescript
-import { createPaymentIntent, confirmPayment } from '@/services/stripeService';
+import * as stripeService from '@/services/stripeService';
 
 // Create payment intent
 const { clientSecret } = await createPaymentIntent(bookingId, amount);

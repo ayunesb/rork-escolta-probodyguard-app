@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { CreditCard, Lock, ChevronLeft } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { paymentService } from '@/services/paymentService';
+import * as stripeService from '@/services/stripeService';
 import { notificationService } from '@/services/notificationService';
 
 export default function BookingPaymentScreen() {
@@ -49,11 +50,7 @@ export default function BookingPaymentScreen() {
     total: number;
   } | null>(null);
 
-  useEffect(() => {
-    calculateCost();
-  }, []);
-
-  const calculateCost = async () => {
+  const calculateCost = useCallback(async () => {
     const hourlyRate = parseFloat(params.totalAmount) / parseFloat(params.duration);
     const breakdown = await paymentService.calculateBookingCost(
       hourlyRate,
@@ -63,7 +60,11 @@ export default function BookingPaymentScreen() {
       1
     );
     setCostBreakdown(breakdown);
-  };
+  }, [params.totalAmount, params.duration, params.vehicleType, params.protectionType]);
+
+  useEffect(() => {
+    calculateCost();
+  }, [calculateCost]);
 
   const handlePayment = async () => {
     if (!cardNumber || !expiryDate || !cvv || !cardholderName) {
@@ -79,7 +80,7 @@ export default function BookingPaymentScreen() {
     setIsProcessing(true);
 
     try {
-      const paymentMethod = await paymentService.addPaymentMethod({
+      await paymentService.addPaymentMethod({
         type: 'card',
         last4: cardNumber.slice(-4),
         brand: 'visa',
@@ -90,16 +91,24 @@ export default function BookingPaymentScreen() {
 
       const bookingId = 'booking-' + Date.now();
       
-      const paymentIntent = await paymentService.createPaymentIntent(
-        costBreakdown.total,
-        'usd',
-        bookingId
+      const paymentIntent = await stripeService.createPaymentIntent(
+        bookingId,
+        costBreakdown.total
       );
 
-      const transaction = await paymentService.confirmPayment(
-        paymentIntent.id,
-        paymentMethod.id
+      const paymentResult = await stripeService.confirmPayment(
+        paymentIntent.clientSecret
       );
+
+      if (!paymentResult.success) {
+        throw new Error(paymentResult.error || 'Payment failed');
+      }
+
+      const transaction = {
+        id: paymentResult.paymentIntentId || paymentIntent.paymentIntentId,
+        amount: costBreakdown.total,
+        status: 'succeeded',
+      };
 
       await notificationService.notifyPaymentSuccess(bookingId, costBreakdown.total);
       

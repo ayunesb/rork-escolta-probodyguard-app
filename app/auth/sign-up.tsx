@@ -1,0 +1,304 @@
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack, useRouter } from 'expo-router';
+import { Shield } from 'lucide-react-native';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/types';
+import Colors from '@/constants/colors';
+
+export default function SignUpScreen() {
+  const router = useRouter();
+  const { signUp } = useAuth();
+  const insets = useSafeAreaInsets();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [role, setRole] = useState<UserRole>('client');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSignUp = async () => {
+    if (!email || !password || !firstName || !lastName || !phone) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    const result = await signUp(email, password, firstName, lastName, phone, role);
+
+    if (result.success) {
+      router.replace('/home');
+    } else {
+      setError(result.error || 'Failed to sign up');
+    }
+
+    setIsLoading(false);
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Shield size={48} color={Colors.gold} strokeWidth={2} />
+          </View>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join Escolta Pro</Text>
+        </View>
+
+        <View style={styles.form}>
+          <View style={styles.roleSelector}>
+            <Text style={styles.label}>I am a</Text>
+            <View style={styles.roleButtons}>
+              <TouchableOpacity
+                style={[styles.roleButton, role === 'client' && styles.roleButtonActive]}
+                onPress={() => setRole('client')}
+              >
+                <Text style={[styles.roleButtonText, role === 'client' && styles.roleButtonTextActive]}>
+                  Client
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.roleButton, role === 'guard' && styles.roleButtonActive]}
+                onPress={() => setRole('guard')}
+              >
+                <Text style={[styles.roleButtonText, role === 'guard' && styles.roleButtonTextActive]}>
+                  Guard
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <View style={[styles.inputContainer, styles.halfWidth]}>
+              <Text style={styles.label}>First Name</Text>
+              <TextInput
+                style={styles.input}
+                value={firstName}
+                onChangeText={setFirstName}
+                placeholder="John"
+                placeholderTextColor={Colors.textTertiary}
+                autoCapitalize="words"
+              />
+            </View>
+
+            <View style={[styles.inputContainer, styles.halfWidth]}>
+              <Text style={styles.label}>Last Name</Text>
+              <TextInput
+                style={styles.input}
+                value={lastName}
+                onChangeText={setLastName}
+                placeholder="Doe"
+                placeholderTextColor={Colors.textTertiary}
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="your@email.com"
+              placeholderTextColor={Colors.textTertiary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="+1-555-0100"
+              placeholderTextColor={Colors.textTertiary}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor={Colors.textTertiary}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          </View>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={handleSignUp}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={Colors.background} />
+            ) : (
+              <Text style={styles.buttonText}>Create Account</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.linkText}>Already have an account? Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: 24,
+    paddingTop: 60,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+  form: {
+    width: '100%',
+  },
+  roleSelector: {
+    marginBottom: 24,
+  },
+  roleButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  roleButton: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  roleButtonActive: {
+    backgroundColor: Colors.gold,
+    borderColor: Colors.gold,
+  },
+  roleButtonText: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
+  roleButtonTextActive: {
+    color: Colors.background,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfWidth: {
+    flex: 1,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: Colors.textPrimary,
+  },
+  error: {
+    color: Colors.error,
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: 'center' as const,
+  },
+  button: {
+    backgroundColor: Colors.gold,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '700' as const,
+  },
+  linkButton: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  linkText: {
+    color: Colors.gold,
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+});

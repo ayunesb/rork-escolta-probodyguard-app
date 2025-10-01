@@ -1,26 +1,45 @@
 import createContextHook from '@nkzw/create-context-hook';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, UserRole } from '@/types';
-
-const STORAGE_KEY = '@escolta_user';
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadUser();
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        await loadUserFromFirestore(firebaseUser);
+      } else {
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const loadUser = async () => {
+  const loadUserFromFirestore = async (firebaseUser: FirebaseUser) => {
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
+      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as User;
+        setUser(userData);
+      } else {
+        setUser(null);
       }
     } catch (error) {
-      console.error('Failed to load user:', error);
+      console.error('Failed to load user from Firestore:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -28,26 +47,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('Signing in:', email);
-      
-      const mockUser: User = {
-        id: 'user-' + Date.now(),
-        email,
-        role: email.includes('guard') ? 'guard' : email.includes('company') ? 'company' : email.includes('admin') ? 'admin' : 'client',
-        firstName: 'John',
-        lastName: 'Doe',
-        phone: '+1-555-0100',
-        language: 'en',
-        kycStatus: 'pending',
-        createdAt: new Date().toISOString(),
-      };
-
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mockUser));
-      setUser(mockUser);
+      console.log('[Auth] Signing in:', email);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await loadUserFromFirestore(userCredential.user);
       return { success: true };
-    } catch (error) {
-      console.error('Sign in error:', error);
-      return { success: false, error: 'Failed to sign in' };
+    } catch (error: any) {
+      console.error('[Auth] Sign in error:', error);
+      return { 
+        success: false, 
+        error: error.code === 'auth/invalid-credential' 
+          ? 'Invalid email or password' 
+          : 'Failed to sign in' 
+      };
     }
   }, []);
 
@@ -60,10 +71,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     role: UserRole
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('Signing up:', email, role);
-
-      const mockUser: User = {
-        id: 'user-' + Date.now(),
+      console.log('[Auth] Signing up:', email, role);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      const newUser: User = {
+        id: userCredential.user.uid,
         email,
         role,
         firstName,
@@ -74,30 +86,39 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         createdAt: new Date().toISOString(),
       };
 
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mockUser));
-      setUser(mockUser);
+      await setDoc(doc(db, 'users', userCredential.user.uid), newUser);
+      setUser(newUser);
       return { success: true };
-    } catch (error) {
-      console.error('Sign up error:', error);
-      return { success: false, error: 'Failed to sign up' };
+    } catch (error: any) {
+      console.error('[Auth] Sign up error:', error);
+      return { 
+        success: false, 
+        error: error.code === 'auth/email-already-in-use' 
+          ? 'Email already in use' 
+          : 'Failed to sign up' 
+      };
     }
   }, []);
 
   const signOut = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await firebaseSignOut(auth);
       setUser(null);
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('[Auth] Sign out error:', error);
     }
   }, []);
 
   const updateUser = useCallback(async (updates: Partial<User>) => {
     if (!user) return;
     
-    const updatedUser = { ...user, ...updates };
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    try {
+      const updatedUser = { ...user, ...updates };
+      await setDoc(doc(db, 'users', user.id), updatedUser, { merge: true });
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('[Auth] Update user error:', error);
+    }
   }, [user]);
 
   return useMemo(() => ({

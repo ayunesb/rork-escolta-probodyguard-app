@@ -1,0 +1,52 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidImageFile() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidDocumentFile() {
+      return request.resource.contentType.matches('image/.*') ||
+             request.resource.contentType == 'application/pdf';
+    }
+    
+    function isValidSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    match /documents/{userId}/{document} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      
+      allow write: if isAuthenticated() && 
+                     isOwner(userId) &&
+                     isValidDocumentFile() &&
+                     isValidSize(5);
+    }
+    
+    match /photos/{userId}/{photo} {
+      allow read: if isAuthenticated();
+      
+      allow write: if isAuthenticated() && 
+                     isOwner(userId) &&
+                     isValidImageFile() &&
+                     isValidSize(5);
+    }
+    
+    match /bookings/{bookingId}/{file} {
+      allow read: if isAuthenticated();
+      
+      allow write: if isAuthenticated() &&
+                     isValidImageFile() &&
+                     isValidSize(10);
+    }
+  }
+}

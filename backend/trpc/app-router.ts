@@ -6,6 +6,7 @@ import getUserRoute from "./routes/auth/get-user/route";
 import createBookingRoute from "./routes/bookings/create/route";
 import listBookingsRoute from "./routes/bookings/list/route";
 import createPaymentIntentRoute from "./routes/payments/create-intent/route";
+import refundPaymentRoute from "./routes/payments/refund/route";
 import sendMessageRoute from "./routes/chat/send-message/route";
 import listGuardsRoute from "./routes/guards/list/route";
 
@@ -24,6 +25,7 @@ export const appRouter = createTRPCRouter({
   }),
   payments: createTRPCRouter({
     createIntent: createPaymentIntentRoute,
+    refund: refundPaymentRoute,
   }),
   chat: createTRPCRouter({
     sendMessage: sendMessageRoute,

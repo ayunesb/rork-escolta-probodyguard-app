@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StripeProvider } from "@stripe/stripe-react-native";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
@@ -44,18 +46,32 @@ export default function RootLayout() {
     SplashScreen.hideAsync();
   }, []);
 
+  const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+
   return (
     <ErrorBoundary>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <AuthProvider>
-              <NotificationProvider>
-                <AnalyticsProvider>
-                  <RootLayoutNav />
-                </AnalyticsProvider>
-              </NotificationProvider>
-            </AuthProvider>
+            {Platform.OS !== 'web' ? (
+              <StripeProvider publishableKey={stripePublishableKey}>
+                <AuthProvider>
+                  <NotificationProvider>
+                    <AnalyticsProvider>
+                      <RootLayoutNav />
+                    </AnalyticsProvider>
+                  </NotificationProvider>
+                </AuthProvider>
+              </StripeProvider>
+            ) : (
+              <AuthProvider>
+                <NotificationProvider>
+                  <AnalyticsProvider>
+                    <RootLayoutNav />
+                  </AnalyticsProvider>
+                </NotificationProvider>
+              </AuthProvider>
+            )}
           </GestureHandlerRootView>
         </QueryClientProvider>
       </trpc.Provider>

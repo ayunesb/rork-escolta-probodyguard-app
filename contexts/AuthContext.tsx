@@ -30,15 +30,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const loadUserFromFirestore = async (firebaseUser: FirebaseUser) => {
     try {
+      console.log('[Auth] Loading user from Firestore:', firebaseUser.uid);
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data() as User;
+        console.log('[Auth] User loaded successfully:', userData.email);
         setUser(userData);
       } else {
+        console.log('[Auth] User document does not exist');
         setUser(null);
       }
     } catch (error) {
-      console.error('Failed to load user from Firestore:', error);
+      console.error('[Auth] Failed to load user from Firestore:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -49,8 +52,20 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     try {
       console.log('[Auth] Signing in:', email);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await loadUserFromFirestore(userCredential.user);
-      return { success: true };
+      console.log('[Auth] Firebase sign in successful, loading user data...');
+      
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as User;
+        console.log('[Auth] User data loaded:', userData.email);
+        setUser(userData);
+        setIsLoading(false);
+        return { success: true };
+      } else {
+        console.error('[Auth] User document not found in Firestore');
+        await firebaseSignOut(auth);
+        return { success: false, error: 'User data not found' };
+      }
     } catch (error: any) {
       console.error('[Auth] Sign in error:', error);
       return { 

@@ -25,7 +25,7 @@ app.use("*", async (c, next) => {
 });
 
 app.use(
-  "*",
+  "/trpc/*",
   trpcServer({
     router: appRouter,
     createContext,
@@ -34,5 +34,10 @@ app.use(
     },
   })
 );
+
+app.notFound((c) => {
+  console.log('[Backend] Route not found:', c.req.url);
+  return c.json({ error: 'Not found' }, 404);
+});
 
 export default app;

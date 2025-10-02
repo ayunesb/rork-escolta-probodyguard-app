@@ -23,6 +23,8 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
+    SplashScreen.hideAsync().catch(() => {});
+
     const inAuthGroup = segments[0] === 'auth';
 
     if (!user && !inAuthGroup) {
@@ -43,10 +45,6 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   useStripeInit();
-
-  useEffect(() => {
-    SplashScreen.hideAsync().catch(() => {});
-  }, []);
 
   const AppContent = () => (
     <AuthProvider>

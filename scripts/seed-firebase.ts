@@ -153,13 +153,16 @@ async function seedFirebase() {
         };
 
         await setDoc(doc(db, 'users', userCredential.user.uid), userDoc);
-        await signOut(auth);
-
         console.log(`✅ ${isNewUser ? 'Created' : 'Updated'} user: ${userData.email}`);
+        
+        await signOut(auth);
       } catch (error: any) {
         console.error(`❌ Error creating user ${userData.email}:`);
         console.error(`   Code: ${error.code}`);
         console.error(`   Message: ${error.message}`);
+        try {
+          await signOut(auth);
+        } catch {}
       }
     }
 

@@ -9,6 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -19,6 +20,7 @@ import { notificationService } from '@/services/notificationService';
 import { useAuth } from '@/contexts/AuthContext';
 import * as stripeService from '@/services/stripeService';
 import { SavedPaymentMethod } from '@/types';
+import StripePaymentForm from '@/components/StripePaymentForm';
 
 
 
@@ -49,6 +51,8 @@ export default function BookingPaymentScreen() {
   const [cvv, setCvv] = useState('');
   const [cardholderName, setCardholderName] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [useStripeElements, setUseStripeElements] = useState(false);
   const [costBreakdown, setCostBreakdown] = useState<{
     subtotal: number;
     vehicleFee: number;
@@ -136,7 +140,7 @@ export default function BookingPaymentScreen() {
       return;
     }
 
-    if (showAddCard && (!cardNumber || !expiryDate || !cvv || !cardholderName)) {
+    if (showAddCard && (!cardNumber || !expiryDate || !cvv || !cardholderName) && Platform.OS !== 'web') {
       Alert.alert('Missing Information', 'Please fill in all payment details');
       return;
     }
@@ -147,6 +151,19 @@ export default function BookingPaymentScreen() {
       console.log('[Payment] Starting payment process');
       const bookingId = 'booking-' + Date.now();
       const startCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      if (Platform.OS === 'web' && !selectedPaymentMethod) {
+        console.log('[Payment] Using Stripe Elements on web');
+        const paymentIntent = await stripeService.createPaymentIntent(
+          bookingId,
+          costBreakdown.total
+        );
+        
+        setClientSecret(paymentIntent.clientSecret);
+        setUseStripeElements(true);
+        setIsProcessing(false);
+        return;
+      }
       
       let paymentResult: { success: boolean; paymentIntentId?: string; error?: string; paymentMethodId?: string };
       {
@@ -246,6 +263,66 @@ export default function BookingPaymentScreen() {
       const errorMessage = error?.message || 'Unable to process payment. Please try again.';
       Alert.alert('Payment Failed', errorMessage);
     }
+  };
+
+  const handleStripeSuccess = async (paymentIntentId: string, paymentMethodId?: string) => {
+    try {
+      const bookingId = 'booking-' + Date.now();
+      const startCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      if (paymentMethodId && costBreakdown) {
+        console.log('[Payment] Saving new payment method');
+        try {
+          await stripeService.savePaymentMethod(paymentMethodId, true);
+          console.log('[Payment] Payment method saved successfully');
+        } catch (saveError) {
+          console.error('[Payment] Failed to save payment method:', saveError);
+        }
+      }
+
+      if (costBreakdown) {
+        await notificationService.notifyPaymentSuccess(bookingId, costBreakdown.total);
+      }
+      
+      setUseStripeElements(false);
+      setClientSecret(null);
+      
+      Alert.alert(
+        'Booking Confirmed!',
+        `Your protection service has been booked.\n\nStart Code: ${startCode}\n\nShare this code with your guard to begin service.`,
+        [
+          {
+            text: 'View Booking',
+            onPress: () => {
+              router.replace({
+                pathname: '/booking-active',
+                params: {
+                  bookingId,
+                  guardId: params.guardId,
+                  guardName: params.guardName,
+                  guardPhoto: params.guardPhoto,
+                  startCode,
+                  date: params.date,
+                  time: params.time,
+                  duration: params.duration,
+                  pickupAddress: params.pickupAddress,
+                  transactionId: paymentIntentId,
+                },
+              } as any);
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.error('[Payment] Post-payment error:', error);
+      Alert.alert('Error', 'Payment succeeded but booking failed. Please contact support.');
+    }
+  };
+
+  const handleStripeError = (error: string) => {
+    setUseStripeElements(false);
+    setClientSecret(null);
+    Alert.alert('Payment Failed', error);
   };
 
   const getCardBrandIcon = (brand: string) => {
@@ -445,22 +522,31 @@ export default function BookingPaymentScreen() {
           </View>
         )}
 
-        <TouchableOpacity
-          style={[styles.payButton, isProcessing && styles.payButtonDisabled]}
-          onPress={handlePayment}
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <ActivityIndicator color={Colors.background} />
-          ) : (
-            <>
-              <Lock size={20} color={Colors.background} />
-              <Text style={styles.payButtonText}>
-                {selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay'} ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {useStripeElements && clientSecret && costBreakdown && Platform.OS === 'web' ? (
+          <StripePaymentForm
+            clientSecret={clientSecret}
+            amount={costBreakdown.total}
+            onSuccess={handleStripeSuccess}
+            onError={handleStripeError}
+          />
+        ) : (
+          <TouchableOpacity
+            style={[styles.payButton, isProcessing && styles.payButtonDisabled]}
+            onPress={handlePayment}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <ActivityIndicator color={Colors.background} />
+            ) : (
+              <>
+                <Lock size={20} color={Colors.background} />
+                <Text style={styles.payButtonText}>
+                  {selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay'} ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.securityNote}>
           🔒 Your payment is secured with 256-bit encryption

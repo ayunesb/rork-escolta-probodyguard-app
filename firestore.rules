@@ -102,7 +102,7 @@ service cloud.firestore {
     match /guards/{guardId} {
       allow read: if true;
       allow create: if true;
-      allow update: if isAuthenticated();
+      allow update: if isAuthenticated() && (isOwner(guardId) || isAdmin());
       allow delete: if isAdmin();
     }
   }

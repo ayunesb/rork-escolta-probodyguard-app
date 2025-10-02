@@ -9,7 +9,7 @@ import {
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, initializeFirebaseServices } from '@/lib/firebase';
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
@@ -18,37 +18,52 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   useEffect(() => {
     let mounted = true;
-    const initTimeout = setTimeout(() => {
-      if (mounted) {
-        console.log('[Auth] Initialization timeout - proceeding without auth');
-        setIsLoading(false);
-        setIsInitialized(true);
-      }
-    }, 1000);
+    let unsubscribe: (() => void) | undefined;
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!mounted) return;
-      clearTimeout(initTimeout);
-      
-      if (firebaseUser) {
-        await loadUserFromFirestore(firebaseUser);
-      } else {
-        setUser(null);
-        setIsLoading(false);
-        setIsInitialized(true);
+    const initialize = async () => {
+      try {
+        console.log('[Auth] Initializing Firebase');
+        await initializeFirebaseServices();
+        
+        if (!mounted) return;
+
+        const authInstance = auth();
+        unsubscribe = onAuthStateChanged(
+          authInstance,
+          async (firebaseUser) => {
+            if (!mounted) return;
+            
+            if (firebaseUser) {
+              await loadUserFromFirestore(firebaseUser);
+            } else {
+              setUser(null);
+              setIsLoading(false);
+              setIsInitialized(true);
+            }
+          },
+          (error) => {
+            if (!mounted) return;
+            console.error('[Auth] Auth state change error:', error);
+            setIsLoading(false);
+            setIsInitialized(true);
+          }
+        );
+      } catch (error) {
+        console.error('[Auth] Initialization error:', error);
+        if (mounted) {
+          setIsLoading(false);
+          setIsInitialized(true);
+        }
       }
-    }, (error) => {
-      if (!mounted) return;
-      console.error('[Auth] Auth state change error:', error);
-      clearTimeout(initTimeout);
-      setIsLoading(false);
-      setIsInitialized(true);
-    });
+    };
+
+    initialize();
 
     return () => {
       mounted = false;
-      clearTimeout(initTimeout);
-      unsubscribe();
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, []);
 
@@ -57,7 +72,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('[Auth] Loading user from Firestore:', firebaseUser.uid);
       const startTime = Date.now();
       
-      const fetchPromise = getDoc(doc(db, 'users', firebaseUser.uid));
+      const dbInstance = db();
+      const fetchPromise = getDoc(doc(dbInstance, 'users', firebaseUser.uid));
       const timeoutPromise = new Promise<null>((_, reject) => 
         setTimeout(() => reject(new Error('Firestore timeout')), 1500)
       );
@@ -100,7 +116,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     try {
       console.log('[Auth] Signing in:', email);
       setIsLoading(true);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const authInstance = auth();
+      const userCredential = await signInWithEmailAndPassword(authInstance, email, password);
       console.log('[Auth] Firebase sign in successful');
       return { success: true };
     } catch (error: any) {
@@ -125,7 +142,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       console.log('[Auth] Signing up:', email, role);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const authInstance = auth();
+      const dbInstance = db();
+      const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
       
       const newUser: User = {
         id: userCredential.user.uid,
@@ -139,7 +158,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         createdAt: new Date().toISOString(),
       };
 
-      await setDoc(doc(db, 'users', userCredential.user.uid), newUser);
+      await setDoc(doc(dbInstance, 'users', userCredential.user.uid), newUser);
       setUser(newUser);
       return { success: true };
     } catch (error: any) {
@@ -155,7 +174,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const signOut = useCallback(async () => {
     try {
-      await firebaseSignOut(auth);
+      const authInstance = auth();
+      await firebaseSignOut(authInstance);
       setUser(null);
     } catch (error) {
       console.error('[Auth] Sign out error:', error);
@@ -166,8 +186,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     if (!user) return;
     
     try {
+      const dbInstance = db();
       const updatedUser = { ...user, ...updates };
-      await setDoc(doc(db, 'users', user.id), updatedUser, { merge: true });
+      await setDoc(doc(dbInstance, 'users', user.id), updatedUser, { merge: true });
       setUser(updatedUser);
     } catch (error) {
       console.error('[Auth] Update user error:', error);

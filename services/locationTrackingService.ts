@@ -94,7 +94,8 @@ export const startLocationTracking = async (
         console.log('[Location] Location update:', locationData);
 
         try {
-          await updateDoc(doc(db, 'users', userId), {
+          const dbInstance = db();
+          await updateDoc(doc(dbInstance, 'users', userId), {
             latitude: locationData.latitude,
             longitude: locationData.longitude,
             lastLocationUpdate: Timestamp.now(),

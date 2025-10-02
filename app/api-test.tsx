@@ -11,7 +11,7 @@ import { Stack } from 'expo-router';
 import { CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { trpcClient } from '@/lib/trpc';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, initializeFirebaseServices } from '@/lib/firebase';
 import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 interface TestResult {
@@ -26,7 +26,15 @@ export default function APITestScreen() {
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    runTests();
+    const init = async () => {
+      try {
+        await initializeFirebaseServices();
+      } catch (error) {
+        console.error('[APITest] Firebase init error:', error);
+      }
+      runTests();
+    };
+    init();
   }, []);
 
   const runTests = async () => {
@@ -68,7 +76,8 @@ export default function APITestScreen() {
     setTests([...results]);
 
     try {
-      const currentUser = auth.currentUser;
+      const authInstance = auth();
+      const currentUser = authInstance.currentUser;
       results[results.length - 1] = {
         name: 'Firebase Auth',
         status: 'success',
@@ -93,7 +102,8 @@ export default function APITestScreen() {
     setTests([...results]);
 
     try {
-      const usersRef = collection(db, 'users');
+      const dbInstance = db();
+      const usersRef = collection(dbInstance, 'users');
       const q = query(usersRef, limit(1));
       await getDocs(q);
       

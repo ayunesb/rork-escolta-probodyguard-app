@@ -34,7 +34,8 @@ export const sendMessage = async (
       timestamp: Timestamp.now(),
     };
 
-    const docRef = await addDoc(collection(db, 'messages'), message);
+    const dbInstance = db();
+    const docRef = await addDoc(collection(dbInstance, 'messages'), message);
 
     return {
       id: docRef.id,
@@ -54,8 +55,9 @@ export const subscribeToMessages = (
   try {
     console.log('[Chat] Subscribing to messages:', bookingId);
 
+    const dbInstance = db();
     const q = query(
-      collection(db, 'messages'),
+      collection(dbInstance, 'messages'),
       where('bookingId', '==', bookingId),
       orderBy('timestamp', 'asc')
     );
@@ -108,7 +110,8 @@ export const updateTypingStatus = async (
   try {
     console.log('[Chat] Updating typing status:', { bookingId, userId, isTyping });
 
-    const typingRef = doc(db, 'typing', `${bookingId}_${userId}`);
+    const dbInstance = db();
+    const typingRef = doc(dbInstance, 'typing', `${bookingId}_${userId}`);
     
     if (isTyping) {
       await updateDoc(typingRef, {
@@ -117,7 +120,7 @@ export const updateTypingStatus = async (
         isTyping: true,
         timestamp: serverTimestamp(),
       }).catch(async () => {
-        await addDoc(collection(db, 'typing'), {
+        await addDoc(collection(dbInstance, 'typing'), {
           bookingId,
           userId,
           isTyping: true,
@@ -143,8 +146,9 @@ export const subscribeToTypingStatus = (
   try {
     console.log('[Chat] Subscribing to typing status:', bookingId);
 
+    const dbInstance = db();
     const q = query(
-      collection(db, 'typing'),
+      collection(dbInstance, 'typing'),
       where('bookingId', '==', bookingId),
       where('isTyping', '==', true)
     );

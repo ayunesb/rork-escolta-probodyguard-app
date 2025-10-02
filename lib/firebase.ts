@@ -1,7 +1,7 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, initializeAuth, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 
 const firebaseConfig = {
@@ -13,56 +13,100 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:919834684647:web:60dad6457ad0f92b068642',
 };
 
-console.log('[Firebase] Initializing with config:', {
-  apiKey: firebaseConfig.apiKey ? '***' + firebaseConfig.apiKey.slice(-4) : 'missing',
-  projectId: firebaseConfig.projectId,
-  platform: Platform.OS,
-});
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+let storage: FirebaseStorage | undefined;
+let isInitializing = false;
+let initializationPromise: Promise<void> | null = null;
 
-let app: ReturnType<typeof initializeApp>;
-let auth: Auth;
-let db: Firestore;
-let storage: ReturnType<typeof getStorage>;
+const initializeFirebaseServices = async (): Promise<void> => {
+  if (app && auth && db && storage) {
+    return;
+  }
 
-const initializeFirebaseServices = () => {
+  if (isInitializing && initializationPromise) {
+    return initializationPromise;
+  }
 
-  try {
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  
-  if (Platform.OS === 'web') {
+  isInitializing = true;
+  initializationPromise = (async () => {
     try {
-      auth = initializeAuth(app, {
-        persistence: browserLocalPersistence,
-      });
-    } catch (e) {
-      auth = getAuth(app);
+      console.log('[Firebase] Starting initialization');
+      
+      app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+      
+      if (Platform.OS === 'web') {
+        try {
+          auth = initializeAuth(app, {
+            persistence: browserLocalPersistence,
+          });
+        } catch (e) {
+          auth = getAuth(app);
+        }
+        
+        try {
+          db = initializeFirestore(app, {
+            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+          });
+        } catch (e) {
+          db = getFirestore(app);
+        }
+      } else {
+        auth = getAuth(app);
+        db = getFirestore(app);
+      }
+      
+      if (__DEV__) {
+        (auth as any)._logFramework = () => {};
+      }
+      
+      storage = getStorage(app);
+      
+      console.log('[Firebase] Initialization complete');
+    } catch (error) {
+      console.error('[Firebase] Initialization error:', error);
+      throw error;
+    } finally {
+      isInitializing = false;
     }
-    
-    try {
-      db = initializeFirestore(app, {
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-      });
-    } catch (e) {
-      db = getFirestore(app);
-    }
-  } else {
-    auth = getAuth(app);
-    db = getFirestore(app);
-  }
-  
-  if (__DEV__) {
-    (auth as any)._logFramework = () => {};
-  }
-  
-  storage = getStorage(app);
-  
-    console.log('[Firebase] Initialization complete');
-  } catch (error) {
-    console.error('[Firebase] Initialization error:', error);
-    throw error;
-  }
+  })();
+
+  return initializationPromise;
 };
 
-initializeFirebaseServices();
+const getFirebaseApp = (): FirebaseApp => {
+  if (!app) {
+    throw new Error('Firebase not initialized. Call initializeFirebaseServices first.');
+  }
+  return app;
+};
 
-export { app, auth, db, storage };
+const getFirebaseAuth = (): Auth => {
+  if (!auth) {
+    throw new Error('Firebase Auth not initialized. Call initializeFirebaseServices first.');
+  }
+  return auth;
+};
+
+const getFirebaseDb = (): Firestore => {
+  if (!db) {
+    throw new Error('Firebase Firestore not initialized. Call initializeFirebaseServices first.');
+  }
+  return db;
+};
+
+const getFirebaseStorage = (): FirebaseStorage => {
+  if (!storage) {
+    throw new Error('Firebase Storage not initialized. Call initializeFirebaseServices first.');
+  }
+  return storage;
+};
+
+export { 
+  initializeFirebaseServices,
+  getFirebaseApp as app,
+  getFirebaseAuth as auth,
+  getFirebaseDb as db,
+  getFirebaseStorage as storage
+};

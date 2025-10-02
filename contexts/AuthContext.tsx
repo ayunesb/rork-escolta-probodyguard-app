@@ -33,9 +33,20 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('[Auth] Loading user from Firestore:', firebaseUser.uid);
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
       if (userDoc.exists()) {
-        const userData = userDoc.data() as User;
-        console.log('[Auth] User loaded successfully:', userData.email);
-        setUser(userData);
+        const userData = userDoc.data();
+        const user: User = {
+          id: userData.id || firebaseUser.uid,
+          email: userData.email,
+          role: userData.role,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          phone: userData.phone,
+          language: userData.language,
+          kycStatus: userData.kycStatus,
+          createdAt: userData.createdAt || new Date().toISOString(),
+        };
+        console.log('[Auth] User loaded successfully:', user.email);
+        setUser(user);
       } else {
         console.log('[Auth] User document does not exist');
         setUser(null);
@@ -56,9 +67,20 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       
       const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
       if (userDoc.exists()) {
-        const userData = userDoc.data() as User;
-        console.log('[Auth] User data loaded:', userData.email);
-        setUser(userData);
+        const userData = userDoc.data();
+        const user: User = {
+          id: userData.id || userCredential.user.uid,
+          email: userData.email,
+          role: userData.role,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          phone: userData.phone,
+          language: userData.language,
+          kycStatus: userData.kycStatus,
+          createdAt: userData.createdAt || new Date().toISOString(),
+        };
+        console.log('[Auth] User data loaded:', user.email);
+        setUser(user);
         setIsLoading(false);
         return { success: true };
       } else {

@@ -121,17 +121,20 @@ async function seedFirebase() {
 
         console.log(`  UID: ${userCredential.user.uid}`);
 
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
+        const kycStatus = userData.role === 'guard' ? 'approved' : 'pending';
+        const userDoc = {
+          id: userCredential.user.uid,
           email: userData.email,
           firstName: userData.firstName,
           lastName: userData.lastName,
           phone: userData.phone,
           role: userData.role,
           language: 'en',
-          kycStatus: userData.role === 'guard' ? 'approved' : 'pending',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
+          kycStatus,
+          createdAt: new Date().toISOString(),
+        };
+
+        await setDoc(doc(db, 'users', userCredential.user.uid), userDoc);
 
         console.log(`✅ Created user: ${userData.email}`);
       } catch (error: any) {

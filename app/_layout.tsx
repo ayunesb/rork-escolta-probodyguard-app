@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -10,11 +9,7 @@ import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { trpc, trpcReactClient } from "@/lib/trpc";
 
-let StripeProvider: any = null;
-if (Platform.OS !== 'web') {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  StripeProvider = require('@stripe/stripe-react-native').StripeProvider;
-}
+import { useStripeInit, StripeWrapper } from '@/services/stripeInit';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,11 +42,11 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  useStripeInit();
+
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
-
-  const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock';
 
   const AppContent = () => (
     <AuthProvider>
@@ -68,16 +63,9 @@ export default function RootLayout() {
       <trpc.Provider client={trpcReactClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            {Platform.OS !== 'web' && StripeProvider ? (
-              <StripeProvider
-                publishableKey={stripePublishableKey}
-                merchantIdentifier="merchant.app.rork.escolta-pro"
-              >
-                <AppContent />
-              </StripeProvider>
-            ) : (
+            <StripeWrapper>
               <AppContent />
-            )}
+            </StripeWrapper>
           </GestureHandlerRootView>
         </QueryClientProvider>
       </trpc.Provider>

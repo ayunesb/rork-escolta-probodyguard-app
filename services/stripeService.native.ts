@@ -1,4 +1,5 @@
 import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
+import { trpcClient } from '@/lib/trpc';
 
 export interface PaymentIntent {
   clientSecret: string;
@@ -18,28 +19,14 @@ export const createPaymentIntent = async (
   try {
     console.log('[Stripe] Creating payment intent:', { bookingId, amount });
 
-    const response = await fetch(
-      `${process.env.EXPO_PUBLIC_TOOLKIT_URL}/api/trpc/payments.createIntent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bookingId,
-          amount: Math.round(amount * 100),
-        }),
-      }
-    );
+    const result = await trpcClient.payments.createIntent.mutate({
+      bookingId,
+      amount: Math.round(amount * 100),
+    });
 
-    if (!response.ok) {
-      throw new Error('Failed to create payment intent');
-    }
-
-    const data = await response.json();
     return {
-      clientSecret: data.result.data.clientSecret,
-      paymentIntentId: data.result.data.paymentIntentId,
+      clientSecret: result.clientSecret,
+      paymentIntentId: result.paymentIntentId,
     };
   } catch (error) {
     console.error('[Stripe] Create payment intent error:', error);
@@ -97,23 +84,10 @@ export const refundPayment = async (
   try {
     console.log('[Stripe] Refunding payment:', { paymentIntentId, amount });
 
-    const response = await fetch(
-      `${process.env.EXPO_PUBLIC_TOOLKIT_URL}/api/trpc/payments.refund`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          paymentIntentId,
-          amount: amount ? Math.round(amount * 100) : undefined,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to process refund');
-    }
+    await trpcClient.payments.refund.mutate({
+      paymentIntentId,
+      amount: amount ? Math.round(amount * 100) : undefined,
+    });
 
     return { success: true };
   } catch (error: any) {

@@ -141,6 +141,8 @@ export default function BookingPaymentScreen() {
         Alert.alert('Missing Information', 'Please fill in all payment details');
         return;
       }
+    } else {
+      console.log('[Payment] DEMO MODE - Skipping payment validation');
     }
 
     setIsProcessing(true);
@@ -154,12 +156,37 @@ export default function BookingPaymentScreen() {
       
       if (DEMO_MODE) {
         console.log('[Payment] DEMO MODE - Bypassing payment processing');
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         paymentResult = {
           success: true,
           paymentIntentId: 'demo_pi_' + Date.now(),
         };
+        
+        if (showAddCard && cardNumber && expiryDate && cardholderName) {
+          console.log('[Payment] DEMO MODE - Simulating card save');
+          const expiryParts = expiryDate.split('/');
+          const newCard: SavedPaymentMethod = {
+            id: 'demo_card_' + Date.now(),
+            type: 'card',
+            stripePaymentMethodId: 'pm_demo_' + Date.now(),
+            brand: 'visa',
+            last4: cardNumber.slice(-4),
+            expiryMonth: parseInt(expiryParts[0] || '12', 10),
+            expiryYear: parseInt('20' + (expiryParts[1] || '34'), 10),
+            isDefault: savedCards.length === 0,
+            createdAt: new Date().toISOString(),
+          };
+          
+          try {
+            await updateUser({ 
+              savedPaymentMethods: [...savedCards, newCard] 
+            });
+            console.log('[Payment] DEMO MODE - Card saved successfully');
+          } catch (error) {
+            console.error('[Payment] DEMO MODE - Failed to save card:', error);
+          }
+        }
         
         console.log('[Payment] DEMO MODE - Payment simulated successfully');
       } else {
@@ -282,7 +309,8 @@ export default function BookingPaymentScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {DEMO_MODE && (
           <View style={styles.demoModeBanner}>
-            <Text style={styles.demoModeText}>🎭 DEMO MODE - Payment processing bypassed</Text>
+            <Text style={styles.demoModeText}>🎭 DEMO MODE - No actual payment required</Text>
+            <Text style={styles.demoModeSubtext}>You can optionally add a card for testing or proceed directly</Text>
           </View>
         )}
         
@@ -296,12 +324,11 @@ export default function BookingPaymentScreen() {
           </View>
         </View>
 
-        {!DEMO_MODE && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Lock size={20} color={Colors.gold} />
-              <Text style={styles.sectionTitle}>Payment Method</Text>
-            </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Lock size={20} color={Colors.gold} />
+            <Text style={styles.sectionTitle}>Payment Method{DEMO_MODE ? ' (Optional)' : ''}</Text>
+          </View>
 
           {savedCards.length > 0 && !showAddCard && (
             <View style={styles.savedCardsContainer}>
@@ -428,8 +455,7 @@ export default function BookingPaymentScreen() {
               <Text style={styles.cancelAddButtonText}>Use Saved Card</Text>
             </TouchableOpacity>
           )}
-          </View>
-        )}
+        </View>
 
         {costBreakdown && (
           <View style={styles.priceBreakdown}>
@@ -479,7 +505,10 @@ export default function BookingPaymentScreen() {
             <>
               <Lock size={20} color={Colors.background} />
               <Text style={styles.payButtonText}>
-                {DEMO_MODE ? 'Confirm Booking (Demo)' : (selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay')} ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
+                {DEMO_MODE 
+                  ? (showAddCard && cardNumber ? 'Save Card & Confirm Booking' : 'Confirm Booking (Demo)')
+                  : (selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay')
+                } ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
               </Text>
             </>
           )}
@@ -767,6 +796,12 @@ const styles = StyleSheet.create({
   demoModeText: {
     fontSize: 14,
     fontWeight: '600' as const,
+    color: '#856404',
+    textAlign: 'center' as const,
+    marginBottom: 4,
+  },
+  demoModeSubtext: {
+    fontSize: 12,
     color: '#856404',
     textAlign: 'center' as const,
   },

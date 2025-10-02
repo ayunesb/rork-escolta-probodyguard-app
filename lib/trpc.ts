@@ -13,6 +13,11 @@ const getBaseUrl = () => {
     return origin;
   }
 
+  if (process.env.EXPO_PUBLIC_TOOLKIT_URL) {
+    console.log('[tRPC] Using EXPO_PUBLIC_TOOLKIT_URL:', process.env.EXPO_PUBLIC_TOOLKIT_URL);
+    return process.env.EXPO_PUBLIC_TOOLKIT_URL;
+  }
+
   console.log('[tRPC] Using default localhost:8081');
   return "http://localhost:8081";
 };
@@ -45,11 +50,21 @@ export const trpcClient = createTRPCProxyClient<AppRouter>({
       },
       fetch(url, options) {
         console.log('[tRPC Client] Fetching:', url);
-        console.log('[tRPC Client] Options:', { method: options?.method, headers: options?.headers });
-        return fetch(url, options).then(response => {
+        console.log('[tRPC Client] Options:', { method: options?.method });
+        return fetch(url, options).then(async response => {
           console.log('[tRPC Client] Response status:', response.status);
-          if (!response.ok) {
-            console.error('[tRPC Client] Response not OK:', response.status, response.statusText);
+          console.log('[tRPC Client] Content-Type:', response.headers.get('content-type'));
+          
+          if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+            const clonedResponse = response.clone();
+            const text = await clonedResponse.text();
+            console.error('[tRPC Client] Response not OK or not JSON');
+            console.error('[tRPC Client] Status:', response.status, response.statusText);
+            console.error('[tRPC Client] Body preview:', text.substring(0, 500));
+            
+            if (text.includes('<!DOCTYPE')) {
+              throw new Error('API endpoint returned HTML instead of JSON. The backend may not be running or the route is incorrect.');
+            }
           }
           return response;
         }).catch(error => {

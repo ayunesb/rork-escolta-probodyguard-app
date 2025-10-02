@@ -27,7 +27,20 @@ app.use("*", async (c, next) => {
 });
 
 app.get('/api/health', (c) => {
-  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+  console.log('[Backend] Health check called');
+  return c.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    message: 'Backend is running'
+  });
+});
+
+app.get('/api/test', (c) => {
+  console.log('[Backend] Test endpoint called');
+  return c.json({ 
+    message: 'Test endpoint working',
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.use(

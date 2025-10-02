@@ -7,6 +7,12 @@ import { auth } from "@/lib/firebase";
 export const trpc = createTRPCReact<AppRouter>();
 
 const getBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin;
+    console.log('[tRPC] Using window origin:', origin);
+    return origin;
+  }
+
   if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
     return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
   }

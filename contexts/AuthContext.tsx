@@ -33,7 +33,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const loadUserFromFirestore = async (firebaseUser: FirebaseUser) => {
     try {
       console.log('[Auth] Loading user from Firestore:', firebaseUser.uid);
+      const startTime = Date.now();
+      
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      
+      console.log('[Auth] Firestore fetch took:', Date.now() - startTime, 'ms');
+      
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const user: User = {
@@ -49,7 +54,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           stripeCustomerId: userData.stripeCustomerId,
           savedPaymentMethods: userData.savedPaymentMethods || [],
         };
-        console.log('[Auth] User loaded successfully:', user.email);
+        console.log('[Auth] User loaded successfully in', Date.now() - startTime, 'ms');
         setUser(user);
       } else {
         console.log('[Auth] User document does not exist');

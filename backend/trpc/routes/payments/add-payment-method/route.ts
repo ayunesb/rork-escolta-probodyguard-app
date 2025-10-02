@@ -1,8 +1,9 @@
 import { protectedProcedure } from "@/backend/trpc/middleware/auth";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { SavedPaymentMethod } from "@/types";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
@@ -10,6 +11,7 @@ export const addPaymentMethodProcedure = protectedProcedure
   .input(
     z.object({
       paymentMethodId: z.string(),
+      setAsDefault: z.boolean().optional(),
     })
   )
   .mutation(async ({ input, ctx }) => {
@@ -46,23 +48,18 @@ export const addPaymentMethodProcedure = protectedProcedure
           },
           body: new URLSearchParams({
             email: userData.email,
-            name: `${userData.firstName} ${userData.lastName}`,
             'metadata[userId]': userId,
           }).toString(),
         });
 
         if (!customerResponse.ok) {
-          const error = await customerResponse.json();
-          console.error('[Payment] Create customer error:', error);
           throw new Error('Failed to create Stripe customer');
         }
 
         const customer = await customerResponse.json();
         stripeCustomerId = customer.id;
 
-        await updateDoc(userRef, {
-          stripeCustomerId,
-        });
+        await updateDoc(userRef, { stripeCustomerId });
       }
 
       const attachResponse = await fetch(
@@ -81,48 +78,36 @@ export const addPaymentMethodProcedure = protectedProcedure
 
       if (!attachResponse.ok) {
         const error = await attachResponse.json();
-        console.error('[Payment] Attach payment method error:', error);
-        throw new Error('Failed to attach payment method');
+        throw new Error(error.error?.message || 'Failed to attach payment method');
       }
 
       const paymentMethod = await attachResponse.json();
 
       const savedPaymentMethods = userData.savedPaymentMethods || [];
-      const isFirstCard = savedPaymentMethods.length === 0;
-
-      if (isFirstCard) {
-        await fetch(`https://api.stripe.com/v1/customers/${stripeCustomerId}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            invoice_settings: JSON.stringify({
-              default_payment_method: input.paymentMethodId,
-            }),
-          }).toString(),
+      
+      if (input.setAsDefault) {
+        savedPaymentMethods.forEach((pm: SavedPaymentMethod) => {
+          pm.isDefault = false;
         });
       }
 
-      const newPaymentMethod = {
-        id: paymentMethod.id,
-        type: 'card' as const,
+      const newPaymentMethod: SavedPaymentMethod = {
+        id: `pm_${Date.now()}`,
+        type: 'card',
         last4: paymentMethod.card.last4,
         brand: paymentMethod.card.brand,
         expiryMonth: paymentMethod.card.exp_month,
         expiryYear: paymentMethod.card.exp_year,
-        isDefault: isFirstCard,
+        isDefault: input.setAsDefault || savedPaymentMethods.length === 0,
         stripePaymentMethodId: paymentMethod.id,
         createdAt: new Date().toISOString(),
       };
 
-      const updatedPaymentMethods = isFirstCard
-        ? [newPaymentMethod]
-        : [...savedPaymentMethods, newPaymentMethod];
+      savedPaymentMethods.push(newPaymentMethod);
 
-      await updateDoc(userRef, {
-        savedPaymentMethods: updatedPaymentMethods,
+      await updateDoc(userRef, { 
+        savedPaymentMethods,
+        stripeCustomerId,
       });
 
       console.log('[Payment] Payment method added successfully');

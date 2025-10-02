@@ -1,10 +1,9 @@
 import { protectedProcedure } from "@/backend/trpc/middleware/auth";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+import { SavedPaymentMethod } from "@/types";
 
 export const setDefaultPaymentMethodProcedure = protectedProcedure
   .input(
@@ -15,13 +14,6 @@ export const setDefaultPaymentMethodProcedure = protectedProcedure
   .mutation(async ({ input, ctx }) => {
     try {
       console.log('[Payment] Set default payment method:', input);
-
-      if (!STRIPE_SECRET_KEY || STRIPE_SECRET_KEY.includes('your_secret_key')) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Stripe is not configured',
-        });
-      }
 
       const userId = ctx.userId;
       const userRef = doc(db, 'users', userId);
@@ -35,37 +27,14 @@ export const setDefaultPaymentMethodProcedure = protectedProcedure
       }
 
       const userData = userDoc.data();
-      const stripeCustomerId = userData.stripeCustomerId;
-
-      if (!stripeCustomerId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'No Stripe customer found',
-        });
-      }
-
-      await fetch(`https://api.stripe.com/v1/customers/${stripeCustomerId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          invoice_settings: JSON.stringify({
-            default_payment_method: input.paymentMethodId,
-          }),
-        }).toString(),
-      });
-
       const savedPaymentMethods = userData.savedPaymentMethods || [];
-      const updatedPaymentMethods = savedPaymentMethods.map((pm: any) => ({
+
+      const updatedMethods = savedPaymentMethods.map((pm: SavedPaymentMethod) => ({
         ...pm,
         isDefault: pm.stripePaymentMethodId === input.paymentMethodId,
       }));
 
-      await updateDoc(userRef, {
-        savedPaymentMethods: updatedPaymentMethods,
-      });
+      await updateDoc(userRef, { savedPaymentMethods: updatedMethods });
 
       console.log('[Payment] Default payment method set successfully');
 

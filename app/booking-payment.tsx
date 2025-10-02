@@ -142,9 +142,11 @@ export default function BookingPaymentScreen() {
     setIsProcessing(true);
 
     try {
+      console.log('[Payment] Starting payment process');
       const bookingId = 'booking-' + Date.now();
       
       const paymentMethodId = selectedPaymentMethod?.stripePaymentMethodId;
+      console.log('[Payment] Using payment method:', paymentMethodId ? 'saved' : 'new');
       
       const paymentIntent = await stripeService.createPaymentIntent(
         bookingId,
@@ -152,27 +154,35 @@ export default function BookingPaymentScreen() {
         paymentMethodId
       );
 
+      console.log('[Payment] Payment intent created:', paymentIntent.paymentIntentId);
+
       let paymentResult;
       
       if (paymentMethodId) {
+        console.log('[Payment] Using saved payment method - auto-confirming');
         paymentResult = {
           success: true,
           paymentIntentId: paymentIntent.paymentIntentId,
         };
       } else {
+        console.log('[Payment] Confirming new payment method');
         paymentResult = await stripeService.confirmPayment(
           paymentIntent.clientSecret
         );
       }
 
+      console.log('[Payment] Payment result:', paymentResult);
+
       if (!paymentResult.success) {
         throw new Error(paymentResult.error || 'Payment failed');
       }
 
+      console.log('[Payment] Sending notification');
       await notificationService.notifyPaymentSuccess(bookingId, costBreakdown.total);
       
       const startCode = Math.floor(100000 + Math.random() * 900000).toString();
       
+      console.log('[Payment] Payment completed successfully');
       setIsProcessing(false);
       
       Alert.alert(
@@ -201,10 +211,12 @@ export default function BookingPaymentScreen() {
           },
         ]
       );
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[Payment] Payment error:', error);
       setIsProcessing(false);
-      console.error('Payment error:', error);
-      Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
+      
+      const errorMessage = error?.message || 'Unable to process payment. Please try again.';
+      Alert.alert('Payment Failed', errorMessage);
     }
   };
 

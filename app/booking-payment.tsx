@@ -20,7 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import * as stripeService from '@/services/stripeService';
 import { SavedPaymentMethod } from '@/types';
 
-const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE === 'true';
+
 
 export default function BookingPaymentScreen() {
   const params = useLocalSearchParams<{
@@ -131,75 +131,25 @@ export default function BookingPaymentScreen() {
       return;
     }
 
-    if (!DEMO_MODE) {
-      if (!selectedPaymentMethod && !showAddCard) {
-        setShowAddCard(true);
-        return;
-      }
+    if (!selectedPaymentMethod && !showAddCard) {
+      setShowAddCard(true);
+      return;
+    }
 
-      if (showAddCard && (!cardNumber || !expiryDate || !cvv || !cardholderName)) {
-        Alert.alert('Missing Information', 'Please fill in all payment details');
-        return;
-      }
-    } else {
-      console.log('[Payment] DEMO MODE - Skipping payment validation');
-      
-      if (showAddCard && cardNumber && (!expiryDate || !cardholderName)) {
-        Alert.alert('Missing Information', 'Please fill in card details (CVV optional in demo)');
-        return;
-      }
+    if (showAddCard && (!cardNumber || !expiryDate || !cvv || !cardholderName)) {
+      Alert.alert('Missing Information', 'Please fill in all payment details');
+      return;
     }
 
     setIsProcessing(true);
 
     try {
-      console.log('[Payment] Starting payment process (DEMO_MODE:', DEMO_MODE, ')');
+      console.log('[Payment] Starting payment process');
       const bookingId = 'booking-' + Date.now();
       const startCode = Math.floor(100000 + Math.random() * 900000).toString();
       
       let paymentResult: { success: boolean; paymentIntentId?: string; error?: string; paymentMethodId?: string };
-      
-      if (DEMO_MODE) {
-        console.log('[Payment] DEMO MODE - Bypassing payment processing');
-        console.log('[Payment] DEMO MODE - showAddCard:', showAddCard);
-        console.log('[Payment] DEMO MODE - cardNumber:', cardNumber ? 'present' : 'empty');
-        
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        paymentResult = {
-          success: true,
-          paymentIntentId: 'demo_pi_' + Date.now(),
-        };
-        
-        if (showAddCard && cardNumber && expiryDate && cardholderName) {
-          console.log('[Payment] DEMO MODE - Simulating card save');
-          const expiryParts = expiryDate.split('/');
-          const last4 = cardNumber.replace(/\s/g, '').slice(-4);
-          
-          const newCard: SavedPaymentMethod = {
-            id: 'demo_card_' + Date.now(),
-            type: 'card',
-            stripePaymentMethodId: 'pm_demo_' + Date.now(),
-            brand: cardNumber.startsWith('4') ? 'visa' : cardNumber.startsWith('5') ? 'mastercard' : 'visa',
-            last4: last4,
-            expiryMonth: parseInt(expiryParts[0] || '12', 10),
-            expiryYear: parseInt('20' + (expiryParts[1] || '34'), 10),
-            isDefault: savedCards.length === 0,
-            createdAt: new Date().toISOString(),
-          };
-          
-          try {
-            await updateUser({ 
-              savedPaymentMethods: [...savedCards, newCard] 
-            });
-            console.log('[Payment] DEMO MODE - Card saved successfully:', newCard);
-          } catch (error) {
-            console.error('[Payment] DEMO MODE - Failed to save card:', error);
-          }
-        }
-        
-        console.log('[Payment] DEMO MODE - Payment simulated successfully');
-      } else {
+      {
         const paymentMethodId = selectedPaymentMethod?.stripePaymentMethodId;
         console.log('[Payment] Using payment method:', paymentMethodId ? 'saved' : 'new');
         
@@ -263,11 +213,9 @@ export default function BookingPaymentScreen() {
       console.log('[Payment] Payment completed successfully');
       setIsProcessing(false);
       
-      const demoWarning = DEMO_MODE ? '\n\n⚠️ DEMO MODE - No actual payment processed' : '';
-      
       Alert.alert(
         'Booking Confirmed!',
-        `Your protection service has been booked.\n\nStart Code: ${startCode}\n\nShare this code with your guard to begin service.${demoWarning}`,
+        `Your protection service has been booked.\n\nStart Code: ${startCode}\n\nShare this code with your guard to begin service.`,
         [
           {
             text: 'View Booking',
@@ -330,7 +278,7 @@ export default function BookingPaymentScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Lock size={20} color={Colors.gold} />
-            <Text style={styles.sectionTitle}>Payment Method{DEMO_MODE ? ' (Optional)' : ''}</Text>
+            <Text style={styles.sectionTitle}>Payment Method</Text>
           </View>
 
           {savedCards.length > 0 && !showAddCard && (
@@ -497,13 +445,6 @@ export default function BookingPaymentScreen() {
           </View>
         )}
 
-        {DEMO_MODE && (
-          <View style={styles.demoModeBanner}>
-            <Text style={styles.demoModeText}>🎭 DEMO MODE - No actual payment required</Text>
-            <Text style={styles.demoModeSubtext}>You can optionally add a card for testing or proceed directly</Text>
-          </View>
-        )}
-
         <TouchableOpacity
           style={[styles.payButton, isProcessing && styles.payButtonDisabled]}
           onPress={handlePayment}
@@ -515,10 +456,7 @@ export default function BookingPaymentScreen() {
             <>
               <Lock size={20} color={Colors.background} />
               <Text style={styles.payButtonText}>
-                {DEMO_MODE 
-                  ? (showAddCard && cardNumber ? 'Save Card & Confirm Booking' : 'Confirm Booking (Demo)')
-                  : (selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay')
-                } ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
+                {selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay'} ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
               </Text>
             </>
           )}
@@ -795,24 +733,5 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center' as const,
   },
-  demoModeBanner: {
-    backgroundColor: '#FFF3CD',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFE69C',
-    marginBottom: 16,
-  },
-  demoModeText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: '#856404',
-    textAlign: 'center' as const,
-    marginBottom: 4,
-  },
-  demoModeSubtext: {
-    fontSize: 12,
-    color: '#856404',
-    textAlign: 'center' as const,
-  },
+
 });

@@ -15,28 +15,23 @@ app.use("*", cors({
 }));
 
 app.use("*", async (c, next) => {
-  console.log(`[Backend] ${c.req.method} ${c.req.url}`);
+  const url = new URL(c.req.url);
+  console.log(`[Backend] ${c.req.method} ${url.pathname}`);
   try {
     await next();
+    console.log(`[Backend] Response status: ${c.res.status}`);
   } catch (error) {
     console.error('[Backend] Error:', error);
     throw error;
   }
 });
 
-app.use(
-  "/api/trpc/*",
-  trpcServer({
-    router: appRouter,
-    createContext,
-    onError({ error, path }) {
-      console.error(`[tRPC] Error on ${path}:`, error);
-    },
-  })
-);
+app.get('/api/health', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 app.use(
-  "/trpc/*",
+  "/api/trpc/*",
   trpcServer({
     router: appRouter,
     createContext,

@@ -143,6 +143,11 @@ export default function BookingPaymentScreen() {
       }
     } else {
       console.log('[Payment] DEMO MODE - Skipping payment validation');
+      
+      if (showAddCard && cardNumber && (!expiryDate || !cardholderName)) {
+        Alert.alert('Missing Information', 'Please fill in card details (CVV optional in demo)');
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -156,7 +161,10 @@ export default function BookingPaymentScreen() {
       
       if (DEMO_MODE) {
         console.log('[Payment] DEMO MODE - Bypassing payment processing');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('[Payment] DEMO MODE - showAddCard:', showAddCard);
+        console.log('[Payment] DEMO MODE - cardNumber:', cardNumber ? 'present' : 'empty');
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         paymentResult = {
           success: true,
@@ -166,12 +174,14 @@ export default function BookingPaymentScreen() {
         if (showAddCard && cardNumber && expiryDate && cardholderName) {
           console.log('[Payment] DEMO MODE - Simulating card save');
           const expiryParts = expiryDate.split('/');
+          const last4 = cardNumber.replace(/\s/g, '').slice(-4);
+          
           const newCard: SavedPaymentMethod = {
             id: 'demo_card_' + Date.now(),
             type: 'card',
             stripePaymentMethodId: 'pm_demo_' + Date.now(),
-            brand: 'visa',
-            last4: cardNumber.slice(-4),
+            brand: cardNumber.startsWith('4') ? 'visa' : cardNumber.startsWith('5') ? 'mastercard' : 'visa',
+            last4: last4,
             expiryMonth: parseInt(expiryParts[0] || '12', 10),
             expiryYear: parseInt('20' + (expiryParts[1] || '34'), 10),
             isDefault: savedCards.length === 0,
@@ -182,7 +192,7 @@ export default function BookingPaymentScreen() {
             await updateUser({ 
               savedPaymentMethods: [...savedCards, newCard] 
             });
-            console.log('[Payment] DEMO MODE - Card saved successfully');
+            console.log('[Payment] DEMO MODE - Card saved successfully:', newCard);
           } catch (error) {
             console.error('[Payment] DEMO MODE - Failed to save card:', error);
           }

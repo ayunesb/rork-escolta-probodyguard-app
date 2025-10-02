@@ -7,7 +7,10 @@ import {
   onSnapshot,
   Timestamp,
   QuerySnapshot,
-  DocumentData
+  DocumentData,
+  updateDoc,
+  doc,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ChatMessage, Language, UserRole } from '@/types';
@@ -94,5 +97,75 @@ export const translateMessage = async (
   } catch (error) {
     console.error('[Chat] Translation error:', error);
     return text;
+  }
+};
+
+export const updateTypingStatus = async (
+  bookingId: string,
+  userId: string,
+  isTyping: boolean
+): Promise<void> => {
+  try {
+    console.log('[Chat] Updating typing status:', { bookingId, userId, isTyping });
+
+    const typingRef = doc(db, 'typing', `${bookingId}_${userId}`);
+    
+    if (isTyping) {
+      await updateDoc(typingRef, {
+        bookingId,
+        userId,
+        isTyping: true,
+        timestamp: serverTimestamp(),
+      }).catch(async () => {
+        await addDoc(collection(db, 'typing'), {
+          bookingId,
+          userId,
+          isTyping: true,
+          timestamp: serverTimestamp(),
+        });
+      });
+    } else {
+      await updateDoc(typingRef, {
+        isTyping: false,
+        timestamp: serverTimestamp(),
+      }).catch(() => {});
+    }
+  } catch (error) {
+    console.error('[Chat] Update typing status error:', error);
+  }
+};
+
+export const subscribeToTypingStatus = (
+  bookingId: string,
+  currentUserId: string,
+  callback: (isTyping: boolean, userId: string) => void
+): (() => void) => {
+  try {
+    console.log('[Chat] Subscribing to typing status:', bookingId);
+
+    const q = query(
+      collection(db, 'typing'),
+      where('bookingId', '==', bookingId),
+      where('isTyping', '==', true)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.userId !== currentUserId) {
+          const timestamp = data.timestamp?.toDate?.()?.getTime() || 0;
+          const now = Date.now();
+          
+          if (now - timestamp < 5000) {
+            callback(true, data.userId);
+          }
+        }
+      });
+    });
+
+    return unsubscribe;
+  } catch (error) {
+    console.error('[Chat] Subscribe to typing error:', error);
+    return () => {};
   }
 };

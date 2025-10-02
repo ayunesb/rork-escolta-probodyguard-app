@@ -110,6 +110,7 @@ async function seedFirebase() {
 
   try {
     console.log('\n👥 Creating users...');
+    
     for (const userData of demoUsers) {
       try {
         console.log(`\n📝 Creating user: ${userData.email}`);
@@ -126,7 +127,7 @@ async function seedFirebase() {
           console.log(`  UID: ${userCredential.user.uid}`);
         } catch (error: any) {
           if (error.code === 'auth/email-already-in-use') {
-            console.log(`  ⚠️  User exists, signing in to update document...`);
+            console.log(`  ⚠️  User already exists: ${userData.email}`);
             userCredential = await signInWithEmailAndPassword(
               auth,
               userData.email,
@@ -163,6 +164,11 @@ async function seedFirebase() {
     }
 
     console.log('\n🛡️  Creating guard profiles...');
+    console.log('  Signing in as admin to create guard profiles...');
+    
+    await signInWithEmailAndPassword(auth, 'admin@demo.com', 'demo123');
+    console.log('  ✅ Signed in as admin');
+    
     for (const guard of demoGuards) {
       try {
         console.log(`\n📝 Creating guard profile: ${guard.name}`);
@@ -178,6 +184,9 @@ async function seedFirebase() {
         console.error(`   Message: ${error.message}`);
       }
     }
+    
+    await signOut(auth);
+    console.log('\n  ✅ Signed out')
 
     console.log('✅ Firebase seeding completed!');
     console.log('\n📋 Demo Accounts:');

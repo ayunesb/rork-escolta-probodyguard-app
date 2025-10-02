@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -113,13 +113,30 @@ async function seedFirebase() {
     for (const userData of demoUsers) {
       try {
         console.log(`\n📝 Creating user: ${userData.email}`);
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          userData.email,
-          userData.password
-        );
-
-        console.log(`  UID: ${userCredential.user.uid}`);
+        let userCredential;
+        let isNewUser = false;
+        
+        try {
+          userCredential = await createUserWithEmailAndPassword(
+            auth,
+            userData.email,
+            userData.password
+          );
+          isNewUser = true;
+          console.log(`  UID: ${userCredential.user.uid}`);
+        } catch (error: any) {
+          if (error.code === 'auth/email-already-in-use') {
+            console.log(`  ⚠️  User exists, signing in to update document...`);
+            userCredential = await signInWithEmailAndPassword(
+              auth,
+              userData.email,
+              userData.password
+            );
+            console.log(`  UID: ${userCredential.user.uid}`);
+          } else {
+            throw error;
+          }
+        }
 
         const kycStatus = userData.role === 'guard' ? 'approved' : 'pending';
         const userDoc = {
@@ -135,16 +152,13 @@ async function seedFirebase() {
         };
 
         await setDoc(doc(db, 'users', userCredential.user.uid), userDoc);
+        await signOut(auth);
 
-        console.log(`✅ Created user: ${userData.email}`);
+        console.log(`✅ ${isNewUser ? 'Created' : 'Updated'} user: ${userData.email}`);
       } catch (error: any) {
-        if (error.code === 'auth/email-already-in-use') {
-          console.log(`⚠️  User already exists: ${userData.email}`);
-        } else {
-          console.error(`❌ Error creating user ${userData.email}:`);
-          console.error(`   Code: ${error.code}`);
-          console.error(`   Message: ${error.message}`);
-        }
+        console.error(`❌ Error creating user ${userData.email}:`);
+        console.error(`   Code: ${error.code}`);
+        console.error(`   Message: ${error.message}`);
       }
     }
 

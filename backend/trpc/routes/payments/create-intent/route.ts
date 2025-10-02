@@ -1,17 +1,20 @@
-import { publicProcedure } from "@/backend/trpc/create-context";
+import { protectedProcedure } from "@/backend/trpc/middleware/auth";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
-export default publicProcedure
+export default protectedProcedure
   .input(
     z.object({
       bookingId: z.string(),
       amount: z.number().min(50),
+      paymentMethodId: z.string().optional(),
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     try {
       console.log('[Payment] Create intent:', input);
 
@@ -23,18 +26,45 @@ export default publicProcedure
         };
       }
 
+      const userId = ctx.userId;
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      const userData = userDoc.data();
+      const stripeCustomerId = userData.stripeCustomerId;
+
+      const params: Record<string, string> = {
+        amount: input.amount.toString(),
+        currency: 'usd',
+        'metadata[bookingId]': input.bookingId,
+      };
+
+      if (stripeCustomerId) {
+        params.customer = stripeCustomerId;
+      }
+
+      if (input.paymentMethodId) {
+        params.payment_method = input.paymentMethodId;
+        params.confirm = 'true';
+        params.return_url = 'escoltapro://payment-return';
+      } else {
+        params['automatic_payment_methods[enabled]'] = 'true';
+      }
+
       const response = await fetch('https://api.stripe.com/v1/payment_intents', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: new URLSearchParams({
-          amount: input.amount.toString(),
-          currency: 'usd',
-          'metadata[bookingId]': input.bookingId,
-          'automatic_payment_methods[enabled]': 'true',
-        }).toString(),
+        body: new URLSearchParams(params).toString(),
       });
 
       if (!response.ok) {

@@ -12,12 +12,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { CreditCard, Lock, ChevronLeft } from 'lucide-react-native';
+import { CreditCard, Lock, ChevronLeft, Plus, Trash2, Check } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { paymentService } from '@/services/paymentService';
 import { notificationService } from '@/services/notificationService';
-
+import { useAuth } from '@/contexts/AuthContext';
 import * as stripeService from '@/services/stripeService';
+import { SavedPaymentMethod } from '@/types';
 
 export default function BookingPaymentScreen() {
   const params = useLocalSearchParams<{
@@ -37,7 +38,10 @@ export default function BookingPaymentScreen() {
   
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user, updateUser } = useAuth();
   
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SavedPaymentMethod | null>(null);
+  const [showAddCard, setShowAddCard] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
@@ -50,6 +54,15 @@ export default function BookingPaymentScreen() {
     platformFee: number;
     total: number;
   } | null>(null);
+
+  const savedCards = user?.savedPaymentMethods || [];
+
+  useEffect(() => {
+    if (savedCards.length > 0 && !selectedPaymentMethod) {
+      const defaultCard = savedCards.find(card => card.isDefault) || savedCards[0];
+      setSelectedPaymentMethod(defaultCard);
+    }
+  }, [savedCards, selectedPaymentMethod]);
 
   const calculateCost = useCallback(async () => {
     const hourlyRate = parseFloat(params.totalAmount) / parseFloat(params.duration);
@@ -67,49 +80,94 @@ export default function BookingPaymentScreen() {
     calculateCost();
   }, [calculateCost]);
 
+  const handleRemoveCard = async (paymentMethodId: string) => {
+    Alert.alert(
+      'Remove Card',
+      'Are you sure you want to remove this payment method?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedCards = savedCards.filter(
+                card => card.stripePaymentMethodId !== paymentMethodId
+              );
+              await updateUser({ savedPaymentMethods: updatedCards });
+              
+              if (selectedPaymentMethod?.stripePaymentMethodId === paymentMethodId) {
+                setSelectedPaymentMethod(updatedCards[0] || null);
+              }
+            } catch (error) {
+              console.error('Remove card error:', error);
+              Alert.alert('Error', 'Failed to remove card');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSetDefaultCard = async (paymentMethodId: string) => {
+    try {
+      const updatedCards = savedCards.map(card => ({
+        ...card,
+        isDefault: card.stripePaymentMethodId === paymentMethodId,
+      }));
+      await updateUser({ savedPaymentMethods: updatedCards });
+      setSelectedPaymentMethod(updatedCards.find(c => c.isDefault) || null);
+    } catch (error) {
+      console.error('Set default card error:', error);
+      Alert.alert('Error', 'Failed to set default card');
+    }
+  };
+
   const handlePayment = async () => {
-    if (!cardNumber || !expiryDate || !cvv || !cardholderName) {
-      Alert.alert('Missing Information', 'Please fill in all payment details');
+    if (!costBreakdown) {
+      Alert.alert('Error', 'Unable to calculate cost. Please try again.');
       return;
     }
 
-    if (!costBreakdown) {
-      Alert.alert('Error', 'Unable to calculate cost. Please try again.');
+    if (!selectedPaymentMethod && !showAddCard) {
+      setShowAddCard(true);
+      return;
+    }
+
+    if (showAddCard && (!cardNumber || !expiryDate || !cvv || !cardholderName)) {
+      Alert.alert('Missing Information', 'Please fill in all payment details');
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      await paymentService.addPaymentMethod({
-        type: 'card',
-        last4: cardNumber.slice(-4),
-        brand: 'visa',
-        expiryMonth: parseInt(expiryDate.split('/')[0]),
-        expiryYear: parseInt('20' + expiryDate.split('/')[1]),
-        isDefault: true,
-      });
-
       const bookingId = 'booking-' + Date.now();
+      
+      const paymentMethodId = selectedPaymentMethod?.stripePaymentMethodId;
       
       const paymentIntent = await stripeService.createPaymentIntent(
         bookingId,
-        costBreakdown.total
+        costBreakdown.total,
+        paymentMethodId
       );
 
-      const paymentResult = await stripeService.confirmPayment(
-        paymentIntent.clientSecret
-      );
+      let paymentResult;
+      
+      if (paymentMethodId) {
+        paymentResult = {
+          success: true,
+          paymentIntentId: paymentIntent.paymentIntentId,
+        };
+      } else {
+        paymentResult = await stripeService.confirmPayment(
+          paymentIntent.clientSecret
+        );
+      }
 
       if (!paymentResult.success) {
         throw new Error(paymentResult.error || 'Payment failed');
       }
-
-      const transaction = {
-        id: paymentResult.paymentIntentId || paymentIntent.paymentIntentId,
-        amount: costBreakdown.total,
-        status: 'succeeded',
-      };
 
       await notificationService.notifyPaymentSuccess(bookingId, costBreakdown.total);
       
@@ -136,7 +194,7 @@ export default function BookingPaymentScreen() {
                   time: params.time,
                   duration: params.duration,
                   pickupAddress: params.pickupAddress,
-                  transactionId: transaction.id,
+                  transactionId: paymentResult.paymentIntentId || paymentIntent.paymentIntentId,
                 },
               } as any);
             },
@@ -148,6 +206,10 @@ export default function BookingPaymentScreen() {
       console.error('Payment error:', error);
       Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
     }
+  };
+
+  const getCardBrandIcon = (brand: string) => {
+    return '💳';
   };
 
   return (
@@ -176,65 +238,134 @@ export default function BookingPaymentScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Lock size={20} color={Colors.gold} />
-            <Text style={styles.sectionTitle}>Secure Payment</Text>
+            <Text style={styles.sectionTitle}>Payment Method</Text>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Card Number</Text>
-            <View style={styles.inputContainer}>
-              <CreditCard size={20} color={Colors.textSecondary} />
-              <TextInput
-                style={styles.input}
-                value={cardNumber}
-                onChangeText={setCardNumber}
-                placeholder="1234 5678 9012 3456"
-                placeholderTextColor={Colors.textTertiary}
-                keyboardType="numeric"
-                maxLength={19}
-              />
+          {savedCards.length > 0 && !showAddCard && (
+            <View style={styles.savedCardsContainer}>
+              {savedCards.map((card) => (
+                <TouchableOpacity
+                  key={card.id}
+                  style={[
+                    styles.savedCard,
+                    selectedPaymentMethod?.id === card.id && styles.savedCardSelected,
+                  ]}
+                  onPress={() => setSelectedPaymentMethod(card)}
+                >
+                  <View style={styles.savedCardLeft}>
+                    <Text style={styles.cardBrandIcon}>{getCardBrandIcon(card.brand)}</Text>
+                    <View>
+                      <Text style={styles.savedCardBrand}>
+                        {card.brand.toUpperCase()} •••• {card.last4}
+                      </Text>
+                      <Text style={styles.savedCardExpiry}>
+                        Expires {card.expiryMonth}/{card.expiryYear}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.savedCardRight}>
+                    {selectedPaymentMethod?.id === card.id && (
+                      <View style={styles.selectedBadge}>
+                        <Check size={16} color={Colors.background} />
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      onPress={() => handleRemoveCard(card.stripePaymentMethodId)}
+                      style={styles.removeButton}
+                    >
+                      <Trash2 size={18} color={Colors.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-          </View>
+          )}
 
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Expiry Date</Text>
-              <TextInput
-                style={styles.inputField}
-                value={expiryDate}
-                onChangeText={setExpiryDate}
-                placeholder="MM/YY"
-                placeholderTextColor={Colors.textTertiary}
-                keyboardType="numeric"
-                maxLength={5}
-              />
-            </View>
+          {(showAddCard || savedCards.length === 0) && (
+            <>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Card Number</Text>
+                <View style={styles.inputContainer}>
+                  <CreditCard size={20} color={Colors.textSecondary} />
+                  <TextInput
+                    style={styles.input}
+                    value={cardNumber}
+                    onChangeText={setCardNumber}
+                    placeholder="4242 4242 4242 4242"
+                    placeholderTextColor={Colors.textTertiary}
+                    keyboardType="numeric"
+                    maxLength={19}
+                  />
+                </View>
+              </View>
 
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>CVV</Text>
-              <TextInput
-                style={styles.inputField}
-                value={cvv}
-                onChangeText={setCvv}
-                placeholder="123"
-                placeholderTextColor={Colors.textTertiary}
-                keyboardType="numeric"
-                maxLength={4}
-                secureTextEntry
-              />
-            </View>
-          </View>
+              <View style={styles.row}>
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Expiry Date</Text>
+                  <TextInput
+                    style={styles.inputField}
+                    value={expiryDate}
+                    onChangeText={setExpiryDate}
+                    placeholder="MM/YY"
+                    placeholderTextColor={Colors.textTertiary}
+                    keyboardType="numeric"
+                    maxLength={5}
+                  />
+                </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Cardholder Name</Text>
-            <TextInput
-              style={styles.inputField}
-              value={cardholderName}
-              onChangeText={setCardholderName}
-              placeholder="John Doe"
-              placeholderTextColor={Colors.textTertiary}
-              autoCapitalize="words"
-            />
-          </View>
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>CVV</Text>
+                  <TextInput
+                    style={styles.inputField}
+                    value={cvv}
+                    onChangeText={setCvv}
+                    placeholder="123"
+                    placeholderTextColor={Colors.textTertiary}
+                    keyboardType="numeric"
+                    maxLength={4}
+                    secureTextEntry
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Cardholder Name</Text>
+                <TextInput
+                  style={styles.inputField}
+                  value={cardholderName}
+                  onChangeText={setCardholderName}
+                  placeholder="John Doe"
+                  placeholderTextColor={Colors.textTertiary}
+                  autoCapitalize="words"
+                />
+              </View>
+            </>
+          )}
+
+          {savedCards.length > 0 && !showAddCard && (
+            <TouchableOpacity
+              style={styles.addCardButton}
+              onPress={() => setShowAddCard(true)}
+            >
+              <Plus size={20} color={Colors.gold} />
+              <Text style={styles.addCardButtonText}>Add New Card</Text>
+            </TouchableOpacity>
+          )}
+
+          {showAddCard && savedCards.length > 0 && (
+            <TouchableOpacity
+              style={styles.cancelAddButton}
+              onPress={() => {
+                setShowAddCard(false);
+                setCardNumber('');
+                setExpiryDate('');
+                setCvv('');
+                setCardholderName('');
+              }}
+            >
+              <Text style={styles.cancelAddButtonText}>Use Saved Card</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {costBreakdown && (
@@ -284,7 +415,9 @@ export default function BookingPaymentScreen() {
           ) : (
             <>
               <Lock size={20} color={Colors.background} />
-              <Text style={styles.payButtonText}>Pay ${costBreakdown?.total.toFixed(2) || params.totalAmount}</Text>
+              <Text style={styles.payButtonText}>
+                {selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay'} ${costBreakdown?.total.toFixed(2) || params.totalAmount}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -372,6 +505,86 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700' as const,
     color: Colors.textPrimary,
+  },
+  savedCardsContainer: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  savedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    padding: 16,
+  },
+  savedCardSelected: {
+    borderColor: Colors.gold,
+    backgroundColor: Colors.surfaceLight,
+  },
+  savedCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  cardBrandIcon: {
+    fontSize: 24,
+  },
+  savedCardBrand: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  savedCardExpiry: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  savedCardRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  selectedBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeButton: {
+    padding: 4,
+  },
+  addCardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.gold,
+    borderRadius: 12,
+    padding: 16,
+    borderStyle: 'dashed' as const,
+  },
+  addCardButtonText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: Colors.gold,
+  },
+  cancelAddButton: {
+    alignItems: 'center',
+    padding: 12,
+    marginTop: 8,
+  },
+  cancelAddButtonText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textDecorationLine: 'underline' as const,
   },
   inputGroup: {
     marginBottom: 16,

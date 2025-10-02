@@ -13,14 +13,16 @@ export interface PaymentResult {
 
 export const createPaymentIntent = async (
   bookingId: string,
-  amount: number
+  amount: number,
+  paymentMethodId?: string
 ): Promise<PaymentIntent> => {
   try {
-    console.log('[Stripe Web] Creating payment intent:', { bookingId, amount });
+    console.log('[Stripe Web] Creating payment intent:', { bookingId, amount, paymentMethodId });
 
     const result = await trpcClient.payments.createIntent.mutate({
       bookingId,
       amount: Math.round(amount * 100),
+      paymentMethodId,
     });
 
     return {

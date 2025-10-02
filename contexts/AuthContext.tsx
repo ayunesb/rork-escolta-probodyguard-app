@@ -14,6 +14,7 @@ import { auth, db } from '@/lib/firebase';
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -22,6 +23,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       } else {
         setUser(null);
         setIsLoading(false);
+        setIsInitialized(true);
       }
     });
 
@@ -44,6 +46,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           language: userData.language,
           kycStatus: userData.kycStatus,
           createdAt: userData.createdAt || new Date().toISOString(),
+          stripeCustomerId: userData.stripeCustomerId,
+          savedPaymentMethods: userData.savedPaymentMethods || [],
         };
         console.log('[Auth] User loaded successfully:', user.email);
         setUser(user);
@@ -56,40 +60,20 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       setUser(null);
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
   };
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       console.log('[Auth] Signing in:', email);
+      setIsLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('[Auth] Firebase sign in successful, loading user data...');
-      
-      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const user: User = {
-          id: userData.id || userCredential.user.uid,
-          email: userData.email,
-          role: userData.role,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          phone: userData.phone,
-          language: userData.language,
-          kycStatus: userData.kycStatus,
-          createdAt: userData.createdAt || new Date().toISOString(),
-        };
-        console.log('[Auth] User data loaded:', user.email);
-        setUser(user);
-        setIsLoading(false);
-        return { success: true };
-      } else {
-        console.error('[Auth] User document not found in Firestore');
-        await firebaseSignOut(auth);
-        return { success: false, error: 'User data not found' };
-      }
+      console.log('[Auth] Firebase sign in successful');
+      return { success: true };
     } catch (error: any) {
       console.error('[Auth] Sign in error:', error);
+      setIsLoading(false);
       return { 
         success: false, 
         error: error.code === 'auth/invalid-credential' 

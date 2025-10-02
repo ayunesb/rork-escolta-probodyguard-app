@@ -12,7 +12,7 @@ export interface PaymentResult {
 }
 
 let stripeServiceImpl: {
-  createPaymentIntent: (bookingId: string, amount: number) => Promise<PaymentIntent>;
+  createPaymentIntent: (bookingId: string, amount: number, paymentMethodId?: string) => Promise<PaymentIntent>;
   confirmPayment: (clientSecret: string) => Promise<PaymentResult>;
   refundPayment: (paymentIntentId: string, amount?: number) => Promise<{ success: boolean; error?: string }>;
 };

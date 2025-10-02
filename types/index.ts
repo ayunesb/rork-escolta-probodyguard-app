@@ -18,6 +18,18 @@ export type DressCode = 'suit' | 'business_casual' | 'tactical' | 'casual';
 
 export type KYCStatus = 'pending' | 'approved' | 'rejected';
 
+export interface SavedPaymentMethod {
+  id: string;
+  type: 'card';
+  last4: string;
+  brand: string;
+  expiryMonth: number;
+  expiryYear: number;
+  isDefault: boolean;
+  stripePaymentMethodId: string;
+  createdAt: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -28,6 +40,8 @@ export interface User {
   language: Language;
   kycStatus: KYCStatus;
   createdAt: string;
+  stripeCustomerId?: string;
+  savedPaymentMethods?: SavedPaymentMethod[];
 }
 
 export interface Client extends User {

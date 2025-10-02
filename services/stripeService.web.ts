@@ -19,6 +19,7 @@ export const createPaymentIntent = async (
 ): Promise<PaymentIntent> => {
   try {
     console.log('[Stripe Web] Creating payment intent:', { bookingId, amount, paymentMethodId });
+    console.log('[Stripe Web] Amount in cents:', Math.round(amount * 100));
 
     const result = await trpcClient.payments.createIntent.mutate({
       bookingId,
@@ -26,12 +27,24 @@ export const createPaymentIntent = async (
       paymentMethodId,
     });
 
+    console.log('[Stripe Web] Payment intent created successfully:', result);
+
     return {
       clientSecret: result.clientSecret,
       paymentIntentId: result.paymentIntentId,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Stripe Web] Create payment intent error:', error);
+    console.error('[Stripe Web] Error details:', {
+      message: error?.message,
+      code: error?.code,
+      data: error?.data,
+    });
+    
+    if (error?.message?.includes('fetch')) {
+      throw new Error('Unable to connect to payment server. Please check your internet connection and try again.');
+    }
+    
     throw error;
   }
 };

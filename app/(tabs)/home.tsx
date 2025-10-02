@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { Shield, Star, MapPin, Languages, Award, ChevronRight, UserPlus, TrendingUp, DollarSign, Users, AlertCircle, Map, List, Calendar } from 'lucide-react-native';
+import { Shield, Star, MapPin, Languages, Award, ChevronRight, UserPlus, TrendingUp, DollarSign, Users, AlertCircle, Map, List, Calendar, Bug } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
@@ -198,6 +198,12 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>Elite security professionals at your service</Text>
         </View>
         <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.debugButton}
+            onPress={() => router.push('/api-test' as any)}
+          >
+            <Bug size={20} color={Colors.warning} />
+          </TouchableOpacity>
           {Platform.OS !== 'web' && (
             <TouchableOpacity
               style={styles.viewToggle}
@@ -400,6 +406,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  debugButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.warning + '20',
+    borderWidth: 1,
+    borderColor: Colors.warning,
     alignItems: 'center',
     justifyContent: 'center',
   },

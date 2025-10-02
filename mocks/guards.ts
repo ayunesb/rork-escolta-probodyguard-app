@@ -15,7 +15,7 @@ export const mockGuards: Guard[] = [
     height: 185,
     weight: 95,
     languages: ['en', 'es'],
-    hourlyRate: 150,
+    hourlyRate: 2700,
     photos: [
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
@@ -53,7 +53,7 @@ export const mockGuards: Guard[] = [
     height: 190,
     weight: 100,
     languages: ['en', 'fr'],
-    hourlyRate: 175,
+    hourlyRate: 3150,
     photos: [
       'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
       'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
@@ -91,7 +91,7 @@ export const mockGuards: Guard[] = [
     height: 170,
     weight: 65,
     languages: ['en', 'es', 'fr'],
-    hourlyRate: 160,
+    hourlyRate: 2880,
     photos: [
       'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
       'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400',
@@ -130,7 +130,7 @@ export const mockGuards: Guard[] = [
     height: 180,
     weight: 88,
     languages: ['en', 'de'],
-    hourlyRate: 145,
+    hourlyRate: 2610,
     photos: [
       'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400',
       'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400',

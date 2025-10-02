@@ -386,33 +386,33 @@ export default function BookingPaymentScreen() {
             
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Service ({params.duration}h)</Text>
-              <Text style={styles.breakdownValue}>${costBreakdown.subtotal.toFixed(2)}</Text>
+              <Text style={styles.breakdownValue}>${costBreakdown.subtotal.toFixed(2)} MXN</Text>
             </View>
             
             {costBreakdown.vehicleFee > 0 && (
               <View style={styles.breakdownRow}>
                 <Text style={styles.breakdownLabel}>Armored Vehicle Fee</Text>
-                <Text style={styles.breakdownValue}>${costBreakdown.vehicleFee.toFixed(2)}</Text>
+                <Text style={styles.breakdownValue}>${costBreakdown.vehicleFee.toFixed(2)} MXN</Text>
               </View>
             )}
             
             {costBreakdown.protectionFee > 0 && (
               <View style={styles.breakdownRow}>
                 <Text style={styles.breakdownLabel}>Armed Protection Fee</Text>
-                <Text style={styles.breakdownValue}>${costBreakdown.protectionFee.toFixed(2)}</Text>
+                <Text style={styles.breakdownValue}>${costBreakdown.protectionFee.toFixed(2)} MXN</Text>
               </View>
             )}
             
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Platform Fee (10%)</Text>
-              <Text style={styles.breakdownValue}>${costBreakdown.platformFee.toFixed(2)}</Text>
+              <Text style={styles.breakdownValue}>${costBreakdown.platformFee.toFixed(2)} MXN</Text>
             </View>
             
             <View style={styles.divider} />
             
             <View style={styles.breakdownRow}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${costBreakdown.total.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>${costBreakdown.total.toFixed(2)} MXN</Text>
             </View>
           </View>
         )}
@@ -428,7 +428,7 @@ export default function BookingPaymentScreen() {
             <>
               <Lock size={20} color={Colors.background} />
               <Text style={styles.payButtonText}>
-                {selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay'} ${costBreakdown?.total.toFixed(2) || params.totalAmount}
+                {selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay'} ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
               </Text>
             </>
           )}

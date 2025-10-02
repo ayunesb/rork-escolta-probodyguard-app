@@ -227,7 +227,7 @@ export default function BookingCreateScreen() {
                 <View style={styles.guardFooter}>
                   <View>
                     <Text style={styles.rateLabel}>Total Cost</Text>
-                    <Text style={styles.rateValue}>${guard.hourlyRate * parseInt(duration)}</Text>
+                    <Text style={styles.rateValue}>${guard.hourlyRate * parseInt(duration)} MXN</Text>
                   </View>
                   <TouchableOpacity
                     style={styles.selectButton}

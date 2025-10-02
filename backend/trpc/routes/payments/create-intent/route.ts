@@ -42,7 +42,7 @@ export default protectedProcedure
 
       const params: Record<string, string> = {
         amount: input.amount.toString(),
-        currency: 'usd',
+        currency: 'mxn',
         'metadata[bookingId]': input.bookingId,
       };
 

@@ -95,7 +95,7 @@ class PaymentService {
 
   async createPaymentIntent(
     amount: number,
-    currency: string = 'usd',
+    currency: string = 'mxn',
     bookingId: string
   ): Promise<PaymentIntent> {
     try {
@@ -131,7 +131,7 @@ class PaymentService {
         id: 'txn_' + Date.now(),
         bookingId: 'booking_' + Date.now(),
         amount: 0,
-        currency: 'usd',
+        currency: 'mxn',
         status: 'succeeded',
         paymentMethodId,
         createdAt: new Date().toISOString(),

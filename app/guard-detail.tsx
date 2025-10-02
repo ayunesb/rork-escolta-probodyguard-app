@@ -208,7 +208,7 @@ export default function GuardDetailScreen() {
             <Text style={styles.statLabel}>Weight</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>${guard.hourlyRate}</Text>
+            <Text style={styles.statValue}>${guard.hourlyRate} MXN</Text>
             <Text style={styles.statLabel}>Per Hour</Text>
           </View>
         </View>
@@ -414,7 +414,7 @@ export default function GuardDetailScreen() {
 
         <View style={styles.quoteCard}>
           <Text style={styles.quoteLabel}>Estimated Total</Text>
-          <Text style={styles.quoteValue}>${calculateQuote()}</Text>
+          <Text style={styles.quoteValue}>${calculateQuote()} MXN</Text>
           <Text style={styles.quoteNote}>Final price confirmed after booking</Text>
         </View>
 

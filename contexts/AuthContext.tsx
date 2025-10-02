@@ -74,15 +74,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       
       const dbInstance = db();
       const fetchPromise = getDoc(doc(dbInstance, 'users', firebaseUser.uid));
-      const timeoutPromise = new Promise<null>((_, reject) => 
-        setTimeout(() => reject(new Error('Firestore timeout')), 1500)
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Firestore timeout')), 3000)
       );
       
-      const userDoc = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      const userDoc = await Promise.race([fetchPromise, timeoutPromise]);
       
       console.log('[Auth] Firestore fetch took:', Date.now() - startTime, 'ms');
       
-      if (userDoc && userDoc.exists()) {
+      if (userDoc.exists()) {
         const userData = userDoc.data();
         const user: User = {
           id: userData.id || firebaseUser.uid,

@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, initializeAuth, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 
@@ -14,14 +14,14 @@ const firebaseConfig = {
 };
 
 let app: FirebaseApp | undefined;
-let auth: Auth | undefined;
-let db: Firestore | undefined;
-let storage: FirebaseStorage | undefined;
+let authInstance: Auth | undefined;
+let dbInstance: Firestore | undefined;
+let storageInstance: FirebaseStorage | undefined;
 let isInitializing = false;
 let initializationPromise: Promise<void> | null = null;
 
 const initializeFirebaseServices = async (): Promise<void> => {
-  if (app && auth && db && storage) {
+  if (app && authInstance && dbInstance && storageInstance) {
     return;
   }
 
@@ -38,30 +38,23 @@ const initializeFirebaseServices = async (): Promise<void> => {
       
       if (Platform.OS === 'web') {
         try {
-          auth = initializeAuth(app, {
+          authInstance = initializeAuth(app, {
             persistence: browserLocalPersistence,
           });
         } catch (e) {
-          auth = getAuth(app);
-        }
-        
-        try {
-          db = initializeFirestore(app, {
-            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-          });
-        } catch (e) {
-          db = getFirestore(app);
+          authInstance = getAuth(app);
         }
       } else {
-        auth = getAuth(app);
-        db = getFirestore(app);
+        authInstance = getAuth(app);
       }
+      
+      dbInstance = getFirestore(app);
       
       if (__DEV__) {
-        (auth as any)._logFramework = () => {};
+        (authInstance as any)._logFramework = () => {};
       }
       
-      storage = getStorage(app);
+      storageInstance = getStorage(app);
       
       console.log('[Firebase] Initialization complete');
     } catch (error) {
@@ -83,24 +76,24 @@ const getFirebaseApp = (): FirebaseApp => {
 };
 
 const getFirebaseAuth = (): Auth => {
-  if (!auth) {
+  if (!authInstance) {
     throw new Error('Firebase Auth not initialized. Call initializeFirebaseServices first.');
   }
-  return auth;
+  return authInstance;
 };
 
 const getFirebaseDb = (): Firestore => {
-  if (!db) {
+  if (!dbInstance) {
     throw new Error('Firebase Firestore not initialized. Call initializeFirebaseServices first.');
   }
-  return db;
+  return dbInstance;
 };
 
 const getFirebaseStorage = (): FirebaseStorage => {
-  if (!storage) {
+  if (!storageInstance) {
     throw new Error('Firebase Storage not initialized. Call initializeFirebaseServices first.');
   }
-  return storage;
+  return storageInstance;
 };
 
 export { 

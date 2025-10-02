@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, Auth, initializeAuth, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 
@@ -21,7 +21,7 @@ console.log('[Firebase] Initializing with config:', {
 
 let app;
 let auth: Auth;
-let db;
+let db: Firestore;
 let storage;
 
 try {

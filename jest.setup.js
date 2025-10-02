@@ -1,20 +1,27 @@
+const localStorageData = {};
+
 global.window = {
   localStorage: {
-    data: {},
     getItem(key) {
-      return this.data[key] || null;
+      return localStorageData[key] || null;
     },
     setItem(key, value) {
-      this.data[key] = value;
+      localStorageData[key] = value;
     },
     removeItem(key) {
-      delete this.data[key];
+      delete localStorageData[key];
     },
     clear() {
-      this.data = {};
+      Object.keys(localStorageData).forEach(key => delete localStorageData[key]);
     },
     get length() {
-      return Object.keys(this.data).length;
+      return Object.keys(localStorageData).length;
+    },
+    key(index) {
+      const keys = Object.keys(localStorageData);
+      return keys[index] || null;
     },
   },
 };
+
+global.localStorage = global.window.localStorage;

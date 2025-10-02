@@ -17,7 +17,17 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const initTimeout = setTimeout(() => {
+      console.log('[Auth] Initialization timeout - proceeding without auth');
+      setIsLoading(false);
+      setIsInitialized(true);
+    }, 3000);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(initTimeout);
+      
       if (firebaseUser) {
         await loadUserFromFirestore(firebaseUser);
       } else {
@@ -27,7 +37,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(initTimeout);
+      unsubscribe();
+    };
   }, []);
 
   const loadUserFromFirestore = async (firebaseUser: FirebaseUser) => {
@@ -35,11 +48,16 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('[Auth] Loading user from Firestore:', firebaseUser.uid);
       const startTime = Date.now();
       
-      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      const fetchPromise = getDoc(doc(db, 'users', firebaseUser.uid));
+      const timeoutPromise = new Promise<null>((_, reject) => 
+        setTimeout(() => reject(new Error('Firestore timeout')), 5000)
+      );
+      
+      const userDoc = await Promise.race([fetchPromise, timeoutPromise]) as any;
       
       console.log('[Auth] Firestore fetch took:', Date.now() - startTime, 'ms');
       
-      if (userDoc.exists()) {
+      if (userDoc && userDoc.exists()) {
         const userData = userDoc.data();
         const user: User = {
           id: userData.id || firebaseUser.uid,

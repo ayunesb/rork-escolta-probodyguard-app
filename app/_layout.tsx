@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -11,7 +11,7 @@ import { trpc, trpcReactClient } from "@/lib/trpc";
 
 import { useStripeInit, StripeWrapper } from '@/services/stripeInit';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient();
 
@@ -43,10 +43,20 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   useStripeInit();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    SplashScreen.hideAsync();
+    const timer = setTimeout(() => {
+      setIsReady(true);
+      SplashScreen.hideAsync().catch(() => {});
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
+
+  if (!isReady) {
+    return null;
+  }
 
   const AppContent = () => (
     <AuthProvider>

@@ -4,12 +4,17 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StripeProvider } from "@stripe/stripe-react-native";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { trpc, trpcReactClient } from "@/lib/trpc";
+
+let StripeProvider: any = null;
+if (Platform.OS !== 'web') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  StripeProvider = require('@stripe/stripe-react-native').StripeProvider;
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,32 +53,30 @@ export default function RootLayout() {
 
   const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock';
 
+  const AppContent = () => (
+    <AuthProvider>
+      <NotificationProvider>
+        <AnalyticsProvider>
+          <RootLayoutNav />
+        </AnalyticsProvider>
+      </NotificationProvider>
+    </AuthProvider>
+  );
+
   return (
     <ErrorBoundary>
       <trpc.Provider client={trpcReactClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            {Platform.OS !== 'web' ? (
+            {Platform.OS !== 'web' && StripeProvider ? (
               <StripeProvider
                 publishableKey={stripePublishableKey}
                 merchantIdentifier="merchant.app.rork.escolta-pro"
               >
-                <AuthProvider>
-                  <NotificationProvider>
-                    <AnalyticsProvider>
-                      <RootLayoutNav />
-                    </AnalyticsProvider>
-                  </NotificationProvider>
-                </AuthProvider>
+                <AppContent />
               </StripeProvider>
             ) : (
-              <AuthProvider>
-                <NotificationProvider>
-                  <AnalyticsProvider>
-                    <RootLayoutNav />
-                  </AnalyticsProvider>
-                </NotificationProvider>
-              </AuthProvider>
+              <AppContent />
             )}
           </GestureHandlerRootView>
         </QueryClientProvider>

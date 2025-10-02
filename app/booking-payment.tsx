@@ -148,33 +148,56 @@ export default function BookingPaymentScreen() {
       const paymentMethodId = selectedPaymentMethod?.stripePaymentMethodId;
       console.log('[Payment] Using payment method:', paymentMethodId ? 'saved' : 'new');
       
-      const paymentIntent = await stripeService.createPaymentIntent(
-        bookingId,
-        costBreakdown.total,
-        paymentMethodId
-      );
-
-      console.log('[Payment] Payment intent created:', paymentIntent.paymentIntentId);
-
       let paymentResult;
+      let newPaymentMethodId: string | undefined;
       
       if (paymentMethodId) {
-        console.log('[Payment] Using saved payment method - auto-confirming');
+        console.log('[Payment] Using saved payment method');
+        const paymentIntent = await stripeService.createPaymentIntent(
+          bookingId,
+          costBreakdown.total,
+          paymentMethodId
+        );
+
+        console.log('[Payment] Payment intent created and confirmed:', paymentIntent.paymentIntentId);
+        
         paymentResult = {
           success: true,
           paymentIntentId: paymentIntent.paymentIntentId,
         };
       } else {
-        console.log('[Payment] Confirming new payment method');
+        console.log('[Payment] Processing new payment method');
+        const paymentIntent = await stripeService.createPaymentIntent(
+          bookingId,
+          costBreakdown.total
+        );
+
+        console.log('[Payment] Payment intent created:', paymentIntent.paymentIntentId);
+        
         paymentResult = await stripeService.confirmPayment(
           paymentIntent.clientSecret
         );
+        
+        if (paymentResult.success && paymentResult.paymentMethodId) {
+          newPaymentMethodId = paymentResult.paymentMethodId;
+          console.log('[Payment] New payment method ID:', newPaymentMethodId);
+        }
       }
 
       console.log('[Payment] Payment result:', paymentResult);
 
       if (!paymentResult.success) {
         throw new Error(paymentResult.error || 'Payment failed');
+      }
+
+      if (newPaymentMethodId) {
+        console.log('[Payment] Saving new payment method');
+        try {
+          await stripeService.savePaymentMethod(newPaymentMethodId, true);
+          console.log('[Payment] Payment method saved successfully');
+        } catch (saveError) {
+          console.error('[Payment] Failed to save payment method:', saveError);
+        }
       }
 
       console.log('[Payment] Sending notification');
@@ -204,7 +227,7 @@ export default function BookingPaymentScreen() {
                   time: params.time,
                   duration: params.duration,
                   pickupAddress: params.pickupAddress,
-                  transactionId: paymentResult.paymentIntentId || paymentIntent.paymentIntentId,
+                  transactionId: paymentResult.paymentIntentId,
                 },
               } as any);
             },

@@ -10,6 +10,7 @@ import refundPaymentRoute from "./routes/payments/refund/route";
 import { addPaymentMethodProcedure } from "./routes/payments/add-payment-method/route";
 import { removePaymentMethodProcedure } from "./routes/payments/remove-payment-method/route";
 import { setDefaultPaymentMethodProcedure } from "./routes/payments/set-default-payment-method/route";
+import { getPaymentIntentProcedure } from "./routes/payments/get-payment-intent/route";
 import sendMessageRoute from "./routes/chat/send-message/route";
 import listGuardsRoute from "./routes/guards/list/route";
 
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
     addPaymentMethod: addPaymentMethodProcedure,
     removePaymentMethod: removePaymentMethodProcedure,
     setDefaultPaymentMethod: setDefaultPaymentMethodProcedure,
+    getPaymentIntent: getPaymentIntentProcedure,
   }),
   chat: createTRPCRouter({
     sendMessage: sendMessageRoute,

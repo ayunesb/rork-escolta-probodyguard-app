@@ -9,6 +9,7 @@ export interface PaymentResult {
   success: boolean;
   error?: string;
   paymentIntentId?: string;
+  paymentMethodId?: string;
 }
 
 export const createPaymentIntent = async (
@@ -41,9 +42,14 @@ export const confirmPayment = async (
   try {
     console.log('[Stripe Web] Confirming payment (web fallback):', clientSecret);
 
+    const paymentIntentId = clientSecret.split('_secret_')[0];
+    
+    const result = await trpcClient.payments.getPaymentIntent.query({ paymentIntentId });
+
     return {
       success: true,
-      paymentIntentId: clientSecret.split('_secret_')[0],
+      paymentIntentId,
+      paymentMethodId: result.paymentMethodId,
     };
   } catch (error: any) {
     console.error('[Stripe Web] Confirm payment error:', error);
@@ -72,6 +78,28 @@ export const refundPayment = async (
     return {
       success: false,
       error: error.message || 'Refund failed',
+    };
+  }
+};
+
+export const savePaymentMethod = async (
+  paymentMethodId: string,
+  setAsDefault: boolean
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    console.log('[Stripe Web] Saving payment method:', { paymentMethodId, setAsDefault });
+
+    await trpcClient.payments.addPaymentMethod.mutate({
+      paymentMethodId,
+      setAsDefault,
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Stripe Web] Save payment method error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to save payment method',
     };
   }
 };

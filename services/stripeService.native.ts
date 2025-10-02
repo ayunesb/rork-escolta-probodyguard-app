@@ -10,6 +10,7 @@ export interface PaymentResult {
   success: boolean;
   error?: string;
   paymentIntentId?: string;
+  paymentMethodId?: string;
 }
 
 export const createPaymentIntent = async (
@@ -46,6 +47,7 @@ export const confirmPayment = async (
       paymentIntentClientSecret: clientSecret,
       merchantDisplayName: 'Escolta Pro',
       returnURL: 'escoltapro://payment-return',
+      allowsDelayedPaymentMethods: false,
     });
 
     if (initError) {
@@ -66,9 +68,14 @@ export const confirmPayment = async (
       };
     }
 
+    const paymentIntentId = clientSecret.split('_secret_')[0];
+    
+    const paymentMethodId = await getPaymentMethodFromIntent(paymentIntentId);
+
     return {
       success: true,
-      paymentIntentId: clientSecret.split('_secret_')[0],
+      paymentIntentId,
+      paymentMethodId,
     };
   } catch (error: any) {
     console.error('[Stripe] Confirm payment error:', error);
@@ -76,6 +83,16 @@ export const confirmPayment = async (
       success: false,
       error: error.message || 'Payment failed',
     };
+  }
+};
+
+const getPaymentMethodFromIntent = async (paymentIntentId: string): Promise<string | undefined> => {
+  try {
+    const result = await trpcClient.payments.getPaymentIntent.query({ paymentIntentId });
+    return result.paymentMethodId;
+  } catch (error) {
+    console.error('[Stripe] Failed to get payment method:', error);
+    return undefined;
   }
 };
 
@@ -97,6 +114,28 @@ export const refundPayment = async (
     return {
       success: false,
       error: error.message || 'Refund failed',
+    };
+  }
+};
+
+export const savePaymentMethod = async (
+  paymentMethodId: string,
+  setAsDefault: boolean
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    console.log('[Stripe] Saving payment method:', { paymentMethodId, setAsDefault });
+
+    await trpcClient.payments.addPaymentMethod.mutate({
+      paymentMethodId,
+      setAsDefault,
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Stripe] Save payment method error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to save payment method',
     };
   }
 };

@@ -25,6 +25,17 @@ app.use("*", async (c, next) => {
 });
 
 app.use(
+  "/api/trpc/*",
+  trpcServer({
+    router: appRouter,
+    createContext,
+    onError({ error, path }) {
+      console.error(`[tRPC] Error on ${path}:`, error);
+    },
+  })
+);
+
+app.use(
   "/trpc/*",
   trpcServer({
     router: appRouter,

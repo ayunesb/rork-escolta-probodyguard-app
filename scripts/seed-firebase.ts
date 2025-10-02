@@ -1,6 +1,19 @@
-import { auth, db } from '../lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes',
+  authDomain: 'escolta-pro-fe90e.firebaseapp.com',
+  projectId: 'escolta-pro-fe90e',
+  storageBucket: 'escolta-pro-fe90e.firebasestorage.app',
+  messagingSenderId: '919834684647',
+  appId: '1:919834684647:web:60dad6457ad0f92b068642',
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 const demoUsers = [
   {
@@ -92,16 +105,21 @@ const demoGuards = [
 
 async function seedFirebase() {
   console.log('🌱 Starting Firebase seeding...');
+  console.log('📍 Project ID:', firebaseConfig.projectId);
+  console.log('📍 Auth Domain:', firebaseConfig.authDomain);
 
   try {
+    console.log('\n👥 Creating users...');
     for (const userData of demoUsers) {
       try {
-        console.log(`Creating user: ${userData.email}`);
+        console.log(`\n📝 Creating user: ${userData.email}`);
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           userData.email,
           userData.password
         );
+
+        console.log(`  UID: ${userCredential.user.uid}`);
 
         await setDoc(doc(db, 'users', userCredential.user.uid), {
           email: userData.email,
@@ -120,22 +138,27 @@ async function seedFirebase() {
         if (error.code === 'auth/email-already-in-use') {
           console.log(`⚠️  User already exists: ${userData.email}`);
         } else {
-          console.error(`❌ Error creating user ${userData.email}:`, error);
+          console.error(`❌ Error creating user ${userData.email}:`);
+          console.error(`   Code: ${error.code}`);
+          console.error(`   Message: ${error.message}`);
         }
       }
     }
 
+    console.log('\n🛡️  Creating guard profiles...');
     for (const guard of demoGuards) {
       try {
-        console.log(`Creating guard profile: ${guard.name}`);
-        await addDoc(collection(db, 'guards'), {
+        console.log(`\n📝 Creating guard profile: ${guard.name}`);
+        const docRef = await addDoc(collection(db, 'guards'), {
           ...guard,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
+        console.log(`  ID: ${docRef.id}`);
         console.log(`✅ Created guard: ${guard.name}`);
-      } catch (error) {
-        console.error(`❌ Error creating guard ${guard.name}:`, error);
+      } catch (error: any) {
+        console.error(`❌ Error creating guard ${guard.name}:`);
+        console.error(`   Message: ${error.message}`);
       }
     }
 

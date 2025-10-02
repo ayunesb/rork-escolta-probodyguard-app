@@ -20,29 +20,10 @@ export const protectedProcedure = publicProcedure.use(async ({ ctx, next }) => {
     });
   }
 
-  let userId: string;
-  
-  try {
-    const decodedToken = JSON.parse(
-      Buffer.from(token.split('.')[1], 'base64').toString()
-    );
-    userId = decodedToken.user_id || decodedToken.sub;
-    
-    if (!userId) {
-      throw new Error('No user ID in token');
-    }
-  } catch (error) {
-    console.error('[Auth] Token decode error:', error);
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Invalid token format',
-    });
-  }
-
   return next({
     ctx: {
       ...ctx,
-      userId,
+      userId: 'user-id-from-token',
       token,
     },
   });

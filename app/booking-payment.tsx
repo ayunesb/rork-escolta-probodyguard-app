@@ -316,13 +316,6 @@ export default function BookingPaymentScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {DEMO_MODE && (
-        <View style={styles.demoModeBanner}>
-          <Text style={styles.demoModeText}>🎭 DEMO MODE - No actual payment required</Text>
-          <Text style={styles.demoModeSubtext}>You can optionally add a card for testing or proceed directly</Text>
-        </View>
-      )}
-
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         <View style={styles.bookingSummary}>
           <Image source={{ uri: params.guardPhoto }} style={styles.guardImage} />
@@ -501,6 +494,13 @@ export default function BookingPaymentScreen() {
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>${costBreakdown.total.toFixed(2)} MXN</Text>
             </View>
+          </View>
+        )}
+
+        {DEMO_MODE && (
+          <View style={styles.demoModeBanner}>
+            <Text style={styles.demoModeText}>🎭 DEMO MODE - No actual payment required</Text>
+            <Text style={styles.demoModeSubtext}>You can optionally add a card for testing or proceed directly</Text>
           </View>
         )}
 
@@ -798,8 +798,10 @@ const styles = StyleSheet.create({
   demoModeBanner: {
     backgroundColor: '#FFF3CD',
     padding: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFE69C',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#FFE69C',
+    marginBottom: 16,
   },
   demoModeText: {
     fontSize: 14,

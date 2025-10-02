@@ -9,14 +9,23 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { CreditCard, Lock, ChevronLeft } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { paymentService } from '@/services/paymentService';
-import * as stripeService from '@/services/stripeService';
 import { notificationService } from '@/services/notificationService';
+
+let stripeService: any;
+if (Platform.OS === 'web') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  stripeService = require('@/services/stripeService.web');
+} else {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  stripeService = require('@/services/stripeService.native');
+}
 
 export default function BookingPaymentScreen() {
   const params = useLocalSearchParams<{

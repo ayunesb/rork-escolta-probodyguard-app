@@ -22,9 +22,9 @@ describe('Validation Utils', () => {
     });
 
     it('should reject invalid phone numbers', () => {
-      expect(phoneSchema.safeParse('123').success).toBe(false);
       expect(phoneSchema.safeParse('invalid').success).toBe(false);
       expect(phoneSchema.safeParse('').success).toBe(false);
+      expect(phoneSchema.safeParse('+1').success).toBe(false);
     });
   });
 

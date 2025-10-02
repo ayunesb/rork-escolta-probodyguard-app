@@ -9,7 +9,7 @@ export const passwordSchema = z
 
 export const phoneSchema = z
   .string()
-  .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number');
+  .regex(/^\+?[1-9]\d{8,14}$/, 'Invalid phone number');
 
 export const nameSchema = z
   .string()

@@ -1,9 +1,6 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 
 describe('Auth tRPC Routes', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   describe('signIn', () => {
     it('should sign in with valid credentials', async () => {

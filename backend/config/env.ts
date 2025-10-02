@@ -17,6 +17,8 @@ export const FIREBASE_PROJECT_ID = getEnvVar('EXPO_PUBLIC_FIREBASE_PROJECT_ID');
 export const FIREBASE_STORAGE_BUCKET = getEnvVar('EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET');
 export const FIREBASE_MESSAGING_SENDER_ID = getEnvVar('EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID');
 export const FIREBASE_APP_ID = getEnvVar('EXPO_PUBLIC_FIREBASE_APP_ID');
+export const DEMO_MODE = getEnvVar('EXPO_PUBLIC_DEMO_MODE') === 'true';
 
 console.log('[Env Config] STRIPE_SECRET_KEY available:', !!STRIPE_SECRET_KEY);
 console.log('[Env Config] FIREBASE_PROJECT_ID:', FIREBASE_PROJECT_ID);
+console.log('[Env Config] DEMO_MODE:', DEMO_MODE);

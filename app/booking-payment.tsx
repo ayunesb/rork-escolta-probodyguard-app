@@ -20,6 +20,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import * as stripeService from '@/services/stripeService';
 import { SavedPaymentMethod } from '@/types';
 
+const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE === 'true';
+
 export default function BookingPaymentScreen() {
   const params = useLocalSearchParams<{
     guardId: string;
@@ -129,88 +131,106 @@ export default function BookingPaymentScreen() {
       return;
     }
 
-    if (!selectedPaymentMethod && !showAddCard) {
-      setShowAddCard(true);
-      return;
-    }
+    if (!DEMO_MODE) {
+      if (!selectedPaymentMethod && !showAddCard) {
+        setShowAddCard(true);
+        return;
+      }
 
-    if (showAddCard && (!cardNumber || !expiryDate || !cvv || !cardholderName)) {
-      Alert.alert('Missing Information', 'Please fill in all payment details');
-      return;
+      if (showAddCard && (!cardNumber || !expiryDate || !cvv || !cardholderName)) {
+        Alert.alert('Missing Information', 'Please fill in all payment details');
+        return;
+      }
     }
 
     setIsProcessing(true);
 
     try {
-      console.log('[Payment] Starting payment process');
+      console.log('[Payment] Starting payment process (DEMO_MODE:', DEMO_MODE, ')');
       const bookingId = 'booking-' + Date.now();
+      const startCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      const paymentMethodId = selectedPaymentMethod?.stripePaymentMethodId;
-      console.log('[Payment] Using payment method:', paymentMethodId ? 'saved' : 'new');
+      let paymentResult: { success: boolean; paymentIntentId?: string; error?: string; paymentMethodId?: string };
       
-      let paymentResult;
-      let newPaymentMethodId: string | undefined;
-      
-      if (paymentMethodId) {
-        console.log('[Payment] Using saved payment method');
-        const paymentIntent = await stripeService.createPaymentIntent(
-          bookingId,
-          costBreakdown.total,
-          paymentMethodId
-        );
-
-        console.log('[Payment] Payment intent created and confirmed:', paymentIntent.paymentIntentId);
+      if (DEMO_MODE) {
+        console.log('[Payment] DEMO MODE - Bypassing payment processing');
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         paymentResult = {
           success: true,
-          paymentIntentId: paymentIntent.paymentIntentId,
+          paymentIntentId: 'demo_pi_' + Date.now(),
         };
+        
+        console.log('[Payment] DEMO MODE - Payment simulated successfully');
       } else {
-        console.log('[Payment] Processing new payment method');
-        const paymentIntent = await stripeService.createPaymentIntent(
-          bookingId,
-          costBreakdown.total
-        );
+        const paymentMethodId = selectedPaymentMethod?.stripePaymentMethodId;
+        console.log('[Payment] Using payment method:', paymentMethodId ? 'saved' : 'new');
+        
+        let newPaymentMethodId: string | undefined;
+        
+        if (paymentMethodId) {
+          console.log('[Payment] Using saved payment method');
+          const paymentIntent = await stripeService.createPaymentIntent(
+            bookingId,
+            costBreakdown.total,
+            paymentMethodId
+          );
 
-        console.log('[Payment] Payment intent created:', paymentIntent.paymentIntentId);
-        
-        paymentResult = await stripeService.confirmPayment(
-          paymentIntent.clientSecret
-        );
-        
-        if (paymentResult.success && paymentResult.paymentMethodId) {
-          newPaymentMethodId = paymentResult.paymentMethodId;
-          console.log('[Payment] New payment method ID:', newPaymentMethodId);
+          console.log('[Payment] Payment intent created and confirmed:', paymentIntent.paymentIntentId);
+          
+          paymentResult = {
+            success: true,
+            paymentIntentId: paymentIntent.paymentIntentId,
+          };
+        } else {
+          console.log('[Payment] Processing new payment method');
+          const paymentIntent = await stripeService.createPaymentIntent(
+            bookingId,
+            costBreakdown.total
+          );
+
+          console.log('[Payment] Payment intent created:', paymentIntent.paymentIntentId);
+          
+          const confirmResult = await stripeService.confirmPayment(
+            paymentIntent.clientSecret
+          );
+          
+          paymentResult = confirmResult;
+          
+          if (confirmResult.success && confirmResult.paymentMethodId) {
+            newPaymentMethodId = confirmResult.paymentMethodId;
+            console.log('[Payment] New payment method ID:', newPaymentMethodId);
+          }
+        }
+
+        if (!paymentResult.success) {
+          throw new Error(paymentResult.error || 'Payment failed');
+        }
+
+        if (newPaymentMethodId) {
+          console.log('[Payment] Saving new payment method');
+          try {
+            await stripeService.savePaymentMethod(newPaymentMethodId, true);
+            console.log('[Payment] Payment method saved successfully');
+          } catch (saveError) {
+            console.error('[Payment] Failed to save payment method:', saveError);
+          }
         }
       }
 
       console.log('[Payment] Payment result:', paymentResult);
 
-      if (!paymentResult.success) {
-        throw new Error(paymentResult.error || 'Payment failed');
-      }
-
-      if (newPaymentMethodId) {
-        console.log('[Payment] Saving new payment method');
-        try {
-          await stripeService.savePaymentMethod(newPaymentMethodId, true);
-          console.log('[Payment] Payment method saved successfully');
-        } catch (saveError) {
-          console.error('[Payment] Failed to save payment method:', saveError);
-        }
-      }
-
       console.log('[Payment] Sending notification');
       await notificationService.notifyPaymentSuccess(bookingId, costBreakdown.total);
-      
-      const startCode = Math.floor(100000 + Math.random() * 900000).toString();
       
       console.log('[Payment] Payment completed successfully');
       setIsProcessing(false);
       
+      const demoWarning = DEMO_MODE ? '\n\n⚠️ DEMO MODE - No actual payment processed' : '';
+      
       Alert.alert(
         'Booking Confirmed!',
-        `Your protection service has been booked.\n\nStart Code: ${startCode}\n\nShare this code with your guard to begin service.`,
+        `Your protection service has been booked.\n\nStart Code: ${startCode}\n\nShare this code with your guard to begin service.${demoWarning}`,
         [
           {
             text: 'View Booking',
@@ -260,6 +280,12 @@ export default function BookingPaymentScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+        {DEMO_MODE && (
+          <View style={styles.demoModeBanner}>
+            <Text style={styles.demoModeText}>🎭 DEMO MODE - Payment processing bypassed</Text>
+          </View>
+        )}
+        
         <View style={styles.bookingSummary}>
           <Image source={{ uri: params.guardPhoto }} style={styles.guardImage} />
           <View style={styles.summaryDetails}>
@@ -270,11 +296,12 @@ export default function BookingPaymentScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Lock size={20} color={Colors.gold} />
-            <Text style={styles.sectionTitle}>Payment Method</Text>
-          </View>
+        {!DEMO_MODE && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Lock size={20} color={Colors.gold} />
+              <Text style={styles.sectionTitle}>Payment Method</Text>
+            </View>
 
           {savedCards.length > 0 && !showAddCard && (
             <View style={styles.savedCardsContainer}>
@@ -401,7 +428,8 @@ export default function BookingPaymentScreen() {
               <Text style={styles.cancelAddButtonText}>Use Saved Card</Text>
             </TouchableOpacity>
           )}
-        </View>
+          </View>
+        )}
 
         {costBreakdown && (
           <View style={styles.priceBreakdown}>
@@ -451,7 +479,7 @@ export default function BookingPaymentScreen() {
             <>
               <Lock size={20} color={Colors.background} />
               <Text style={styles.payButtonText}>
-                {selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay'} ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
+                {DEMO_MODE ? 'Confirm Booking (Demo)' : (selectedPaymentMethod && !showAddCard ? 'Pay Now' : 'Add Card & Pay')} ${costBreakdown?.total.toFixed(2) || params.totalAmount} MXN
               </Text>
             </>
           )}
@@ -726,6 +754,20 @@ const styles = StyleSheet.create({
   securityNote: {
     fontSize: 13,
     color: Colors.textSecondary,
+    textAlign: 'center' as const,
+  },
+  demoModeBanner: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FFE69C',
+  },
+  demoModeText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#856404',
     textAlign: 'center' as const,
   },
 });

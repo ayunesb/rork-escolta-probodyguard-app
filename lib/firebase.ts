@@ -19,10 +19,10 @@ console.log('[Firebase] Initializing with config:', {
   platform: Platform.OS,
 });
 
-let app;
+let app: ReturnType<typeof initializeApp>;
 let auth: Auth;
 let db: Firestore;
-let storage;
+let storage: ReturnType<typeof getStorage>;
 
 try {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();

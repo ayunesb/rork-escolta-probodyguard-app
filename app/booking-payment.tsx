@@ -316,14 +316,14 @@ export default function BookingPaymentScreen() {
         <View style={{ width: 40 }} />
       </View>
 
+      {DEMO_MODE && (
+        <View style={styles.demoModeBanner}>
+          <Text style={styles.demoModeText}>🎭 DEMO MODE - No actual payment required</Text>
+          <Text style={styles.demoModeSubtext}>You can optionally add a card for testing or proceed directly</Text>
+        </View>
+      )}
+
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {DEMO_MODE && (
-          <View style={styles.demoModeBanner}>
-            <Text style={styles.demoModeText}>🎭 DEMO MODE - No actual payment required</Text>
-            <Text style={styles.demoModeSubtext}>You can optionally add a card for testing or proceed directly</Text>
-          </View>
-        )}
-        
         <View style={styles.bookingSummary}>
           <Image source={{ uri: params.guardPhoto }} style={styles.guardImage} />
           <View style={styles.summaryDetails}>
@@ -797,11 +797,9 @@ const styles = StyleSheet.create({
   },
   demoModeBanner: {
     backgroundColor: '#FFF3CD',
-    borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#FFE69C',
+    borderBottomWidth: 2,
+    borderBottomColor: '#FFE69C',
   },
   demoModeText: {
     fontSize: 14,

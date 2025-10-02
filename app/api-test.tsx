@@ -1,132 +1,390 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react-native';
+import Colors from '@/constants/colors';
+import { trpcClient } from '@/lib/trpc';
+import { auth, db } from '@/lib/firebase';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 
-export default function ApiTestScreen() {
-  const [results, setResults] = useState<string[]>([]);
+interface TestResult {
+  name: string;
+  status: 'success' | 'error' | 'warning' | 'pending';
+  message: string;
+  details?: string;
+}
 
-  const addResult = (message: string) => {
-    setResults(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
-  };
+export default function APITestScreen() {
+  const [tests, setTests] = useState<TestResult[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
 
-  const testHealthEndpoint = async () => {
+  useEffect(() => {
+    runTests();
+  }, []);
+
+  const runTests = async () => {
+    setIsRunning(true);
+    const results: TestResult[] = [];
+
+    results.push({
+      name: 'Environment Variables',
+      status: 'pending',
+      message: 'Checking...',
+    });
+    setTests([...results]);
+
     try {
-      addResult('Testing /api/health...');
-      const response = await fetch('/api/health');
-      const data = await response.json();
-      addResult(`✅ Health: ${JSON.stringify(data)}`);
-    } catch (error: any) {
-      addResult(`❌ Health error: ${error.message}`);
-    }
-  };
-
-  const testTestEndpoint = async () => {
-    try {
-      addResult('Testing /api/test...');
-      const response = await fetch('/api/test');
-      const data = await response.json();
-      addResult(`✅ Test: ${JSON.stringify(data)}`);
-    } catch (error: any) {
-      addResult(`❌ Test error: ${error.message}`);
-    }
-  };
-
-  const testTrpcEndpoint = async () => {
-    try {
-      addResult('Testing /api/trpc/example.hi...');
-      const response = await fetch('/api/trpc/example.hi', {
-        method: 'GET',
-      });
-      const contentType = response.headers.get('content-type');
-      addResult(`Response status: ${response.status}`);
-      addResult(`Content-Type: ${contentType}`);
+      const hasFirebaseKey = !!process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
+      const hasStripeKey = !!process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
       
-      const text = await response.text();
-      addResult(`Response preview: ${text.substring(0, 200)}`);
+      results[results.length - 1] = {
+        name: 'Environment Variables',
+        status: hasFirebaseKey && hasStripeKey ? 'success' : 'warning',
+        message: hasFirebaseKey && hasStripeKey ? 'All keys present' : 'Some keys missing',
+        details: `Firebase: ${hasFirebaseKey ? '✓' : '✗'}, Stripe: ${hasStripeKey ? '✓' : '✗'}`,
+      };
+    } catch (error) {
+      results[results.length - 1] = {
+        name: 'Environment Variables',
+        status: 'error',
+        message: 'Failed to check',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+    setTests([...results]);
+
+    results.push({
+      name: 'Firebase Auth',
+      status: 'pending',
+      message: 'Checking...',
+    });
+    setTests([...results]);
+
+    try {
+      const currentUser = auth.currentUser;
+      results[results.length - 1] = {
+        name: 'Firebase Auth',
+        status: 'success',
+        message: currentUser ? 'User authenticated' : 'No user (OK)',
+        details: currentUser ? `UID: ${currentUser.uid}` : 'Auth service initialized',
+      };
+    } catch (error) {
+      results[results.length - 1] = {
+        name: 'Firebase Auth',
+        status: 'error',
+        message: 'Auth check failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+    setTests([...results]);
+
+    results.push({
+      name: 'Firebase Firestore',
+      status: 'pending',
+      message: 'Checking...',
+    });
+    setTests([...results]);
+
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, limit(1));
+      await getDocs(q);
       
-      if (contentType?.includes('application/json')) {
-        const data = JSON.parse(text);
-        addResult(`✅ tRPC: ${JSON.stringify(data)}`);
-      } else {
-        addResult(`❌ tRPC returned non-JSON: ${text.substring(0, 100)}`);
-      }
-    } catch (error: any) {
-      addResult(`❌ tRPC error: ${error.message}`);
+      results[results.length - 1] = {
+        name: 'Firebase Firestore',
+        status: 'success',
+        message: 'Connected successfully',
+        details: 'Can read from Firestore',
+      };
+    } catch (error) {
+      results[results.length - 1] = {
+        name: 'Firebase Firestore',
+        status: 'error',
+        message: 'Connection failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+    setTests([...results]);
+
+    results.push({
+      name: 'tRPC Health Check',
+      status: 'pending',
+      message: 'Checking...',
+    });
+    setTests([...results]);
+
+    try {
+      const response = await trpcClient.example.hi.query();
+      results[results.length - 1] = {
+        name: 'tRPC Health Check',
+        status: 'success',
+        message: 'API responding',
+        details: response.message,
+      };
+    } catch (error) {
+      results[results.length - 1] = {
+        name: 'tRPC Health Check',
+        status: 'error',
+        message: 'API not responding',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+    setTests([...results]);
+
+    results.push({
+      name: 'Guards List API',
+      status: 'pending',
+      message: 'Checking...',
+    });
+    setTests([...results]);
+
+    try {
+      const guards = await trpcClient.guards.list.query({});
+      results[results.length - 1] = {
+        name: 'Guards List API',
+        status: 'success',
+        message: `Found ${guards.length} guards`,
+        details: 'Guards API working',
+      };
+    } catch (error) {
+      results[results.length - 1] = {
+        name: 'Guards List API',
+        status: 'error',
+        message: 'Failed to fetch guards',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+    setTests([...results]);
+
+    results.push({
+      name: 'Stripe Configuration',
+      status: 'pending',
+      message: 'Checking...',
+    });
+    setTests([...results]);
+
+    try {
+      const hasPublishableKey = !!process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      const keyPrefix = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY?.substring(0, 7);
+      
+      results[results.length - 1] = {
+        name: 'Stripe Configuration',
+        status: hasPublishableKey ? 'success' : 'warning',
+        message: hasPublishableKey ? 'Stripe configured' : 'Stripe key missing',
+        details: hasPublishableKey ? `Key: ${keyPrefix}...` : 'Add EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+      };
+    } catch (error) {
+      results[results.length - 1] = {
+        name: 'Stripe Configuration',
+        status: 'error',
+        message: 'Failed to check',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+    setTests([...results]);
+
+    setIsRunning(false);
+  };
+
+  const getStatusIcon = (status: TestResult['status']) => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle size={24} color={Colors.success} />;
+      case 'error':
+        return <XCircle size={24} color={Colors.error} />;
+      case 'warning':
+        return <AlertCircle size={24} color={Colors.warning} />;
+      case 'pending':
+        return <ActivityIndicator size="small" color={Colors.gold} />;
     }
   };
 
-  const clearResults = () => {
-    setResults([]);
+  const getStatusColor = (status: TestResult['status']) => {
+    switch (status) {
+      case 'success':
+        return Colors.success;
+      case 'error':
+        return Colors.error;
+      case 'warning':
+        return Colors.warning;
+      case 'pending':
+        return Colors.gold;
+    }
   };
+
+  const successCount = tests.filter(t => t.status === 'success').length;
+  const errorCount = tests.filter(t => t.status === 'error').length;
+  const warningCount = tests.filter(t => t.status === 'warning').length;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <Stack.Screen options={{ title: 'API Test' }} />
-      
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={testHealthEndpoint}>
-          <Text style={styles.buttonText}>Test /api/health</Text>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          title: 'System Health Check',
+          headerStyle: { backgroundColor: Colors.background },
+          headerTintColor: Colors.textPrimary,
+          headerShadowVisible: false,
+        }}
+      />
 
-        <TouchableOpacity style={styles.button} onPress={testTestEndpoint}>
-          <Text style={styles.buttonText}>Test /api/test</Text>
-        </TouchableOpacity>
+      <View style={styles.header}>
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={[styles.statValue, { color: Colors.success }]}>{successCount}</Text>
+            <Text style={styles.statLabel}>Passed</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={[styles.statValue, { color: Colors.warning }]}>{warningCount}</Text>
+            <Text style={styles.statLabel}>Warnings</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={[styles.statValue, { color: Colors.error }]}>{errorCount}</Text>
+            <Text style={styles.statLabel}>Failed</Text>
+          </View>
+        </View>
 
-        <TouchableOpacity style={styles.button} onPress={testTrpcEndpoint}>
-          <Text style={styles.buttonText}>Test tRPC</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button, styles.clearButton]} onPress={clearResults}>
-          <Text style={styles.buttonText}>Clear</Text>
+        <TouchableOpacity
+          style={[styles.refreshButton, isRunning && styles.refreshButtonDisabled]}
+          onPress={runTests}
+          disabled={isRunning}
+        >
+          <RefreshCw size={20} color={Colors.background} />
+          <Text style={styles.refreshButtonText}>
+            {isRunning ? 'Running...' : 'Run Tests'}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.resultsContainer}>
-        {results.map((result, index) => (
-          <Text key={index} style={styles.resultText}>
-            {result}
-          </Text>
+      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+        {tests.map((test, index) => (
+          <View key={index} style={styles.testCard}>
+            <View style={styles.testHeader}>
+              {getStatusIcon(test.status)}
+              <View style={styles.testInfo}>
+                <Text style={styles.testName}>{test.name}</Text>
+                <Text style={[styles.testMessage, { color: getStatusColor(test.status) }]}>
+                  {test.message}
+                </Text>
+                {test.details && (
+                  <Text style={styles.testDetails}>{test.details}</Text>
+                )}
+              </View>
+            </View>
+          </View>
         ))}
+
+        {tests.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No tests run yet</Text>
+          </View>
+        )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 16,
+    backgroundColor: Colors.background,
   },
-  buttonContainer: {
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  statsRow: {
+    flexDirection: 'row',
     gap: 12,
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  clearButton: {
-    backgroundColor: '#FF3B30',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  resultsContainer: {
+  statCard: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  resultText: {
-    fontSize: 12,
-    fontFamily: 'monospace',
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700' as const,
     marginBottom: 4,
-    color: '#333',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.gold,
+    padding: 16,
+    borderRadius: 12,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.6,
+  },
+  refreshButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.background,
+  },
+  content: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  testCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  testHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  testInfo: {
+    flex: 1,
+  },
+  testName: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  testMessage: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    marginBottom: 4,
+  },
+  testDetails: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
   },
 });

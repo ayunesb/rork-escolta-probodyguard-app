@@ -24,8 +24,10 @@ let auth: Auth;
 let db: Firestore;
 let storage: ReturnType<typeof getStorage>;
 
-try {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const initializeFirebaseServices = () => {
+
+  try {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   
   if (Platform.OS === 'web') {
     try {
@@ -54,10 +56,13 @@ try {
   
   storage = getStorage(app);
   
-  console.log('[Firebase] Initialization complete');
-} catch (error) {
-  console.error('[Firebase] Initialization error:', error);
-  throw error;
-}
+    console.log('[Firebase] Initialization complete');
+  } catch (error) {
+    console.error('[Firebase] Initialization error:', error);
+    throw error;
+  }
+};
+
+initializeFirebaseServices();
 
 export { app, auth, db, storage };

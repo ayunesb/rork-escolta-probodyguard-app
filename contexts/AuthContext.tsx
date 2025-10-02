@@ -17,13 +17,17 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
     const initTimeout = setTimeout(() => {
-      console.log('[Auth] Initialization timeout - proceeding without auth');
-      setIsLoading(false);
-      setIsInitialized(true);
-    }, 2000);
+      if (mounted) {
+        console.log('[Auth] Initialization timeout - proceeding without auth');
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    }, 1000);
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!mounted) return;
       clearTimeout(initTimeout);
       
       if (firebaseUser) {
@@ -34,6 +38,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         setIsInitialized(true);
       }
     }, (error) => {
+      if (!mounted) return;
       console.error('[Auth] Auth state change error:', error);
       clearTimeout(initTimeout);
       setIsLoading(false);
@@ -41,6 +46,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     });
 
     return () => {
+      mounted = false;
       clearTimeout(initTimeout);
       unsubscribe();
     };
@@ -53,7 +59,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       
       const fetchPromise = getDoc(doc(db, 'users', firebaseUser.uid));
       const timeoutPromise = new Promise<null>((_, reject) => 
-        setTimeout(() => reject(new Error('Firestore timeout')), 3000)
+        setTimeout(() => reject(new Error('Firestore timeout')), 1500)
       );
       
       const userDoc = await Promise.race([fetchPromise, timeoutPromise]) as any;

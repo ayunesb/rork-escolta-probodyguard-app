@@ -1,11 +1,10 @@
-import { z } from "zod";
 import { publicProcedure } from "@/backend/trpc/create-context";
 
 export default publicProcedure
-  .input(z.object({ name: z.string() }))
-  .mutation(({ input }) => {
+  .query(() => {
     return {
-      hello: input.name,
-      date: new Date(),
+      message: 'API is working!',
+      timestamp: new Date().toISOString(),
+      status: 'healthy',
     };
   });

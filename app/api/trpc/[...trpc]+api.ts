@@ -1,65 +1,53 @@
 import app from '@/backend/hono';
 
-export async function GET(request: Request) {
+const handleRequest = async (request: Request, method: string) => {
   try {
-    console.log('[API Route] GET request:', request.url);
+    const url = new URL(request.url);
+    console.log(`[API Route ${method}] Request:`, url.pathname);
+    console.log(`[API Route ${method}] Full URL:`, request.url);
+    
     const response = await app.fetch(request);
-    console.log('[API Route] GET response status:', response.status);
+    
+    console.log(`[API Route ${method}] Response status:`, response.status);
+    console.log(`[API Route ${method}] Response content-type:`, response.headers.get('content-type'));
+    
     return response;
   } catch (error) {
-    console.error('[API Route] GET error:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    console.error(`[API Route ${method}] Error:`, error);
+    return Response.json({ 
+      error: 'Internal server error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      method,
+      url: request.url
+    }, { 
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   }
+};
+
+export async function GET(request: Request) {
+  return handleRequest(request, 'GET');
 }
 
 export async function POST(request: Request) {
-  try {
-    console.log('[API Route] POST request:', request.url);
-    const response = await app.fetch(request);
-    console.log('[API Route] POST response status:', response.status);
-    return response;
-  } catch (error) {
-    console.error('[API Route] POST error:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  return handleRequest(request, 'POST');
 }
 
 export async function PUT(request: Request) {
-  try {
-    console.log('[API Route] PUT request:', request.url);
-    return await app.fetch(request);
-  } catch (error) {
-    console.error('[API Route] PUT error:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  return handleRequest(request, 'PUT');
 }
 
 export async function DELETE(request: Request) {
-  try {
-    console.log('[API Route] DELETE request:', request.url);
-    return await app.fetch(request);
-  } catch (error) {
-    console.error('[API Route] DELETE error:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  return handleRequest(request, 'DELETE');
 }
 
 export async function PATCH(request: Request) {
-  try {
-    console.log('[API Route] PATCH request:', request.url);
-    return await app.fetch(request);
-  } catch (error) {
-    console.error('[API Route] PATCH error:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  return handleRequest(request, 'PATCH');
 }
 
 export async function OPTIONS(request: Request) {
-  try {
-    console.log('[API Route] OPTIONS request:', request.url);
-    return await app.fetch(request);
-  } catch (error) {
-    console.error('[API Route] OPTIONS error:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  return handleRequest(request, 'OPTIONS');
 }

@@ -1,8 +1,7 @@
 import { protectedProcedure } from "@/backend/trpc/middleware/auth";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+import { STRIPE_SECRET_KEY } from "@/backend/config/env";
 
 export const getPaymentIntentProcedure = protectedProcedure
   .input(

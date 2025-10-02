@@ -1,8 +1,7 @@
 import { publicProcedure } from "@/backend/trpc/create-context";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+import { STRIPE_SECRET_KEY } from "@/backend/config/env";
 
 export default publicProcedure
   .input(

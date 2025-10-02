@@ -3,8 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+import { STRIPE_SECRET_KEY } from "@/backend/config/env";
 
 export default protectedProcedure
   .input(

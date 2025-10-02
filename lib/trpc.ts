@@ -7,16 +7,6 @@ import { auth } from "@/lib/firebase";
 export const trpc = createTRPCReact<AppRouter>();
 
 const getBaseUrl = () => {
-  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
-    console.log('[tRPC] Using EXPO_PUBLIC_RORK_API_BASE_URL:', process.env.EXPO_PUBLIC_RORK_API_BASE_URL);
-    return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
-  }
-
-  if (process.env.EXPO_PUBLIC_TOOLKIT_URL) {
-    console.log('[tRPC] Using EXPO_PUBLIC_TOOLKIT_URL:', process.env.EXPO_PUBLIC_TOOLKIT_URL);
-    return process.env.EXPO_PUBLIC_TOOLKIT_URL;
-  }
-
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
     console.log('[tRPC] Using window origin:', origin);
@@ -55,7 +45,14 @@ export const trpcClient = createTRPCProxyClient<AppRouter>({
       },
       fetch(url, options) {
         console.log('[tRPC Client] Fetching:', url);
-        return fetch(url, options).catch(error => {
+        console.log('[tRPC Client] Options:', { method: options?.method, headers: options?.headers });
+        return fetch(url, options).then(response => {
+          console.log('[tRPC Client] Response status:', response.status);
+          if (!response.ok) {
+            console.error('[tRPC Client] Response not OK:', response.status, response.statusText);
+          }
+          return response;
+        }).catch(error => {
           console.error('[tRPC Client] Fetch error:', error);
           throw error;
         });

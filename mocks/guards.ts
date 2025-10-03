@@ -1,4 +1,4 @@
-import { Guard, RatingBreakdown } from '@/types';
+import { Guard } from '@/types';
 
 export const mockGuards: Guard[] = [
   {
@@ -15,7 +15,7 @@ export const mockGuards: Guard[] = [
     height: 185,
     weight: 95,
     languages: ['en', 'es'],
-    hourlyRate: 2700,
+    hourlyRate: 150,
     photos: [
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
@@ -26,13 +26,6 @@ export const mockGuards: Guard[] = [
     insuranceUrls: ['https://example.com/insurance1.pdf'],
     certifications: ['HR-218 Credential', 'TCCC Certified', 'Advanced Driving'],
     rating: 4.9,
-    ratingBreakdown: {
-      overall: 4.9,
-      professionalism: 5.0,
-      punctuality: 4.8,
-      communication: 4.9,
-      languageClarity: 4.9,
-    },
     completedJobs: 247,
     isFreelancer: true,
     availability: true,
@@ -53,7 +46,7 @@ export const mockGuards: Guard[] = [
     height: 190,
     weight: 100,
     languages: ['en', 'fr'],
-    hourlyRate: 3150,
+    hourlyRate: 175,
     photos: [
       'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
       'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
@@ -64,13 +57,6 @@ export const mockGuards: Guard[] = [
     insuranceUrls: ['https://example.com/insurance2.pdf'],
     certifications: ['HR-218 Credential', 'Tactical Medicine', 'Counter-Surveillance'],
     rating: 5.0,
-    ratingBreakdown: {
-      overall: 5.0,
-      professionalism: 5.0,
-      punctuality: 5.0,
-      communication: 5.0,
-      languageClarity: 5.0,
-    },
     completedJobs: 189,
     isFreelancer: true,
     availability: true,
@@ -91,7 +77,7 @@ export const mockGuards: Guard[] = [
     height: 170,
     weight: 65,
     languages: ['en', 'es', 'fr'],
-    hourlyRate: 2880,
+    hourlyRate: 160,
     photos: [
       'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
       'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400',
@@ -102,13 +88,6 @@ export const mockGuards: Guard[] = [
     insuranceUrls: ['https://example.com/insurance3.pdf'],
     certifications: ['HR-218 Credential', 'Executive Protection', 'Defensive Driving'],
     rating: 4.8,
-    ratingBreakdown: {
-      overall: 4.8,
-      professionalism: 4.9,
-      punctuality: 4.7,
-      communication: 4.8,
-      languageClarity: 4.9,
-    },
     completedJobs: 156,
     isFreelancer: false,
     companyId: 'company-1',
@@ -130,7 +109,7 @@ export const mockGuards: Guard[] = [
     height: 180,
     weight: 88,
     languages: ['en', 'de'],
-    hourlyRate: 2610,
+    hourlyRate: 145,
     photos: [
       'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400',
       'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400',
@@ -141,13 +120,6 @@ export const mockGuards: Guard[] = [
     insuranceUrls: ['https://example.com/insurance4.pdf'],
     certifications: ['HR-218 Credential', 'Close Quarter Combat', 'First Responder'],
     rating: 4.7,
-    ratingBreakdown: {
-      overall: 4.7,
-      professionalism: 4.8,
-      punctuality: 4.6,
-      communication: 4.7,
-      languageClarity: 4.6,
-    },
     completedJobs: 134,
     isFreelancer: true,
     availability: true,

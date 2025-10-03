@@ -4,12 +4,8 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { NotificationProvider } from "@/contexts/NotificationContext";
-import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import { trpc, trpcReactClient } from "@/lib/trpc";
 
-SplashScreen.preventAutoHideAsync().catch(() => {});
+SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
@@ -20,8 +16,6 @@ function RootLayoutNav() {
 
   useEffect(() => {
     if (isLoading) return;
-
-    SplashScreen.hideAsync().catch(() => {});
 
     const inAuthGroup = segments[0] === 'auth';
 
@@ -42,21 +36,17 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
   return (
-    <ErrorBoundary>
-      <trpc.Provider client={trpcReactClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <AuthProvider>
-              <NotificationProvider>
-                <AnalyticsProvider>
-                  <RootLayoutNav />
-                </AnalyticsProvider>
-              </NotificationProvider>
-            </AuthProvider>
-          </GestureHandlerRootView>
-        </QueryClientProvider>
-      </trpc.Provider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
+          <RootLayoutNav />
+        </AuthProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

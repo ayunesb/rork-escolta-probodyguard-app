@@ -18,18 +18,6 @@ export type DressCode = 'suit' | 'business_casual' | 'tactical' | 'casual';
 
 export type KYCStatus = 'pending' | 'approved' | 'rejected';
 
-export interface SavedPaymentMethod {
-  id: string;
-  type: 'card';
-  last4: string;
-  brand: string;
-  expiryMonth: number;
-  expiryYear: number;
-  isDefault: boolean;
-  braintreePaymentMethodToken: string;
-  createdAt: string;
-}
-
 export interface User {
   id: string;
   email: string;
@@ -40,8 +28,6 @@ export interface User {
   language: Language;
   kycStatus: KYCStatus;
   createdAt: string;
-  braintreeCustomerId?: string;
-  savedPaymentMethods?: SavedPaymentMethod[];
 }
 
 export interface Client extends User {
@@ -62,7 +48,6 @@ export interface Guard extends User {
   insuranceUrls: string[];
   certifications: string[];
   rating: number;
-  ratingBreakdown?: RatingBreakdown;
   completedJobs: number;
   isFreelancer: boolean;
   companyId?: string;
@@ -98,27 +83,19 @@ export interface Booking {
   pickupAddress: string;
   pickupLatitude: number;
   pickupLongitude: number;
-  pickupCity: string;
   destinationAddress?: string;
   destinationLatitude?: number;
   destinationLongitude?: number;
   startCode: string;
   totalAmount: number;
-  processingFee: number;
+  stripeFee: number;
   platformCut: number;
   guardPayout: number;
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
   rating?: number;
-  ratingBreakdown?: RatingBreakdown;
   review?: string;
-  isScheduled: boolean;
-  isCrossCity: boolean;
-  estimatedArrivalTime?: string;
-  guardVisibleAt?: string;
-  extendedDuration?: number;
-  extensionAmount?: number;
 }
 
 export interface ChatMessage {
@@ -139,11 +116,11 @@ export interface Payment {
   clientId: string;
   guardId: string;
   amount: number;
-  processingFee: number;
+  stripeFee: number;
   platformCut: number;
   guardPayout: number;
   status: 'pending' | 'completed' | 'refunded';
-  braintreeTransactionId: string;
+  stripePaymentIntentId: string;
   createdAt: string;
 }
 
@@ -156,54 +133,4 @@ export interface Document {
   uploadedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
-}
-
-export interface RatingBreakdown {
-  overall: number;
-  professionalism: number;
-  punctuality: number;
-  communication: number;
-  languageClarity: number;
-}
-
-export interface CompanySettings {
-  id: string;
-  companyId: string;
-  payoutMethod: 'platform_to_guard' | 'company_handles';
-  autoAssignGuards: boolean;
-  requireClientApprovalForReassignment: boolean;
-}
-
-export interface GuardReassignment {
-  id: string;
-  bookingId: string;
-  originalGuardId: string;
-  newGuardId: string;
-  reason: string;
-  status: 'pending_client_approval' | 'approved' | 'rejected';
-  requestedAt: string;
-  respondedAt?: string;
-}
-
-export interface BookingExtension {
-  id: string;
-  bookingId: string;
-  additionalHours: number;
-  additionalAmount: number;
-  requestedAt: string;
-  approvedAt?: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
-
-export interface Refund {
-  id: string;
-  bookingId: string;
-  paymentId: string;
-  amount: number;
-  reason: string;
-  status: 'pending' | 'completed' | 'failed';
-  requestedBy: string;
-  processedBy?: string;
-  createdAt: string;
-  completedAt?: string;
 }

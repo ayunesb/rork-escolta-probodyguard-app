@@ -125,10 +125,7 @@ export default function SignInScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Demo Accounts (password: demo123):
-          </Text>
-          <Text style={styles.footerText}>
-            client@demo.com • guard1@demo.com • admin@demo.com
+            Demo: Use any email (e.g., client@test.com, guard@test.com)
           </Text>
         </View>
       </ScrollView>

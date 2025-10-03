@@ -2,6 +2,7 @@ import { db } from '@/config/firebase';
 import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
 import { notificationService } from './notificationService';
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 
 export interface EmergencyAlert {
   id: string;
@@ -107,6 +108,34 @@ class EmergencyService {
     accuracy?: number;
     address?: string;
   } | null> {
+    if (Platform.OS === 'web') {
+      try {
+        if ('geolocation' in navigator) {
+          return new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                resolve({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  accuracy: position.coords.accuracy,
+                  address: undefined,
+                });
+              },
+              (error) => {
+                console.error('[Emergency] Web geolocation error:', error);
+                resolve(null);
+              },
+              { enableHighAccuracy: true }
+            );
+          });
+        }
+        return null;
+      } catch (error) {
+        console.error('[Emergency] Web location error:', error);
+        return null;
+      }
+    }
+
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       

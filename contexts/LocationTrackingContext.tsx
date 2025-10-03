@@ -1,6 +1,7 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 import { ref, onValue, set, off } from 'firebase/database';
 import { realtimeDb } from '@/config/firebase';
 
@@ -24,6 +25,35 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   const [error, setError] = useState<string | null>(null);
 
   const requestLocationPermission = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      try {
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setHasPermission(true);
+              setCurrentLocation({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
+            },
+            (error) => {
+              console.error('[Location] Web geolocation error:', error);
+              setError('Location permission denied');
+              setHasPermission(false);
+            }
+          );
+        } else {
+          setError('Geolocation not supported');
+          setHasPermission(false);
+        }
+      } catch (err) {
+        console.error('[Location] Web permission error:', err);
+        setError('Failed to get location permission');
+        setHasPermission(false);
+      }
+      return;
+    }
+
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       setHasPermission(status === 'granted');
@@ -56,6 +86,40 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
 
     setIsTracking(true);
     setError(null);
+
+    if (Platform.OS === 'web') {
+      try {
+        if ('geolocation' in navigator) {
+          const watchId = navigator.geolocation.watchPosition(
+            (position) => {
+              setCurrentLocation({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
+            },
+            (error) => {
+              console.error('[Location] Web tracking error:', error);
+              setError('Failed to track location');
+              setIsTracking(false);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0,
+            }
+          );
+
+          return () => {
+            navigator.geolocation.clearWatch(watchId);
+          };
+        }
+      } catch (err) {
+        console.error('[Location] Web start tracking error:', err);
+        setError('Failed to start location tracking');
+        setIsTracking(false);
+      }
+      return;
+    }
 
     try {
       const subscription = await Location.watchPositionAsync(

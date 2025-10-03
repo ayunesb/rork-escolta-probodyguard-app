@@ -3,18 +3,25 @@ import { Platform } from 'react-native';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export const notificationService = {
   async requestPermissions(): Promise<boolean> {
+    if (Platform.OS === 'web') {
+      console.log('[Notifications] Limited support on web');
+      return true;
+    }
+
     try {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
@@ -47,6 +54,11 @@ export const notificationService = {
   },
 
   async registerForPushNotifications(userId: string): Promise<string | null> {
+    if (Platform.OS === 'web') {
+      console.log('[Notifications] Push notifications not supported on web');
+      return null;
+    }
+
     try {
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) {
@@ -69,6 +81,18 @@ export const notificationService = {
   },
 
   async sendLocalNotification(title: string, body: string, data?: any): Promise<void> {
+    if (Platform.OS === 'web') {
+      console.log('[Notifications] Web notification:', title, body);
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(title, { body });
+        } catch (error) {
+          console.error('[Notifications] Web notification error:', error);
+        }
+      }
+      return;
+    }
+
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
@@ -143,6 +167,11 @@ export const notificationService = {
     onNotificationReceived?: (notification: Notifications.Notification) => void,
     onNotificationResponse?: (response: Notifications.NotificationResponse) => void
   ) {
+    if (Platform.OS === 'web') {
+      console.log('[Notifications] Listeners not supported on web');
+      return () => {};
+    }
+
     const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
       console.log('[Notifications] Notification received:', notification);
       onNotificationReceived?.(notification);
@@ -160,15 +189,25 @@ export const notificationService = {
   },
 
   async cancelAllNotifications(): Promise<void> {
+    if (Platform.OS === 'web') {
+      console.log('[Notifications] Cancel not supported on web');
+      return;
+    }
     await Notifications.cancelAllScheduledNotificationsAsync();
     console.log('[Notifications] All notifications cancelled');
   },
 
   async getBadgeCount(): Promise<number> {
+    if (Platform.OS === 'web') {
+      return 0;
+    }
     return await Notifications.getBadgeCountAsync();
   },
 
   async setBadgeCount(count: number): Promise<void> {
+    if (Platform.OS === 'web') {
+      return;
+    }
     await Notifications.setBadgeCountAsync(count);
   },
 };

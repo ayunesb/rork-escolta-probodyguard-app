@@ -147,10 +147,16 @@ class BiometricService {
   }
 
   private simpleEncrypt(text: string): string {
+    if (Platform.OS === 'web') {
+      return btoa(text);
+    }
     return Buffer.from(text).toString('base64');
   }
 
   private simpleDecrypt(encrypted: string): string {
+    if (Platform.OS === 'web') {
+      return atob(encrypted);
+    }
     return Buffer.from(encrypted, 'base64').toString('utf-8');
   }
 }

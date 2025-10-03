@@ -34,6 +34,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   }, [userRole]);
   
   const setRole = useCallback((role: UserRole | null) => {
+    console.log('[Location] Setting user role:', role);
     setUserRole(role);
   }, []);
 

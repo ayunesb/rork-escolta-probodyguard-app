@@ -1,11 +1,19 @@
 import { Tabs, Redirect } from "expo-router";
 import { Shield, Calendar, User, Briefcase, Settings } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocationTracking } from "@/contexts/LocationTrackingContext";
 import Colors from "@/constants/colors";
 
 export default function TabLayout() {
   const { user } = useAuth();
+  const { setRole } = useLocationTracking();
+
+  useEffect(() => {
+    if (user) {
+      setRole(user.role);
+    }
+  }, [user, setRole]);
 
   if (!user) {
     return <Redirect href="/auth/sign-in" />;

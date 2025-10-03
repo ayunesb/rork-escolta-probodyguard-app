@@ -4,7 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { LocationTrackingProvider, useLocationTracking } from "@/contexts/LocationTrackingContext";
+import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 
 SplashScreen.preventAutoHideAsync();
@@ -13,43 +13,25 @@ const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
-  const { setRole } = useLocationTracking();
   const segments = useSegments();
   const router = useRouter();
-  const navigationHandledRef = useRef(false);
-  const lastRouteRef = useRef<string>('');
-
-  useEffect(() => {
-    if (user) {
-      setRole(user.role);
-    } else {
-      setRole(null);
-    }
-  }, [user, setRole]);
+  const hasNavigated = useRef(false);
 
   useEffect(() => {
     if (isLoading) return;
 
-    const firstSegment = segments[0];
-    const inAuthGroup = firstSegment === 'auth';
-    const inTabsGroup = firstSegment === '(tabs)';
-    const isIndexRoute = !firstSegment || firstSegment === 'index';
-    const currentRoute = segments.join('/');
+    const inAuthGroup = segments[0] === 'auth';
+    const inTabsGroup = segments[0] === '(tabs)';
 
-    if (currentRoute !== lastRouteRef.current) {
-      navigationHandledRef.current = false;
-      lastRouteRef.current = currentRoute;
-    }
-
-    if (!user && !inAuthGroup && !isIndexRoute) {
-      if (!navigationHandledRef.current) {
-        navigationHandledRef.current = true;
-        setTimeout(() => router.replace('/auth/sign-in'), 0);
+    if (!user && !inAuthGroup) {
+      if (!hasNavigated.current) {
+        hasNavigated.current = true;
+        router.replace('/auth/sign-in');
       }
-    } else if (user && !inTabsGroup && (isIndexRoute || inAuthGroup)) {
-      if (!navigationHandledRef.current) {
-        navigationHandledRef.current = true;
-        setTimeout(() => router.replace('/(tabs)/home'), 0);
+    } else if (user && !inTabsGroup && !inAuthGroup) {
+      if (!hasNavigated.current) {
+        hasNavigated.current = true;
+        router.replace('/(tabs)/home');
       }
     }
   }, [user, isLoading, segments, router]);

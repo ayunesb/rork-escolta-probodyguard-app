@@ -18,7 +18,7 @@ interface GuardLocation extends LocationCoords {
   timestamp: number;
 }
 
-const ROLES_REQUIRING_LOCATION: UserRole[] = ['client', 'guard'];
+const ROLES_REQUIRING_LOCATION: UserRole[] = ['client', 'guard', 'company'];
 
 export const [LocationTrackingProvider, useLocationTracking] = createContextHook(() => {
   const [isTracking, setIsTracking] = useState<boolean>(false);
@@ -28,15 +28,18 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const permissionRequestedRef = useRef<boolean>(false);
+  const roleSetRef = useRef<boolean>(false);
   
   const requiresLocation = useMemo(() => {
     return userRole ? ROLES_REQUIRING_LOCATION.includes(userRole) : false;
   }, [userRole]);
   
   const setRole = useCallback((role: UserRole | null) => {
+    if (roleSetRef.current && userRole === role) return;
     console.log('[Location] Setting user role:', role);
     setUserRole(role);
-  }, []);
+    roleSetRef.current = true;
+  }, [userRole]);
 
   const requestLocationPermission = useCallback(async () => {
     if (!requiresLocation) {

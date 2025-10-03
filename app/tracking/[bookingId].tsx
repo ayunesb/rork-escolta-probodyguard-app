@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -21,7 +20,7 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView.native';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 
 const { width, height } = Dimensions.get('window');
 
@@ -148,16 +147,7 @@ export default function TrackingScreen() {
         )}
       </MapView>
 
-      {Platform.OS === 'web' && guardLocation && (
-        <View style={styles.webLocationOverlay}>
-          <View style={styles.webLocationInfo}>
-            <Text style={styles.webLocationText}>Guard Location:</Text>
-            <Text style={styles.webLocationCoords}>
-              {guardLocation.latitude.toFixed(4)}, {guardLocation.longitude.toFixed(4)}
-            </Text>
-          </View>
-        </View>
-      )}
+
 
       <TouchableOpacity
         style={[styles.backButton, { top: insets.top + 10 }]}
@@ -342,30 +332,5 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-  webLocationOverlay: {
-    position: 'absolute' as const,
-    top: 100,
-    left: 16,
-    right: 16,
-    alignItems: 'center',
-  },
-  webLocationInfo: {
-    padding: 16,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    gap: 8,
-  },
-  webLocationText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600' as const,
-  },
-  webLocationCoords: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    fontWeight: '700' as const,
-  },
+
 });

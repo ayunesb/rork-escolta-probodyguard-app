@@ -26,7 +26,7 @@ import {
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
 import type { VehicleType, ProtectionType, DressCode } from '@/types';
-import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView.native';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import PaymentSheet from '@/components/PaymentSheet';
 import { paymentService } from '@/services/paymentService';
 import { bookingService } from '@/services/bookingService';
@@ -385,20 +385,14 @@ export default function CreateBookingScreen() {
                     longitudeDelta: 0.01,
                   }}
                   onPress={(e: any) => {
-                    if (Platform.OS !== 'web' && e?.nativeEvent?.coordinate) {
+                    if (e?.nativeEvent?.coordinate) {
                       setPickupCoords(e.nativeEvent.coordinate);
                     }
                   }}
                 >
                   <Marker coordinate={pickupCoords} title="Pickup Location" />
                 </MapView>
-                {Platform.OS === 'web' && (
-                  <View style={styles.webMapOverlay}>
-                    <Text style={styles.webMapSubtext}>
-                      Lat: {pickupCoords.latitude.toFixed(4)}, Lng: {pickupCoords.longitude.toFixed(4)}
-                    </Text>
-                  </View>
-                )}
+
               </View>
             )}
           </View>
@@ -766,21 +760,5 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-  webMapOverlay: {
-    position: 'absolute' as const,
-    bottom: 12,
-    left: 12,
-    right: 12,
-    backgroundColor: Colors.surface,
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-  },
-  webMapSubtext: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600' as const,
-  },
+
 });

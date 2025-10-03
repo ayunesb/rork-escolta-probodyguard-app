@@ -22,7 +22,7 @@ export default function Index() {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [user, isLoading, router]);
+  }, [user, isLoading]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>

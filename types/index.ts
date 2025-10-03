@@ -26,7 +26,7 @@ export interface SavedPaymentMethod {
   expiryMonth: number;
   expiryYear: number;
   isDefault: boolean;
-  stripePaymentMethodId: string;
+  braintreePaymentMethodToken: string;
   createdAt: string;
 }
 
@@ -40,7 +40,7 @@ export interface User {
   language: Language;
   kycStatus: KYCStatus;
   createdAt: string;
-  stripeCustomerId?: string;
+  braintreeCustomerId?: string;
   savedPaymentMethods?: SavedPaymentMethod[];
 }
 
@@ -104,7 +104,7 @@ export interface Booking {
   destinationLongitude?: number;
   startCode: string;
   totalAmount: number;
-  stripeFee: number;
+  processingFee: number;
   platformCut: number;
   guardPayout: number;
   createdAt: string;
@@ -139,11 +139,11 @@ export interface Payment {
   clientId: string;
   guardId: string;
   amount: number;
-  stripeFee: number;
+  processingFee: number;
   platformCut: number;
   guardPayout: number;
   status: 'pending' | 'completed' | 'refunded';
-  stripePaymentIntentId: string;
+  braintreeTransactionId: string;
   createdAt: string;
 }
 

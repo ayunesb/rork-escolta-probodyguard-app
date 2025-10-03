@@ -37,7 +37,7 @@ export default publicProcedure
         ...input,
         startCode,
         totalAmount: 0,
-        stripeFee: 0,
+        processingFee: 0,
         platformCut: 0,
         guardPayout: 0,
         createdAt: new Date().toISOString(),

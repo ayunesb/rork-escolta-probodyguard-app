@@ -112,7 +112,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           language: userData.language,
           kycStatus: userData.kycStatus,
           createdAt: userData.createdAt || new Date().toISOString(),
-          stripeCustomerId: userData.stripeCustomerId,
+          braintreeCustomerId: userData.braintreeCustomerId,
           savedPaymentMethods: userData.savedPaymentMethods || [],
         };
         console.log('[Auth] User loaded successfully in', Date.now() - startTime, 'ms');

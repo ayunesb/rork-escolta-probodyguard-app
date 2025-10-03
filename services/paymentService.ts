@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SavedPaymentMethod } from '@/types';
-import { ENV, PAYMENT_CONFIG } from '@/config/env';
+import { PAYMENT_CONFIG } from '@/config/env';
 
 const SAVED_CARDS_KEY = '@escolta_saved_cards';
 
@@ -20,25 +20,9 @@ export interface PaymentBreakdown {
 
 export const paymentService = {
   async getClientToken(customerId?: string): Promise<string> {
-    try {
-      console.log('[Payment] Requesting client token for customer:', customerId);
-      
-      const response = await fetch(`${ENV.API_URL}/api/payments/braintree/client-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get client token');
-      }
-
-      const data = await response.json();
-      return data.clientToken;
-    } catch (error) {
-      console.error('[Payment] Error getting client token:', error);
-      return 'mock_client_token_' + Date.now();
-    }
+    console.log('[Payment] Generating mock client token for customer:', customerId);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return 'mock_client_token_' + Date.now();
   },
 
   async processPayment(
@@ -47,50 +31,27 @@ export const paymentService = {
     customerId?: string,
     saveCard: boolean = false
   ): Promise<PaymentResult> {
-    try {
-      console.log('[Payment] Processing payment:', { amount, customerId, saveCard });
-
-      const response = await fetch(`${ENV.API_URL}/api/payments/braintree/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nonce,
-          amount,
-          customerId,
-          saveCard,
-          currency: ENV.PAYMENTS_CURRENCY,
-        }),
+    console.log('[Payment] Processing mock payment:', { amount, customerId, saveCard });
+    
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const mockTransactionId = 'mock_txn_' + Date.now();
+    
+    if (saveCard) {
+      const last4 = Math.floor(1000 + Math.random() * 9000).toString();
+      await this.savePaymentMethod({
+        token: 'mock_token_' + Date.now(),
+        last4,
+        cardType: 'Visa',
+        expirationMonth: '12',
+        expirationYear: '2025',
       });
-
-      if (!response.ok) {
-        throw new Error('Payment failed');
-      }
-
-      const data = await response.json();
-      
-      if (data.paymentMethod && saveCard) {
-        await this.savePaymentMethod({
-          token: data.paymentMethod.token,
-          last4: data.paymentMethod.last4,
-          cardType: data.paymentMethod.cardType,
-          expirationMonth: data.paymentMethod.expirationMonth,
-          expirationYear: data.paymentMethod.expirationYear,
-        });
-      }
-
-      return {
-        success: true,
-        transactionId: data.transactionId,
-      };
-    } catch (error) {
-      console.error('[Payment] Error processing payment:', error);
-      
-      const mockTransactionId = 'mock_txn_' + Date.now();
-      return {
-        success: true,
-        transactionId: mockTransactionId,
-      };
     }
+    
+    return {
+      success: true,
+      transactionId: mockTransactionId,
+    };
   },
 
   calculateBreakdown(hourlyRate: number, duration: number): PaymentBreakdown {
@@ -150,30 +111,13 @@ export const paymentService = {
   },
 
   async processRefund(transactionId: string, amount?: number): Promise<PaymentResult> {
-    try {
-      console.log('[Payment] Processing refund:', { transactionId, amount });
-
-      const response = await fetch(`${ENV.API_URL}/api/payments/braintree/refund`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactionId, amount }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Refund failed');
-      }
-
-      const data = await response.json();
-      return {
-        success: true,
-        transactionId: data.refundId,
-      };
-    } catch (error) {
-      console.error('[Payment] Error processing refund:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Refund failed',
-      };
-    }
+    console.log('[Payment] Processing mock refund:', { transactionId, amount });
+    
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    return {
+      success: true,
+      transactionId: 'mock_refund_' + Date.now(),
+    };
   },
 };

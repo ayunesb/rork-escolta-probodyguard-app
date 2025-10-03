@@ -42,7 +42,7 @@ export default function SignUpScreen() {
     const result = await signUp(email, password, firstName, lastName, phone, role);
 
     if (result.success) {
-      router.replace('/(tabs)/home');
+      router.replace('/home');
     } else {
       setError(result.error || 'Failed to sign up');
     }

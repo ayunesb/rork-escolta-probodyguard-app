@@ -6,21 +6,31 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { Shield, Star, MapPin, Languages, Award, ChevronRight } from 'lucide-react-native';
+import { Shield, Star, MapPin, Languages, Award, ChevronRight, Map as MapIcon, List } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
+import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
+
+const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'armed' | 'unarmed'>('all');
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
   const availableGuards = mockGuards.filter(g => g.availability);
+  
+  const centerLocation = {
+    latitude: 40.7580,
+    longitude: -73.9855,
+  };
 
   if (user?.role === 'guard') {
     return (
@@ -49,8 +59,26 @@ export default function HomeScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       
       <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
-        <Text style={styles.title}>Book Protection</Text>
-        <Text style={styles.subtitle}>Elite security professionals at your service</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.title}>Book Protection</Text>
+            <Text style={styles.subtitle}>Elite security professionals at your service</Text>
+          </View>
+          <View style={styles.viewToggle}>
+            <TouchableOpacity
+              style={[styles.viewToggleButton, viewMode === 'map' && styles.viewToggleButtonActive]}
+              onPress={() => setViewMode('map')}
+            >
+              <MapIcon size={18} color={viewMode === 'map' ? Colors.background : Colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.viewToggleButton, viewMode === 'list' && styles.viewToggleButtonActive]}
+              onPress={() => setViewMode('list')}
+            >
+              <List size={18} color={viewMode === 'list' ? Colors.background : Colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <View style={styles.filterContainer}>
@@ -83,7 +111,65 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      {viewMode === 'map' ? (
+        <View style={styles.mapContainer}>
+          <MapView
+            provider={PROVIDER_DEFAULT}
+            style={styles.map}
+            initialRegion={{
+              latitude: centerLocation.latitude,
+              longitude: centerLocation.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+            showsUserLocation={true}
+          >
+            {availableGuards.map((guard) => (
+              <Marker
+                key={guard.id}
+                coordinate={{
+                  latitude: guard.latitude || centerLocation.latitude,
+                  longitude: guard.longitude || centerLocation.longitude,
+                }}
+                onPress={() => router.push(`/guard/${guard.id}`)}
+              >
+                <View style={styles.guardMarker}>
+                  <Shield size={20} color={Colors.gold} />
+                </View>
+              </Marker>
+            ))}
+          </MapView>
+          
+          <View style={styles.mapOverlay}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.guardCardsHorizontal}
+            >
+              {availableGuards.map((guard) => (
+                <TouchableOpacity
+                  key={guard.id}
+                  style={styles.guardCardCompact}
+                  onPress={() => router.push(`/guard/${guard.id}`)}
+                >
+                  <Image source={{ uri: guard.photos[0] }} style={styles.guardImageCompact} />
+                  <View style={styles.guardInfoCompact}>
+                    <Text style={styles.guardNameCompact}>
+                      {guard.firstName} {guard.lastName.charAt(0)}.
+                    </Text>
+                    <View style={styles.ratingRowCompact}>
+                      <Star size={12} color={Colors.gold} fill={Colors.gold} />
+                      <Text style={styles.ratingTextCompact}>{guard.rating.toFixed(1)}</Text>
+                    </View>
+                    <Text style={styles.rateValueCompact}>${guard.hourlyRate}/hr</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      ) : (
+        <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         <View style={styles.statsBar}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{availableGuards.length}</Text>
@@ -165,7 +251,8 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -181,6 +268,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   title: {
     fontSize: 32,
     fontWeight: '700' as const,
@@ -190,6 +282,22 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: Colors.textSecondary,
+  },
+  viewToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  viewToggleButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  viewToggleButtonActive: {
+    backgroundColor: Colors.gold,
   },
   filterContainer: {
     borderBottomWidth: 1,
@@ -403,5 +511,86 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
     textAlign: 'center' as const,
+  },
+  mapContainer: {
+    flex: 1,
+    position: 'relative' as const,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  guardMarker: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    borderWidth: 3,
+    borderColor: Colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  mapOverlay: {
+    position: 'absolute' as const,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent',
+  },
+  guardCardsHorizontal: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  guardCardCompact: {
+    width: width * 0.7,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  guardImageCompact: {
+    width: 100,
+    height: 120,
+    backgroundColor: Colors.surfaceLight,
+  },
+  guardInfoCompact: {
+    flex: 1,
+    padding: 12,
+    justifyContent: 'space-between',
+  },
+  guardNameCompact: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  ratingRowCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  ratingTextCompact: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+  },
+  rateValueCompact: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.gold,
   },
 });

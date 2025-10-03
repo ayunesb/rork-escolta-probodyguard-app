@@ -49,7 +49,11 @@ export default function BookingsScreen() {
           </View>
         ) : (
           userBookings.map((booking) => (
-            <View key={booking.id} style={styles.bookingCard}>
+            <TouchableOpacity 
+              key={booking.id} 
+              style={styles.bookingCard}
+              onPress={() => router.push(`/booking/${booking.id}` as any)}
+            >
               <View style={styles.bookingHeader}>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) + '20' }]}>
                   <Text style={[styles.statusText, { color: getStatusColor(booking.status) }]}>
@@ -101,7 +105,7 @@ export default function BookingsScreen() {
                   <Text style={styles.trackButtonText}>Track Guard</Text>
                 </TouchableOpacity>
               )}
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

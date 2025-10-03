@@ -139,16 +139,7 @@ export default function CreateBookingScreen() {
 
       setShowPayment(false);
 
-      Alert.alert(
-        'Booking Confirmed!',
-        `Your protection service has been booked.\n\nStart Code: ${booking.startCode}\n\nSave this code to start your service.`,
-        [
-          {
-            text: 'View Booking',
-            onPress: () => router.push('/bookings'),
-          },
-        ]
-      );
+      router.replace(`/booking/${booking.id}` as any);
     } catch (error) {
       console.error('[Booking] Error creating booking:', error);
       Alert.alert('Error', 'Failed to create booking. Please try again.');

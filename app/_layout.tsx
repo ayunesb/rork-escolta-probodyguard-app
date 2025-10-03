@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocationTrackingProvider, useLocationTracking } from "@/contexts/LocationTrackingContext";
@@ -25,22 +25,20 @@ function RootLayoutNav() {
     }
   }, [user, setRole]);
 
-  const handleNavigation = useCallback(() => {
+  useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'auth';
-    const inTabsGroup = segments[0] === '(tabs)';
+    const firstSegment = segments[0];
+    const inAuthGroup = firstSegment === 'auth';
+    const inTabsGroup = firstSegment === '(tabs)';
+    const isIndexRoute = !firstSegment || firstSegment === 'index';
 
-    if (!user && !inAuthGroup) {
+    if (!user && !inAuthGroup && !isIndexRoute) {
       router.replace('/auth/sign-in');
-    } else if (user && !inTabsGroup) {
+    } else if (user && !inTabsGroup && (isIndexRoute || inAuthGroup)) {
       router.replace('/(tabs)/home');
     }
   }, [user, isLoading, segments, router]);
-
-  useEffect(() => {
-    handleNavigation();
-  }, [handleNavigation]);
 
   useEffect(() => {
     if (!isLoading) {

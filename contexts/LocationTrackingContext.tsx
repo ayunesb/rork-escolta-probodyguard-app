@@ -37,8 +37,12 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
               });
             },
             (error) => {
-              console.error('[Location] Web geolocation error:', error);
-              setError('Location permission denied');
+              const errorMessage = error.code === 1 ? 'Location permission denied' : 
+                                   error.code === 2 ? 'Location unavailable' : 
+                                   error.code === 3 ? 'Location request timeout' : 
+                                   'Location error';
+              console.error('[Location] Web geolocation error:', errorMessage, error.message);
+              setError(errorMessage);
               setHasPermission(false);
             }
           );
@@ -98,8 +102,12 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
               });
             },
             (error) => {
-              console.error('[Location] Web tracking error:', error);
-              setError('Failed to track location');
+              const errorMessage = error.code === 1 ? 'Location permission denied' : 
+                                   error.code === 2 ? 'Location unavailable' : 
+                                   error.code === 3 ? 'Location request timeout' : 
+                                   'Failed to track location';
+              console.error('[Location] Web tracking error:', errorMessage, error.message);
+              setError(errorMessage);
               setIsTracking(false);
             },
             {

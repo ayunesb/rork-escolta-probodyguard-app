@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { Calendar, MapPin, Clock, DollarSign, Navigation } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { bookingService } from '@/services/bookingService';
 import Colors from '@/constants/colors';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Booking } from '@/types';
 
 export default function BookingsScreen() {
@@ -35,9 +35,12 @@ export default function BookingsScreen() {
     }
   }, [user]);
 
-  useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
+  useFocusEffect(
+    useCallback(() => {
+      console.log('[Bookings] Screen focused, reloading bookings');
+      loadBookings();
+    }, [loadBookings])
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {

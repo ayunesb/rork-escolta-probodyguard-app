@@ -4,6 +4,7 @@ import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import { ref, onValue, set, off } from 'firebase/database';
 import { realtimeDb } from '@/config/firebase';
+import { UserRole } from '@/types';
 
 interface LocationCoords {
   latitude: number;
@@ -17,14 +18,32 @@ interface GuardLocation extends LocationCoords {
   timestamp: number;
 }
 
+const ROLES_REQUIRING_LOCATION: UserRole[] = ['client', 'guard'];
+
 export const [LocationTrackingProvider, useLocationTracking] = createContextHook(() => {
   const [isTracking, setIsTracking] = useState<boolean>(false);
   const [currentLocation, setCurrentLocation] = useState<LocationCoords | null>(null);
   const [guardLocations, setGuardLocations] = useState<Map<string, GuardLocation>>(new Map());
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  
+  const requiresLocation = useMemo(() => {
+    return userRole ? ROLES_REQUIRING_LOCATION.includes(userRole) : false;
+  }, [userRole]);
+  
+  const setRole = useCallback((role: UserRole | null) => {
+    setUserRole(role);
+  }, []);
 
   const requestLocationPermission = useCallback(async () => {
+    if (!requiresLocation) {
+      console.log('[Location] Location not required for user role:', userRole);
+      setHasPermission(false);
+      setError(null);
+      return;
+    }
+    
     if (Platform.OS === 'web') {
       try {
         if (!('geolocation' in navigator)) {
@@ -95,15 +114,21 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
       setError('Failed to get location permission');
       setHasPermission(false);
     }
-  }, []);
+  }, [requiresLocation, userRole]);
 
   useEffect(() => {
-    if (Platform.OS !== 'web') {
+    if (requiresLocation && Platform.OS !== 'web') {
       requestLocationPermission();
     }
-  }, [requestLocationPermission]);
+  }, [requiresLocation, requestLocationPermission]);
 
   const startTracking = useCallback(async () => {
+    if (!requiresLocation) {
+      console.log('[Location] Tracking not available for user role:', userRole);
+      setError('Location tracking not available for your account type');
+      return;
+    }
+    
     if (!hasPermission) {
       await requestLocationPermission();
       return;
@@ -190,7 +215,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
       setError('Failed to start location tracking');
       setIsTracking(false);
     }
-  }, [hasPermission, requestLocationPermission]);
+  }, [requiresLocation, userRole, hasPermission, requestLocationPermission]);
 
   const stopTracking = useCallback(() => {
     setIsTracking(false);
@@ -270,6 +295,8 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     guardLocations,
     hasPermission,
     error,
+    userRole,
+    setRole,
     startTracking,
     stopTracking,
     updateGuardLocation,
@@ -284,6 +311,8 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     guardLocations,
     hasPermission,
     error,
+    userRole,
+    setRole,
     startTracking,
     stopTracking,
     updateGuardLocation,

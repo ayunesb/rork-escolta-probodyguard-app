@@ -4,7 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
+import { LocationTrackingProvider, useLocationTracking } from "@/contexts/LocationTrackingContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 
 SplashScreen.preventAutoHideAsync();
@@ -13,8 +13,17 @@ const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
+  const { setRole } = useLocationTracking();
   const segments = useSegments();
   const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      setRole(user.role);
+    } else {
+      setRole(null);
+    }
+  }, [user, setRole]);
 
   useEffect(() => {
     if (isLoading) return;

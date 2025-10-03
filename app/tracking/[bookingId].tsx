@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,7 +21,18 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+let MapView: any;
+let Marker: any;
+let Polyline: any;
+let PROVIDER_DEFAULT: any;
+
+if (Platform.OS !== 'web') {
+  const maps = require('react-native-maps');
+  MapView = maps.default;
+  Marker = maps.Marker;
+  Polyline = maps.Polyline;
+  PROVIDER_DEFAULT = maps.PROVIDER_DEFAULT;
+}
 
 const { width, height } = Dimensions.get('window');
 
@@ -107,45 +119,51 @@ export default function TrackingScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <MapView
-        provider={PROVIDER_DEFAULT}
-        style={styles.map}
-        initialRegion={{
-          latitude: currentLocation?.latitude || guard.latitude || 40.7580,
-          longitude: currentLocation?.longitude || guard.longitude || -73.9855,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        }}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-      >
-        {guardLocation && (
-          <Marker
-            coordinate={{
-              latitude: guardLocation.latitude,
-              longitude: guardLocation.longitude,
-            }}
-            title={`${guard.firstName} ${guard.lastName.charAt(0)}.`}
-            description="Your guard"
-          >
-            <View style={styles.guardMarker}>
-              <Shield size={24} color={Colors.gold} />
-            </View>
-          </Marker>
-        )}
+      {Platform.OS !== 'web' && MapView ? (
+        <MapView
+          provider={PROVIDER_DEFAULT}
+          style={styles.map}
+          initialRegion={{
+            latitude: currentLocation?.latitude || guard.latitude || 40.7580,
+            longitude: currentLocation?.longitude || guard.longitude || -73.9855,
+            latitudeDelta: 0.02,
+            longitudeDelta: 0.02,
+          }}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+        >
+          {guardLocation && (
+            <Marker
+              coordinate={{
+                latitude: guardLocation.latitude,
+                longitude: guardLocation.longitude,
+              }}
+              title={`${guard.firstName} ${guard.lastName.charAt(0)}.`}
+              description="Your guard"
+            >
+              <View style={styles.guardMarker}>
+                <Shield size={24} color={Colors.gold} />
+              </View>
+            </Marker>
+          )}
 
-        {currentLocation && guardLocation && (
-          <Polyline
-            coordinates={[
-              { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
-              { latitude: guardLocation.latitude, longitude: guardLocation.longitude },
-            ]}
-            strokeColor={Colors.gold}
-            strokeWidth={3}
-            lineDashPattern={[10, 5]}
-          />
-        )}
-      </MapView>
+          {currentLocation && guardLocation && (
+            <Polyline
+              coordinates={[
+                { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
+                { latitude: guardLocation.latitude, longitude: guardLocation.longitude },
+              ]}
+              strokeColor={Colors.gold}
+              strokeWidth={3}
+              lineDashPattern={[10, 5]}
+            />
+          )}
+        </MapView>
+      ) : (
+        <View style={styles.mapPlaceholder}>
+          <Text style={styles.mapPlaceholderText}>Map not available on web</Text>
+        </View>
+      )}
 
 
 
@@ -332,5 +350,15 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-
+  mapPlaceholder: {
+    width: width,
+    height: height,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surfaceLight,
+  },
+  mapPlaceholderText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
 });

@@ -17,6 +17,7 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const navigationHandledRef = useRef(false);
+  const lastRouteRef = useRef<string>('');
 
   useEffect(() => {
     if (user) {
@@ -33,21 +34,25 @@ function RootLayoutNav() {
     const inAuthGroup = firstSegment === 'auth';
     const inTabsGroup = firstSegment === '(tabs)';
     const isIndexRoute = !firstSegment || firstSegment === 'index';
+    const currentRoute = segments.join('/');
+
+    if (currentRoute !== lastRouteRef.current) {
+      navigationHandledRef.current = false;
+      lastRouteRef.current = currentRoute;
+    }
 
     if (!user && !inAuthGroup && !isIndexRoute) {
       if (!navigationHandledRef.current) {
         navigationHandledRef.current = true;
-        router.replace('/auth/sign-in');
+        setTimeout(() => router.replace('/auth/sign-in'), 0);
       }
     } else if (user && !inTabsGroup && (isIndexRoute || inAuthGroup)) {
       if (!navigationHandledRef.current) {
         navigationHandledRef.current = true;
-        router.replace('/(tabs)/home');
+        setTimeout(() => router.replace('/(tabs)/home'), 0);
       }
-    } else {
-      navigationHandledRef.current = false;
     }
-  }, [user, isLoading, segments]);
+  }, [user, isLoading, segments, router]);
 
   useEffect(() => {
     if (!isLoading) {

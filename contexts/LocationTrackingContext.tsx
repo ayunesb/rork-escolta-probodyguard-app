@@ -1,5 +1,5 @@
 import createContextHook from '@nkzw/create-context-hook';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import { ref, onValue, set, off } from 'firebase/database';
@@ -27,6 +27,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const permissionRequestedRef = useRef<boolean>(false);
   
   const requiresLocation = useMemo(() => {
     return userRole ? ROLES_REQUIRING_LOCATION.includes(userRole) : false;
@@ -117,8 +118,11 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   }, [requiresLocation, userRole]);
 
   useEffect(() => {
-    if (requiresLocation && Platform.OS !== 'web') {
+    if (requiresLocation && Platform.OS !== 'web' && !permissionRequestedRef.current) {
+      permissionRequestedRef.current = true;
       requestLocationPermission();
+    } else if (!requiresLocation) {
+      permissionRequestedRef.current = false;
     }
   }, [requiresLocation, requestLocationPermission]);
 

@@ -6,15 +6,18 @@
 echo "🚀 Starting Escolta Pro..."
 echo ""
 
-# Check if npx is available (Node.js)
+# Try npx first (most reliable in Rork environment)
 if command -v npx &> /dev/null; then
     echo "✅ Using npx"
     npx rork start -p hmr2gyljt3crd3naxg27q --tunnel
+elif command -v npm &> /dev/null; then
+    echo "✅ Using npm start"
+    npm start
 elif command -v bunx &> /dev/null; then
     echo "✅ Using bunx"
     bunx rork start -p hmr2gyljt3crd3naxg27q --tunnel
 else
-    echo "❌ Error: Neither npx nor bunx found"
+    echo "❌ Error: No package manager found"
     echo "Please install Node.js:"
     echo "  - Node.js: https://nodejs.org/"
     exit 1

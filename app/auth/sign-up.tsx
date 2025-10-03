@@ -31,7 +31,13 @@ export default function SignUpScreen() {
   const [error, setError] = useState('');
 
   const handleSignUp = async () => {
-    if (!email || !password || !firstName || !lastName || !phone) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedPhone = phone.trim();
+    
+    if (!trimmedEmail || !trimmedPassword || !trimmedFirstName || !trimmedLastName || !trimmedPhone) {
       setError('Please fill in all fields');
       return;
     }
@@ -39,7 +45,7 @@ export default function SignUpScreen() {
     setIsLoading(true);
     setError('');
 
-    const result = await signUp(email, password, firstName, lastName, phone, role);
+    const result = await signUp(trimmedEmail, trimmedPassword, trimmedFirstName, trimmedLastName, trimmedPhone, role);
 
     if (result.success) {
       router.replace('/(tabs)/home');
@@ -122,7 +128,7 @@ export default function SignUpScreen() {
             <TextInput
               style={styles.input}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => setEmail(text.trim())}
               placeholder="your@email.com"
               placeholderTextColor={Colors.textTertiary}
               keyboardType="email-address"

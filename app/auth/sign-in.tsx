@@ -41,7 +41,10 @@ export default function SignInScreen() {
   };
 
   const handleSignIn = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedEmail || !trimmedPassword) {
       setError('Please fill in all fields');
       return;
     }
@@ -49,7 +52,7 @@ export default function SignInScreen() {
     setIsLoading(true);
     setError('');
 
-    const result = await signIn(email, password);
+    const result = await signIn(trimmedEmail, trimmedPassword);
 
     if (result.success) {
       router.replace('/(tabs)/home');
@@ -120,7 +123,7 @@ export default function SignInScreen() {
             <TextInput
               style={styles.input}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => setEmail(text.trim())}
               placeholder="your@email.com"
               placeholderTextColor={Colors.textTertiary}
               keyboardType="email-address"

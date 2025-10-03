@@ -11,6 +11,9 @@ import { addPaymentMethodProcedure } from "./routes/payments/add-payment-method/
 import { removePaymentMethodProcedure } from "./routes/payments/remove-payment-method/route";
 import { setDefaultPaymentMethodProcedure } from "./routes/payments/set-default-payment-method/route";
 import { getPaymentIntentProcedure } from "./routes/payments/get-payment-intent/route";
+import { braintreeClientTokenProcedure } from "./routes/payments/braintree/client-token/route";
+import { braintreeCheckoutProcedure } from "./routes/payments/braintree/checkout/route";
+import { braintreeRefundProcedure } from "./routes/payments/braintree/refund/route";
 import sendMessageRoute from "./routes/chat/send-message/route";
 import listGuardsRoute from "./routes/guards/list/route";
 
@@ -34,6 +37,11 @@ export const appRouter = createTRPCRouter({
     removePaymentMethod: removePaymentMethodProcedure,
     setDefaultPaymentMethod: setDefaultPaymentMethodProcedure,
     getPaymentIntent: getPaymentIntentProcedure,
+    braintree: createTRPCRouter({
+      clientToken: braintreeClientTokenProcedure,
+      checkout: braintreeCheckoutProcedure,
+      refund: braintreeRefundProcedure,
+    }),
   }),
   chat: createTRPCRouter({
     sendMessage: sendMessageRoute,

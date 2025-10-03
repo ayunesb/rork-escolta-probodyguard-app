@@ -1,6 +1,8 @@
 import { TRPCError } from '@trpc/server';
 import { publicProcedure } from '../create-context';
 
+export { publicProcedure };
+
 function decodeJWT(token: string): { sub?: string; user_id?: string; [key: string]: any } {
   try {
     const parts = token.split('.');

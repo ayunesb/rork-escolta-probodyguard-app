@@ -23,7 +23,7 @@ function RootLayoutNav() {
     } else {
       setRole(null);
     }
-  }, [user, setRole]);
+  }, [user]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -38,7 +38,7 @@ function RootLayoutNav() {
     } else if (user && !inTabsGroup && (isIndexRoute || inAuthGroup)) {
       router.replace('/(tabs)/home');
     }
-  }, [user, isLoading, segments, router]);
+  }, [user, isLoading, segments]);
 
   useEffect(() => {
     if (!isLoading) {

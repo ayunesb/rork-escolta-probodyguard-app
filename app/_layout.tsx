@@ -9,8 +9,6 @@ import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { trpc, trpcReactClient } from "@/lib/trpc";
 
-import { useStripeInit, StripeWrapper } from '@/services/stripeInit';
-
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient();
@@ -44,26 +42,18 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  useStripeInit();
-
-  const AppContent = () => (
-    <AuthProvider>
-      <NotificationProvider>
-        <AnalyticsProvider>
-          <RootLayoutNav />
-        </AnalyticsProvider>
-      </NotificationProvider>
-    </AuthProvider>
-  );
-
   return (
     <ErrorBoundary>
       <trpc.Provider client={trpcReactClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <StripeWrapper>
-              <AppContent />
-            </StripeWrapper>
+            <AuthProvider>
+              <NotificationProvider>
+                <AnalyticsProvider>
+                  <RootLayoutNav />
+                </AnalyticsProvider>
+              </NotificationProvider>
+            </AuthProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
       </trpc.Provider>

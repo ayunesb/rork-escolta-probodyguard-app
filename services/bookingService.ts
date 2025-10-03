@@ -22,7 +22,7 @@ export const bookingService = {
       bookings.push(booking);
       await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
-      console.log('[Booking] Created booking:', booking.id, 'Start code:', booking.startCode);
+      console.log('[Booking] Created booking:', booking.id, 'guardId:', booking.guardId, 'Start code:', booking.startCode);
       return booking;
     } catch (error) {
       console.error('[Booking] Error creating booking:', error);
@@ -217,10 +217,14 @@ export const bookingService = {
   async getPendingBookingsForGuard(guardId: string): Promise<Booking[]> {
     try {
       const bookings = await this.getAllBookings();
-      return bookings.filter(b => 
+      console.log('[Booking] Total bookings:', bookings.length);
+      const pending = bookings.filter(b => 
         b.status === 'pending' && 
         (!b.guardId || b.guardId === guardId)
       );
+      console.log('[Booking] Pending bookings for guard', guardId, ':', pending.length);
+      pending.forEach(b => console.log('  - Booking', b.id, 'guardId:', b.guardId, 'status:', b.status));
+      return pending;
     } catch (error) {
       console.error('[Booking] Error getting pending bookings:', error);
       return [];

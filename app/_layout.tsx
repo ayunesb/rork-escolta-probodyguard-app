@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
@@ -12,29 +12,7 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { user, isLoading } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
-  const hasNavigated = useRef(false);
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === 'auth';
-    const inTabsGroup = segments[0] === '(tabs)';
-
-    if (!user && !inAuthGroup) {
-      if (!hasNavigated.current) {
-        hasNavigated.current = true;
-        router.replace('/auth/sign-in');
-      }
-    } else if (user && !inTabsGroup && !inAuthGroup) {
-      if (!hasNavigated.current) {
-        hasNavigated.current = true;
-        router.replace('/(tabs)/home');
-      }
-    }
-  }, [user, isLoading, segments, router]);
+  const { isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading) {
@@ -42,16 +20,18 @@ function RootLayoutNav() {
     }
   }, [isLoading]);
 
-  if (isLoading) {
-    return null;
-  }
-
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="auth/sign-in" options={{ headerShown: false }} />
       <Stack.Screen name="auth/sign-up" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="guard/[id]" options={{ headerShown: true, title: "Guard Profile" }} />
+      <Stack.Screen name="booking/create" options={{ headerShown: true, title: "Book Guard" }} />
+      <Stack.Screen name="booking/[id]" options={{ headerShown: true, title: "Booking Details" }} />
+      <Stack.Screen name="booking/pending" options={{ headerShown: true, title: "Pending Booking" }} />
+      <Stack.Screen name="booking/rate/[id]" options={{ headerShown: true, title: "Rate Service" }} />
+      <Stack.Screen name="tracking/[bookingId]" options={{ headerShown: true, title: "Live Tracking" }} />
     </Stack>
   );
 }

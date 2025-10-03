@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter, useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,23 +10,23 @@ export default function Index() {
   const router = useRouter();
   const segments = useSegments();
   const insets = useSafeAreaInsets();
+  const hasNavigated = useRef(false);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || hasNavigated.current) return;
 
     const inAuthGroup = segments[0] === 'auth';
 
     if (!user && !inAuthGroup) {
       console.log('[Index] No user, redirecting to sign-in');
+      hasNavigated.current = true;
       router.replace('/auth/sign-in');
-    } else if (user && inAuthGroup) {
-      console.log('[Index] User authenticated, redirecting to home');
-      router.replace('/(tabs)/home');
     } else if (user) {
       console.log('[Index] User authenticated, redirecting to home');
+      hasNavigated.current = true;
       router.replace('/(tabs)/home');
     }
-  }, [user, isLoading, segments, router]);
+  }, [user, isLoading, segments]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>

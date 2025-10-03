@@ -33,8 +33,10 @@ const initializeFirebaseServices = async (): Promise<void> => {
   initializationPromise = (async () => {
     try {
       console.log('[Firebase] Starting initialization');
+      const startTime = Date.now();
       
       app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+      console.log('[Firebase] App initialized in', Date.now() - startTime, 'ms');
       
       if (Platform.OS === 'web') {
         try {
@@ -47,8 +49,10 @@ const initializeFirebaseServices = async (): Promise<void> => {
       } else {
         authInstance = getAuth(app);
       }
+      console.log('[Firebase] Auth initialized in', Date.now() - startTime, 'ms');
       
       dbInstance = getFirestore(app);
+      console.log('[Firebase] Firestore initialized in', Date.now() - startTime, 'ms');
       
       if (__DEV__) {
         (authInstance as any)._logFramework = () => {};
@@ -56,9 +60,10 @@ const initializeFirebaseServices = async (): Promise<void> => {
       
       storageInstance = getStorage(app);
       
-      console.log('[Firebase] Initialization complete');
+      console.log('[Firebase] Full initialization complete in', Date.now() - startTime, 'ms');
     } catch (error) {
       console.error('[Firebase] Initialization error:', error);
+      isInitializing = false;
       throw error;
     } finally {
       isInitializing = false;

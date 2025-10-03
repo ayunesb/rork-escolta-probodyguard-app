@@ -19,11 +19,19 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | undefined;
+    let initTimeout: NodeJS.Timeout;
 
     const initialize = async () => {
       try {
         console.log('[Auth] Initializing Firebase');
-        await initializeFirebaseServices();
+        
+        const initPromise = initializeFirebaseServices();
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          initTimeout = setTimeout(() => reject(new Error('Firebase initialization timeout')), 5000);
+        });
+        
+        await Promise.race([initPromise, timeoutPromise]);
+        clearTimeout(initTimeout);
         
         if (!mounted) return;
 
@@ -57,10 +65,20 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
     };
 
+    const safeTimeout = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.warn('[Auth] Force completing initialization after 8s');
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    }, 8000);
+
     initialize();
 
     return () => {
       mounted = false;
+      clearTimeout(safeTimeout);
+      if (initTimeout) clearTimeout(initTimeout);
       if (unsubscribe) {
         unsubscribe();
       }

@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import {
   ChevronLeft,
   Navigation,
@@ -22,6 +21,19 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
+
+let MapView: any;
+let Marker: any;
+let Polyline: any;
+let PROVIDER_DEFAULT: any;
+
+if (Platform.OS !== 'web') {
+  const Maps = require('react-native-maps');
+  MapView = Maps.default;
+  Marker = Maps.Marker;
+  Polyline = Maps.Polyline;
+  PROVIDER_DEFAULT = Maps.PROVIDER_DEFAULT;
+}
 
 const { width, height } = Dimensions.get('window');
 

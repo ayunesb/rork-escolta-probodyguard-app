@@ -10,7 +10,6 @@ import {
   Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -26,6 +25,17 @@ import {
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
 import type { VehicleType, ProtectionType, DressCode } from '@/types';
+
+let MapView: any;
+let Marker: any;
+let PROVIDER_DEFAULT: any;
+
+if (Platform.OS !== 'web') {
+  const Maps = require('react-native-maps');
+  MapView = Maps.default;
+  Marker = Maps.Marker;
+  PROVIDER_DEFAULT = Maps.PROVIDER_DEFAULT;
+}
 
 export default function CreateBookingScreen() {
   const { guardId } = useLocalSearchParams<{ guardId: string }>();
@@ -345,7 +355,7 @@ export default function CreateBookingScreen() {
                       latitudeDelta: 0.01,
                       longitudeDelta: 0.01,
                     }}
-                    onPress={(e) => {
+                    onPress={(e: any) => {
                       setPickupCoords(e.nativeEvent.coordinate);
                     }}
                   >

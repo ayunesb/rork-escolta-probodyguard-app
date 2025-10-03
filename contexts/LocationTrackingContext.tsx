@@ -27,32 +27,51 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   const requestLocationPermission = useCallback(async () => {
     if (Platform.OS === 'web') {
       try {
-        if ('geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setHasPermission(true);
-              setCurrentLocation({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              });
-            },
-            (error) => {
-              const errorMessage = error.code === 1 ? 'Location permission denied' : 
-                                   error.code === 2 ? 'Location unavailable' : 
-                                   error.code === 3 ? 'Location request timeout' : 
-                                   'Location error';
-              console.error('[Location] Web geolocation error:', errorMessage, error.message);
-              setError(errorMessage);
-              setHasPermission(false);
-            }
-          );
-        } else {
+        if (!('geolocation' in navigator)) {
+          console.log('[Location] Geolocation not supported on web');
           setError('Geolocation not supported');
           setHasPermission(false);
+          return;
         }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setHasPermission(true);
+            setError(null);
+            setCurrentLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          },
+          (error) => {
+            let errorMessage = 'Location error';
+            if (error.code === 1) {
+              errorMessage = 'Location permission denied';
+            } else if (error.code === 2) {
+              errorMessage = 'Location unavailable';
+            } else if (error.code === 3) {
+              errorMessage = 'Location request timeout';
+            }
+            
+            if (error.message?.includes('permissions policy')) {
+              console.log('[Location] Web geolocation blocked by permissions policy - this is expected in preview mode');
+              errorMessage = 'Location not available in preview mode';
+            } else {
+              console.error('[Location] Web geolocation error:', errorMessage, error.message);
+            }
+            
+            setError(errorMessage);
+            setHasPermission(false);
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 60000,
+          }
+        );
       } catch (err) {
-        console.error('[Location] Web permission error:', err);
-        setError('Failed to get location permission');
+        console.log('[Location] Web permission error (expected in preview):', err);
+        setError('Location not available');
         setHasPermission(false);
       }
       return;
@@ -79,7 +98,9 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   }, []);
 
   useEffect(() => {
-    requestLocationPermission();
+    if (Platform.OS !== 'web') {
+      requestLocationPermission();
+    }
   }, [requestLocationPermission]);
 
   const startTracking = useCallback(async () => {
@@ -93,37 +114,54 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
 
     if (Platform.OS === 'web') {
       try {
-        if ('geolocation' in navigator) {
-          const watchId = navigator.geolocation.watchPosition(
-            (position) => {
-              setCurrentLocation({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              });
-            },
-            (error) => {
-              const errorMessage = error.code === 1 ? 'Location permission denied' : 
-                                   error.code === 2 ? 'Location unavailable' : 
-                                   error.code === 3 ? 'Location request timeout' : 
-                                   'Failed to track location';
-              console.error('[Location] Web tracking error:', errorMessage, error.message);
-              setError(errorMessage);
-              setIsTracking(false);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 5000,
-              maximumAge: 0,
-            }
-          );
-
-          return () => {
-            navigator.geolocation.clearWatch(watchId);
-          };
+        if (!('geolocation' in navigator)) {
+          console.log('[Location] Geolocation not supported on web');
+          setError('Geolocation not supported');
+          setIsTracking(false);
+          return;
         }
+
+        const watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            setCurrentLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+            setError(null);
+          },
+          (error) => {
+            let errorMessage = 'Failed to track location';
+            if (error.code === 1) {
+              errorMessage = 'Location permission denied';
+            } else if (error.code === 2) {
+              errorMessage = 'Location unavailable';
+            } else if (error.code === 3) {
+              errorMessage = 'Location request timeout';
+            }
+            
+            if (error.message?.includes('permissions policy')) {
+              console.log('[Location] Web tracking blocked by permissions policy - this is expected in preview mode');
+              errorMessage = 'Location not available in preview mode';
+            } else {
+              console.error('[Location] Web tracking error:', errorMessage, error.message);
+            }
+            
+            setError(errorMessage);
+            setIsTracking(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          }
+        );
+
+        return () => {
+          navigator.geolocation.clearWatch(watchId);
+        };
       } catch (err) {
-        console.error('[Location] Web start tracking error:', err);
-        setError('Failed to start location tracking');
+        console.log('[Location] Web start tracking error (expected in preview):', err);
+        setError('Location not available');
         setIsTracking(false);
       }
       return;

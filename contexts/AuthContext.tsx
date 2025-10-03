@@ -1,53 +1,68 @@
 import createContextHook from '@nkzw/create-context-hook';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, UserRole } from '@/types';
-
-const STORAGE_KEY = '@escolta_user';
+import { auth, db } from '@/config/firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('[Auth] State changed:', firebaseUser?.uid);
+      
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as Omit<User, 'id'>;
+            setUser({ id: firebaseUser.uid, ...userData });
+          } else {
+            console.error('[Auth] User document not found');
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('[Auth] Error loading user data:', error);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
       }
-    } catch (error) {
-      console.error('Failed to load user:', error);
-    } finally {
+      
       setIsLoading(false);
-    }
-  };
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('Signing in:', email);
-      
-      const mockUser: User = {
-        id: 'user-' + Date.now(),
-        email,
-        role: email.includes('guard') ? 'guard' : email.includes('company') ? 'company' : email.includes('admin') ? 'admin' : 'client',
-        firstName: 'John',
-        lastName: 'Doe',
-        phone: '+1-555-0100',
-        language: 'en',
-        kycStatus: 'pending',
-        createdAt: new Date().toISOString(),
-      };
-
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mockUser));
-      setUser(mockUser);
+      console.log('[Auth] Signing in:', email);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('[Auth] Sign in successful:', userCredential.user.uid);
       return { success: true };
-    } catch (error) {
-      console.error('Sign in error:', error);
-      return { success: false, error: 'Failed to sign in' };
+    } catch (error: any) {
+      console.error('[Auth] Sign in error:', error);
+      let errorMessage = 'Failed to sign in';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many attempts. Please try again later';
+      }
+      
+      return { success: false, error: errorMessage };
     }
   }, []);
 
@@ -60,10 +75,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     role: UserRole
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('Signing up:', email, role);
-
-      const mockUser: User = {
-        id: 'user-' + Date.now(),
+      console.log('[Auth] Signing up:', email, role);
+      
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+      
+      const userData: Omit<User, 'id'> = {
         email,
         role,
         firstName,
@@ -73,31 +90,47 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         kycStatus: 'pending',
         createdAt: new Date().toISOString(),
       };
-
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mockUser));
-      setUser(mockUser);
+      
+      await setDoc(doc(db, 'users', userId), userData);
+      console.log('[Auth] User document created:', userId);
+      
       return { success: true };
-    } catch (error) {
-      console.error('Sign up error:', error);
-      return { success: false, error: 'Failed to sign up' };
+    } catch (error: any) {
+      console.error('[Auth] Sign up error:', error);
+      let errorMessage = 'Failed to sign up';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Email already in use';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password should be at least 6 characters';
+      }
+      
+      return { success: false, error: errorMessage };
     }
   }, []);
 
   const signOut = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
-      setUser(null);
+      console.log('[Auth] Signing out');
+      await firebaseSignOut(auth);
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('[Auth] Sign out error:', error);
     }
   }, []);
 
   const updateUser = useCallback(async (updates: Partial<User>) => {
     if (!user) return;
     
-    const updatedUser = { ...user, ...updates };
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    try {
+      console.log('[Auth] Updating user:', user.id);
+      const { id, ...updateData } = updates;
+      await updateDoc(doc(db, 'users', user.id), updateData);
+      setUser({ ...user, ...updates });
+    } catch (error) {
+      console.error('[Auth] Update user error:', error);
+    }
   }, [user]);
 
   return useMemo(() => ({

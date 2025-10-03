@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { Shield } from 'lucide-react-native';
+import { Shield, Fingerprint } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { biometricService } from '@/services/biometricService';
 import Colors from '@/constants/colors';
 
 export default function SignInScreen() {
@@ -24,6 +25,20 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+
+  useEffect(() => {
+    checkBiometric();
+  }, []);
+
+  const checkBiometric = async () => {
+    const available = await biometricService.isAvailable();
+    const enabled = await biometricService.isBiometricEnabled();
+    setBiometricAvailable(available);
+    setBiometricEnabled(enabled);
+    console.log('[SignIn] Biometric available:', available, 'enabled:', enabled);
+  };
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -40,6 +55,42 @@ export default function SignInScreen() {
       router.replace('/(tabs)/home');
     } else {
       setError(result.error || 'Failed to sign in');
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleBiometricSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const authenticated = await biometricService.authenticate('Sign in with biometrics');
+      
+      if (!authenticated) {
+        setError('Biometric authentication failed');
+        setIsLoading(false);
+        return;
+      }
+
+      const credentials = await biometricService.getStoredCredentials();
+      
+      if (!credentials) {
+        setError('No stored credentials found');
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await signIn(credentials.email, credentials.encryptedPassword);
+
+      if (result.success) {
+        router.replace('/(tabs)/home');
+      } else {
+        setError(result.error || 'Failed to sign in');
+      }
+    } catch (error) {
+      console.error('[SignIn] Biometric sign in error:', error);
+      setError('Biometric sign in failed');
     }
 
     setIsLoading(false);
@@ -104,6 +155,17 @@ export default function SignInScreen() {
               <Text style={styles.buttonText}>Sign In</Text>
             )}
           </TouchableOpacity>
+
+          {biometricAvailable && biometricEnabled && (
+            <TouchableOpacity
+              style={[styles.biometricButton, isLoading && styles.buttonDisabled]}
+              onPress={handleBiometricSignIn}
+              disabled={isLoading}
+            >
+              <Fingerprint size={24} color={Colors.gold} />
+              <Text style={styles.biometricButtonText}>Sign in with Biometrics</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity style={styles.linkButton}>
             <Text style={styles.linkText}>Forgot Password?</Text>
@@ -253,5 +315,22 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontSize: 12,
     textAlign: 'center' as const,
+  },
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    gap: 8,
+  },
+  biometricButtonText: {
+    color: Colors.gold,
+    fontSize: 16,
+    fontWeight: '600' as const,
   },
 });

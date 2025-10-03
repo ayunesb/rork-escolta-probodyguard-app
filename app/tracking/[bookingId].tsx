@@ -18,9 +18,11 @@ import {
   Shield,
 } from 'lucide-react-native';
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
+import PanicButton from '@/components/PanicButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,6 +30,7 @@ export default function TrackingScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const {
     currentLocation,
     subscribeToGuardLocation,
@@ -146,6 +149,19 @@ export default function TrackingScreen() {
       >
         <ChevronLeft size={24} color={Colors.white} />
       </TouchableOpacity>
+
+      {user && (
+        <View style={[styles.panicButtonContainer, { top: insets.top + 10 }]}>
+          <PanicButton
+            userId={user.id}
+            bookingId={bookingId}
+            size="medium"
+            onAlertTriggered={(alertId) => {
+              console.log('[Tracking] Emergency alert triggered:', alertId);
+            }}
+          />
+        </View>
+      )}
 
       <View style={[styles.infoCard, { bottom: insets.bottom + 20 }]}>
         <View style={styles.guardHeader}>
@@ -323,5 +339,8 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-
+  panicButtonContainer: {
+    position: 'absolute' as const,
+    right: 16,
+  },
 });

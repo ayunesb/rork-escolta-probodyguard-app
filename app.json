@@ -92,13 +92,6 @@
         }
       ],
       [
-        "@stripe/stripe-react-native",
-        {
-          "merchantIdentifier": "string | string[]",
-          "enableGooglePay": "boolean"
-        }
-      ],
-      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."

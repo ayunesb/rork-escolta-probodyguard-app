@@ -21,19 +21,7 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
-
-let MapView: any;
-let Marker: any;
-let Polyline: any;
-let PROVIDER_DEFAULT: any;
-
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-  Polyline = Maps.Polyline;
-  PROVIDER_DEFAULT = Maps.PROVIDER_DEFAULT;
-}
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
 
 const { width, height } = Dimensions.get('window');
 
@@ -120,59 +108,54 @@ export default function TrackingScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {Platform.OS !== 'web' ? (
-        <MapView
-          provider={PROVIDER_DEFAULT}
-          style={styles.map}
-          initialRegion={{
-            latitude: currentLocation?.latitude || guard.latitude || 40.7580,
-            longitude: currentLocation?.longitude || guard.longitude || -73.9855,
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
-          }}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-        >
-          {guardLocation && (
-            <Marker
-              coordinate={{
-                latitude: guardLocation.latitude,
-                longitude: guardLocation.longitude,
-              }}
-              title={`${guard.firstName} ${guard.lastName.charAt(0)}.`}
-              description="Your guard"
-            >
-              <View style={styles.guardMarker}>
-                <Shield size={24} color={Colors.gold} />
-              </View>
-            </Marker>
-          )}
-
-          {currentLocation && guardLocation && (
-            <Polyline
-              coordinates={[
-                { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
-                { latitude: guardLocation.latitude, longitude: guardLocation.longitude },
-              ]}
-              strokeColor={Colors.gold}
-              strokeWidth={3}
-              lineDashPattern={[10, 5]}
-            />
-          )}
-        </MapView>
-      ) : (
-        <View style={styles.webMapPlaceholder}>
-          <Shield size={64} color={Colors.gold} />
-          <Text style={styles.webMapTitle}>Live Tracking</Text>
-          <Text style={styles.webMapText}>Map view available on mobile devices</Text>
-          {guardLocation && (
-            <View style={styles.webLocationInfo}>
-              <Text style={styles.webLocationText}>Guard Location:</Text>
-              <Text style={styles.webLocationCoords}>
-                {guardLocation.latitude.toFixed(4)}, {guardLocation.longitude.toFixed(4)}
-              </Text>
+      <MapView
+        provider={PROVIDER_DEFAULT}
+        style={styles.map}
+        initialRegion={{
+          latitude: currentLocation?.latitude || guard.latitude || 40.7580,
+          longitude: currentLocation?.longitude || guard.longitude || -73.9855,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02,
+        }}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
+      >
+        {guardLocation && (
+          <Marker
+            coordinate={{
+              latitude: guardLocation.latitude,
+              longitude: guardLocation.longitude,
+            }}
+            title={`${guard.firstName} ${guard.lastName.charAt(0)}.`}
+            description="Your guard"
+          >
+            <View style={styles.guardMarker}>
+              <Shield size={24} color={Colors.gold} />
             </View>
-          )}
+          </Marker>
+        )}
+
+        {currentLocation && guardLocation && (
+          <Polyline
+            coordinates={[
+              { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
+              { latitude: guardLocation.latitude, longitude: guardLocation.longitude },
+            ]}
+            strokeColor={Colors.gold}
+            strokeWidth={3}
+            lineDashPattern={[10, 5]}
+          />
+        )}
+      </MapView>
+
+      {Platform.OS === 'web' && guardLocation && (
+        <View style={styles.webLocationOverlay}>
+          <View style={styles.webLocationInfo}>
+            <Text style={styles.webLocationText}>Guard Location:</Text>
+            <Text style={styles.webLocationCoords}>
+              {guardLocation.latitude.toFixed(4)}, {guardLocation.longitude.toFixed(4)}
+            </Text>
+          </View>
         </View>
       )}
 
@@ -359,25 +342,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-  webMapPlaceholder: {
-    flex: 1,
+  webLocationOverlay: {
+    position: 'absolute' as const,
+    top: 100,
+    left: 16,
+    right: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.background,
-    gap: 16,
-  },
-  webMapTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
-    color: Colors.textPrimary,
-    marginTop: 16,
-  },
-  webMapText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
   },
   webLocationInfo: {
-    marginTop: 24,
     padding: 16,
     backgroundColor: Colors.surface,
     borderRadius: 12,

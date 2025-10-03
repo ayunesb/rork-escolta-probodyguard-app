@@ -25,17 +25,7 @@ import {
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
 import type { VehicleType, ProtectionType, DressCode } from '@/types';
-
-let MapView: any;
-let Marker: any;
-let PROVIDER_DEFAULT: any;
-
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-  PROVIDER_DEFAULT = Maps.PROVIDER_DEFAULT;
-}
+import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
 
 export default function CreateBookingScreen() {
   const { guardId } = useLocalSearchParams<{ guardId: string }>();
@@ -345,26 +335,25 @@ export default function CreateBookingScreen() {
             </TouchableOpacity>
             {showMap && (
               <View style={styles.mapContainer}>
-                {Platform.OS !== 'web' ? (
-                  <MapView
-                    provider={PROVIDER_DEFAULT}
-                    style={styles.map}
-                    initialRegion={{
-                      latitude: pickupCoords.latitude,
-                      longitude: pickupCoords.longitude,
-                      latitudeDelta: 0.01,
-                      longitudeDelta: 0.01,
-                    }}
-                    onPress={(e: any) => {
+                <MapView
+                  provider={PROVIDER_DEFAULT}
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: pickupCoords.latitude,
+                    longitude: pickupCoords.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  onPress={(e: any) => {
+                    if (Platform.OS !== 'web' && e?.nativeEvent?.coordinate) {
                       setPickupCoords(e.nativeEvent.coordinate);
-                    }}
-                  >
-                    <Marker coordinate={pickupCoords} title="Pickup Location" />
-                  </MapView>
-                ) : (
-                  <View style={styles.webMapPlaceholder}>
-                    <MapPin size={48} color={Colors.textTertiary} />
-                    <Text style={styles.webMapText}>Map view available on mobile</Text>
+                    }
+                  }}
+                >
+                  <Marker coordinate={pickupCoords} title="Pickup Location" />
+                </MapView>
+                {Platform.OS === 'web' && (
+                  <View style={styles.webMapOverlay}>
                     <Text style={styles.webMapSubtext}>
                       Lat: {pickupCoords.latitude.toFixed(4)}, Lng: {pickupCoords.longitude.toFixed(4)}
                     </Text>
@@ -728,21 +717,21 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-  webMapPlaceholder: {
-    flex: 1,
+  webMapOverlay: {
+    position: 'absolute' as const,
+    bottom: 12,
+    left: 12,
+    right: 12,
+    backgroundColor: Colors.surface,
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.background,
-    gap: 8,
-  },
-  webMapText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.textSecondary,
-    marginTop: 12,
   },
   webMapSubtext: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: Colors.textSecondary,
+    fontWeight: '600' as const,
   },
 });

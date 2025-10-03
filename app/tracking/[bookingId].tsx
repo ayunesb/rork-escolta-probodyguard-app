@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -107,45 +108,61 @@ export default function TrackingScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <MapView
-        provider={PROVIDER_DEFAULT}
-        style={styles.map}
-        initialRegion={{
-          latitude: currentLocation?.latitude || guard.latitude || 40.7580,
-          longitude: currentLocation?.longitude || guard.longitude || -73.9855,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        }}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-      >
-        {guardLocation && (
-          <Marker
-            coordinate={{
-              latitude: guardLocation.latitude,
-              longitude: guardLocation.longitude,
-            }}
-            title={`${guard.firstName} ${guard.lastName.charAt(0)}.`}
-            description="Your guard"
-          >
-            <View style={styles.guardMarker}>
-              <Shield size={24} color={Colors.gold} />
-            </View>
-          </Marker>
-        )}
+      {Platform.OS !== 'web' ? (
+        <MapView
+          provider={PROVIDER_DEFAULT}
+          style={styles.map}
+          initialRegion={{
+            latitude: currentLocation?.latitude || guard.latitude || 40.7580,
+            longitude: currentLocation?.longitude || guard.longitude || -73.9855,
+            latitudeDelta: 0.02,
+            longitudeDelta: 0.02,
+          }}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+        >
+          {guardLocation && (
+            <Marker
+              coordinate={{
+                latitude: guardLocation.latitude,
+                longitude: guardLocation.longitude,
+              }}
+              title={`${guard.firstName} ${guard.lastName.charAt(0)}.`}
+              description="Your guard"
+            >
+              <View style={styles.guardMarker}>
+                <Shield size={24} color={Colors.gold} />
+              </View>
+            </Marker>
+          )}
 
-        {currentLocation && guardLocation && (
-          <Polyline
-            coordinates={[
-              { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
-              { latitude: guardLocation.latitude, longitude: guardLocation.longitude },
-            ]}
-            strokeColor={Colors.gold}
-            strokeWidth={3}
-            lineDashPattern={[10, 5]}
-          />
-        )}
-      </MapView>
+          {currentLocation && guardLocation && (
+            <Polyline
+              coordinates={[
+                { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
+                { latitude: guardLocation.latitude, longitude: guardLocation.longitude },
+              ]}
+              strokeColor={Colors.gold}
+              strokeWidth={3}
+              lineDashPattern={[10, 5]}
+            />
+          )}
+        </MapView>
+      ) : (
+        <View style={styles.webMapPlaceholder}>
+          <Shield size={64} color={Colors.gold} />
+          <Text style={styles.webMapTitle}>Live Tracking</Text>
+          <Text style={styles.webMapText}>Map view available on mobile devices</Text>
+          {guardLocation && (
+            <View style={styles.webLocationInfo}>
+              <Text style={styles.webLocationText}>Guard Location:</Text>
+              <Text style={styles.webLocationCoords}>
+                {guardLocation.latitude.toFixed(4)}, {guardLocation.longitude.toFixed(4)}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <TouchableOpacity
         style={[styles.backButton, { top: insets.top + 10 }]}
@@ -329,5 +346,42 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.textPrimary,
     marginTop: 16,
+  },
+  webMapPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.background,
+    gap: 16,
+  },
+  webMapTitle: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginTop: 16,
+  },
+  webMapText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  webLocationInfo: {
+    marginTop: 24,
+    padding: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    gap: 8,
+  },
+  webLocationText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600' as const,
+  },
+  webLocationCoords: {
+    fontSize: 14,
+    color: Colors.textPrimary,
+    fontWeight: '700' as const,
   },
 });

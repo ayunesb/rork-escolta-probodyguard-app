@@ -335,21 +335,31 @@ export default function CreateBookingScreen() {
             </TouchableOpacity>
             {showMap && (
               <View style={styles.mapContainer}>
-                <MapView
-                  provider={PROVIDER_DEFAULT}
-                  style={styles.map}
-                  initialRegion={{
-                    latitude: pickupCoords.latitude,
-                    longitude: pickupCoords.longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                  onPress={(e) => {
-                    setPickupCoords(e.nativeEvent.coordinate);
-                  }}
-                >
-                  <Marker coordinate={pickupCoords} title="Pickup Location" />
-                </MapView>
+                {Platform.OS !== 'web' ? (
+                  <MapView
+                    provider={PROVIDER_DEFAULT}
+                    style={styles.map}
+                    initialRegion={{
+                      latitude: pickupCoords.latitude,
+                      longitude: pickupCoords.longitude,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                    onPress={(e) => {
+                      setPickupCoords(e.nativeEvent.coordinate);
+                    }}
+                  >
+                    <Marker coordinate={pickupCoords} title="Pickup Location" />
+                  </MapView>
+                ) : (
+                  <View style={styles.webMapPlaceholder}>
+                    <MapPin size={48} color={Colors.textTertiary} />
+                    <Text style={styles.webMapText}>Map view available on mobile</Text>
+                    <Text style={styles.webMapSubtext}>
+                      Lat: {pickupCoords.latitude.toFixed(4)}, Lng: {pickupCoords.longitude.toFixed(4)}
+                    </Text>
+                  </View>
+                )}
               </View>
             )}
           </View>
@@ -707,5 +717,22 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.textPrimary,
     marginTop: 16,
+  },
+  webMapPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.background,
+    gap: 8,
+  },
+  webMapText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    marginTop: 12,
+  },
+  webMapSubtext: {
+    fontSize: 12,
+    color: Colors.textTertiary,
   },
 });

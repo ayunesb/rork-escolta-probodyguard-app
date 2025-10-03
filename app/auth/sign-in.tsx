@@ -37,7 +37,7 @@ export default function SignInScreen() {
     const result = await signIn(email, password);
 
     if (result.success) {
-      router.replace('/home');
+      router.replace('/(tabs)/home');
     } else {
       setError(result.error || 'Failed to sign in');
     }

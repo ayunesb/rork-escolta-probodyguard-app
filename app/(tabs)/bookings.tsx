@@ -1,20 +1,43 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Calendar, MapPin, Clock, DollarSign, Navigation } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockBookings } from '@/mocks/bookings';
+import { bookingService } from '@/services/bookingService';
 import Colors from '@/constants/colors';
+import { useState, useEffect, useCallback } from 'react';
+import { Booking } from '@/types';
 
 export default function BookingsScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [userBookings, setUserBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const userBookings = mockBookings.filter(b => {
-    if (!user) return false;
-    return user.role === 'client' ? b.clientId === user.id : b.guardId === user.id;
-  });
+  const loadBookings = useCallback(async () => {
+    if (!user) {
+      setUserBookings([]);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      console.log('[Bookings] Loading bookings for user:', user.id, 'role:', user.role);
+      const bookings = await bookingService.getBookingsByUser(user.id, user.role);
+      console.log('[Bookings] Loaded bookings:', bookings.length);
+      setUserBookings(bookings);
+    } catch (error) {
+      console.error('[Bookings] Error loading bookings:', error);
+      setUserBookings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -37,7 +60,12 @@ export default function BookingsScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {userBookings.length === 0 ? (
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.gold} />
+            <Text style={styles.loadingText}>Loading bookings...</Text>
+          </View>
+        ) : userBookings.length === 0 ? (
           <View style={styles.emptyState}>
             <Calendar size={64} color={Colors.textTertiary} />
             <Text style={styles.emptyText}>No bookings yet</Text>
@@ -151,6 +179,16 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
     textAlign: 'center' as const,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginTop: 16,
   },
   bookingCard: {
     backgroundColor: Colors.surface,

@@ -50,13 +50,15 @@ export const bookingService = {
     }
   },
 
-  async getBookingsByUser(userId: string, role: 'client' | 'guard'): Promise<Booking[]> {
+  async getBookingsByUser(userId: string, role: 'client' | 'guard' | 'company' | 'admin'): Promise<Booking[]> {
     try {
       const bookings = await this.getAllBookings();
-      if (role === 'client') {
+      if (role === 'client' || role === 'company') {
         return bookings.filter(b => b.clientId === userId);
-      } else {
+      } else if (role === 'guard') {
         return bookings.filter(b => b.guardId === userId);
+      } else {
+        return bookings;
       }
     } catch (error) {
       console.error('[Booking] Error getting user bookings:', error);

@@ -13,7 +13,7 @@ export const bookingService = {
       const booking: Booking = {
         ...bookingData,
         id: 'booking_' + Date.now(),
-        status: 'confirmed',
+        status: 'pending',
         startCode: generateStartCode(),
         createdAt: new Date().toISOString(),
       };
@@ -66,7 +66,7 @@ export const bookingService = {
     }
   },
 
-  async updateBookingStatus(id: string, status: BookingStatus): Promise<void> {
+  async updateBookingStatus(id: string, status: BookingStatus, rejectionReason?: string): Promise<void> {
     try {
       const bookings = await this.getAllBookings();
       const index = bookings.findIndex(b => b.id === id);
@@ -74,7 +74,12 @@ export const bookingService = {
       if (index !== -1) {
         bookings[index].status = status;
         
-        if (status === 'active') {
+        if (status === 'accepted') {
+          bookings[index].acceptedAt = new Date().toISOString();
+        } else if (status === 'rejected') {
+          bookings[index].rejectedAt = new Date().toISOString();
+          bookings[index].rejectionReason = rejectionReason;
+        } else if (status === 'active') {
           bookings[index].startedAt = new Date().toISOString();
         } else if (status === 'completed') {
           bookings[index].completedAt = new Date().toISOString();
@@ -169,5 +174,56 @@ export const bookingService = {
     }
 
     return false;
+  },
+
+  async acceptBooking(bookingId: string, guardId: string): Promise<void> {
+    try {
+      const bookings = await this.getAllBookings();
+      const index = bookings.findIndex(b => b.id === bookingId);
+      
+      if (index !== -1) {
+        bookings[index].guardId = guardId;
+        bookings[index].status = 'accepted';
+        bookings[index].acceptedAt = new Date().toISOString();
+        
+        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+        console.log('[Booking] Guard accepted booking:', bookingId);
+      }
+    } catch (error) {
+      console.error('[Booking] Error accepting booking:', error);
+      throw error;
+    }
+  },
+
+  async rejectBooking(bookingId: string, reason: string): Promise<void> {
+    try {
+      const bookings = await this.getAllBookings();
+      const index = bookings.findIndex(b => b.id === bookingId);
+      
+      if (index !== -1) {
+        bookings[index].status = 'rejected';
+        bookings[index].rejectedAt = new Date().toISOString();
+        bookings[index].rejectionReason = reason;
+        
+        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+        console.log('[Booking] Guard rejected booking:', bookingId, reason);
+      }
+    } catch (error) {
+      console.error('[Booking] Error rejecting booking:', error);
+      throw error;
+    }
+  },
+
+  async getPendingBookingsForGuard(guardId: string): Promise<Booking[]> {
+    try {
+      const bookings = await this.getAllBookings();
+      return bookings.filter(b => 
+        b.status === 'pending' && 
+        (!b.guardId || b.guardId === guardId)
+      );
+    } catch (error) {
+      console.error('[Booking] Error getting pending bookings:', error);
+      return [];
+    }
   },
 };

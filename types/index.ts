@@ -3,10 +3,9 @@ export type UserRole = 'client' | 'guard' | 'company' | 'admin';
 export type Language = 'en' | 'es' | 'fr' | 'de';
 
 export type BookingStatus = 
-  | 'quote' 
-  | 'confirmed' 
-  | 'assigned' 
+  | 'pending'
   | 'accepted' 
+  | 'rejected'
   | 'en_route' 
   | 'active' 
   | 'completed' 
@@ -102,11 +101,16 @@ export interface Booking {
   platformCut: number;
   guardPayout: number;
   createdAt: string;
+  acceptedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
   startedAt?: string;
   completedAt?: string;
   rating?: number;
   ratingBreakdown?: RatingBreakdown;
   review?: string;
+  clientRating?: number;
+  clientReview?: string;
 }
 
 export interface ChatMessage {

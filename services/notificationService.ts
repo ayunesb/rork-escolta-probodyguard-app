@@ -85,19 +85,19 @@ export const notificationService = {
     }
   },
 
-  async notifyBookingStatusChange(bookingId: string, status: string, guardName?: string): Promise<void> {
+  async notifyBookingStatusChange(bookingId: string, status: string, guardName?: string, rejectionReason?: string): Promise<void> {
     const statusMessages: Record<string, { title: string; body: string }> = {
-      confirmed: {
-        title: 'Booking Confirmed',
-        body: 'Your protection booking has been confirmed. Waiting for guard assignment.',
-      },
-      assigned: {
-        title: 'Guard Assigned',
-        body: guardName ? `${guardName} has been assigned to your booking.` : 'A guard has been assigned to your booking.',
+      pending: {
+        title: 'Booking Created',
+        body: 'Your booking request has been sent. Waiting for guard confirmation.',
       },
       accepted: {
-        title: 'Guard Accepted',
+        title: 'Booking Accepted',
         body: guardName ? `${guardName} accepted your booking request.` : 'Your guard accepted the booking.',
+      },
+      rejected: {
+        title: 'Booking Declined',
+        body: rejectionReason || 'The guard declined your booking request. We will find another guard for you.',
       },
       en_route: {
         title: 'Guard En Route',

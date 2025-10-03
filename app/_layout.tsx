@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
+import { FavoritesProvider } from "@/contexts/FavoritesContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -54,9 +55,11 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AuthProvider>
-          <LocationTrackingProvider>
-            <RootLayoutNav />
-          </LocationTrackingProvider>
+          <FavoritesProvider>
+            <LocationTrackingProvider>
+              <RootLayoutNav />
+            </LocationTrackingProvider>
+          </FavoritesProvider>
         </AuthProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>

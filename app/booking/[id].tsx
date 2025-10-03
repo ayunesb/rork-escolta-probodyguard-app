@@ -22,6 +22,9 @@ import {
   Navigation,
   Key,
   Copy,
+  Check,
+  X,
+  User,
 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import Colors from '@/constants/colors';
@@ -106,7 +109,65 @@ export default function BookingDetailScreen() {
     }
   };
 
-  if (!booking || !guard) {
+  const handleAcceptBooking = async () => {
+    if (!booking || !user) return;
+    
+    Alert.alert(
+      'Accept Booking',
+      'Are you sure you want to accept this job?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Accept',
+          onPress: async () => {
+            try {
+              await bookingService.acceptBooking(booking.id, user.id);
+              Alert.alert('Success', 'Booking accepted! The client will be notified.');
+              const updatedBooking = await bookingService.getBookingById(booking.id);
+              setBooking(updatedBooking);
+              router.back();
+            } catch (error) {
+              console.error('[BookingDetail] Error accepting booking:', error);
+              Alert.alert('Error', 'Failed to accept booking. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRejectBooking = async () => {
+    if (!booking) return;
+    
+    Alert.prompt(
+      'Reject Booking',
+      'Please provide a reason for rejection:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async (reason) => {
+            if (!reason?.trim()) {
+              Alert.alert('Error', 'Please provide a reason for rejection.');
+              return;
+            }
+            try {
+              await bookingService.rejectBooking(booking.id, reason);
+              Alert.alert('Booking Rejected', 'The client will be notified.');
+              router.back();
+            } catch (error) {
+              console.error('[BookingDetail] Error rejecting booking:', error);
+              Alert.alert('Error', 'Failed to reject booking. Please try again.');
+            }
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
+  if (!booking) {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -117,6 +178,10 @@ export default function BookingDetailScreen() {
       </View>
     );
   }
+
+  const isGuardView = user?.role === 'guard';
+  const isClientView = user?.role === 'client';
+  const isPending = booking.status === 'pending';
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -158,22 +223,38 @@ export default function BookingDetailScreen() {
             </Text>
           </View>
 
-          <View style={styles.guardCard}>
-            <View style={styles.guardHeader}>
-              <View>
-                <Text style={styles.guardName}>
-                  {guard.firstName} {guard.lastName.charAt(0)}.
-                </Text>
-                <Text style={styles.guardRole}>Your Protector</Text>
-              </View>
-              <View style={styles.verifiedBadge}>
-                <Shield size={16} color={Colors.gold} />
-                <Text style={styles.verifiedText}>Verified</Text>
+          {isGuardView && isPending && (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptBooking}>
+                <Check size={20} color={Colors.background} />
+                <Text style={styles.acceptButtonText}>Accept Job</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.rejectButton} onPress={handleRejectBooking}>
+                <X size={20} color={Colors.error} />
+                <Text style={styles.rejectButtonText}>Reject</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {isClientView && guard && (
+            <View style={styles.guardCard}>
+              <View style={styles.guardHeader}>
+                <View>
+                  <Text style={styles.guardName}>
+                    {guard.firstName} {guard.lastName.charAt(0)}.
+                  </Text>
+                  <Text style={styles.guardRole}>Your Protector</Text>
+                </View>
+                <View style={styles.verifiedBadge}>
+                  <Shield size={16} color={Colors.gold} />
+                  <Text style={styles.verifiedText}>Verified</Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
-          <View style={styles.startCodeCard}>
+          {isClientView && (
+            <View style={styles.startCodeCard}>
             <View style={styles.startCodeHeader}>
               <Key size={20} color={Colors.gold} />
               <Text style={styles.startCodeTitle}>Start Code</Text>
@@ -184,10 +265,11 @@ export default function BookingDetailScreen() {
                 <Copy size={20} color={Colors.gold} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.startCodeHint}>
-              Share this code with your guard to start the service
-            </Text>
-          </View>
+              <Text style={styles.startCodeHint}>
+                Share this code with your guard to start the service
+              </Text>
+            </View>
+          )}
 
           <View style={styles.detailsCard}>
             <Text style={styles.sectionTitle}>Booking Details</Text>
@@ -233,18 +315,33 @@ export default function BookingDetailScreen() {
             </View>
           </View>
 
-          {(booking.status === 'accepted' || booking.status === 'en_route' || booking.status === 'active') && (
+          {isClientView && (booking.status === 'accepted' || booking.status === 'en_route' || booking.status === 'active') && (
             <TouchableOpacity style={styles.trackButton} onPress={handleTrackGuard}>
               <Navigation size={20} color={Colors.background} />
               <Text style={styles.trackButtonText}>Track Guard Location</Text>
             </TouchableOpacity>
           )}
 
-          <View style={styles.chatSection}>
-            <View style={styles.chatHeader}>
-              <MessageCircle size={20} color={Colors.gold} />
-              <Text style={styles.chatTitle}>Chat with Guard</Text>
+          {isGuardView && (booking.status === 'accepted' || booking.status === 'en_route' || booking.status === 'active') && (
+            <View style={styles.clientInfoCard}>
+              <View style={styles.clientHeader}>
+                <User size={20} color={Colors.gold} />
+                <Text style={styles.clientTitle}>Client Information</Text>
+              </View>
+              <Text style={styles.clientNote}>
+                Contact the client through the chat below for any questions or updates.
+              </Text>
             </View>
+          )}
+
+          {!isPending && (
+            <View style={styles.chatSection}>
+              <View style={styles.chatHeader}>
+                <MessageCircle size={20} color={Colors.gold} />
+                <Text style={styles.chatTitle}>
+                  {isGuardView ? 'Chat with Client' : 'Chat with Guard'}
+                </Text>
+              </View>
 
             <View style={styles.messagesContainer}>
               {messages.length === 0 ? (
@@ -252,7 +349,7 @@ export default function BookingDetailScreen() {
                   <MessageCircle size={48} color={Colors.textTertiary} />
                   <Text style={styles.emptyChatText}>No messages yet</Text>
                   <Text style={styles.emptyChatSubtext}>
-                    Start a conversation with your guard
+                    {isGuardView ? 'Start a conversation with the client' : 'Start a conversation with your guard'}
                   </Text>
                 </View>
               ) : (
@@ -302,13 +399,15 @@ export default function BookingDetailScreen() {
                 })
               )}
             </View>
-          </View>
+            </View>
+          )}
 
           <View style={styles.bottomPadding} />
         </View>
       </ScrollView>
 
-      <View style={[styles.chatInputContainer, { paddingBottom: insets.bottom + 8 }]}>
+      {!isPending && (
+        <View style={[styles.chatInputContainer, { paddingBottom: insets.bottom + 8 }]}>
         <TextInput
           style={styles.chatInput}
           placeholder="Type a message..."
@@ -325,7 +424,8 @@ export default function BookingDetailScreen() {
         >
           <Send size={20} color={Colors.background} />
         </TouchableOpacity>
-      </View>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -624,5 +724,66 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.textPrimary,
     marginTop: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  acceptButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.success,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  acceptButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.background,
+  },
+  rejectButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: Colors.error,
+  },
+  rejectButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.error,
+  },
+  clientInfoCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  clientHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  clientTitle: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+  },
+  clientNote: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
 });

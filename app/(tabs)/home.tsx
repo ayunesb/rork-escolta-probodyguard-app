@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { Shield, Star, MapPin, Languages, Award, ChevronRight, Map as MapIcon, List } from 'lucide-react-native';
+import { Shield, Star, MapPin, Languages, Award, ChevronRight, Map as MapIcon, List, Calendar, Clock, DollarSign } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
+import { bookingService } from '@/services/bookingService';
+import { Booking } from '@/types';
 import Colors from '@/constants/colors';
 import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
 
@@ -24,8 +27,33 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'armed' | 'unarmed'>('all');
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
 
   const availableGuards = mockGuards.filter(g => g.availability);
+
+  const loadPendingJobs = useCallback(async () => {
+    if (!user || user.role !== 'guard') return;
+    
+    try {
+      setIsLoadingJobs(true);
+      console.log('[Home] Loading pending jobs for guard:', user.id);
+      const jobs = await bookingService.getPendingBookingsForGuard(user.id);
+      console.log('[Home] Found pending jobs:', jobs.length);
+      setPendingBookings(jobs);
+    } catch (error) {
+      console.error('[Home] Error loading pending jobs:', error);
+      setPendingBookings([]);
+    } finally {
+      setIsLoadingJobs(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.role === 'guard') {
+      loadPendingJobs();
+    }
+  }, [user, loadPendingJobs]);
   
   const centerLocation = {
     latitude: 40.7580,
@@ -39,16 +67,78 @@ export default function HomeScreen() {
         
         <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
           <Text style={styles.title}>Available Jobs</Text>
+          <Text style={styles.subtitle}>
+            {isLoadingJobs ? 'Loading...' : `${pendingBookings.length} job${pendingBookings.length !== 1 ? 's' : ''} available`}
+          </Text>
         </View>
 
         <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-          <View style={styles.emptyState}>
-            <Shield size={64} color={Colors.textTertiary} />
-            <Text style={styles.emptyText}>No jobs available</Text>
-            <Text style={styles.emptySubtext}>
-              Check back soon for new protection assignments
-            </Text>
-          </View>
+          {isLoadingJobs ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.gold} />
+              <Text style={styles.loadingText}>Loading available jobs...</Text>
+            </View>
+          ) : pendingBookings.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Shield size={64} color={Colors.textTertiary} />
+              <Text style={styles.emptyText}>No jobs available</Text>
+              <Text style={styles.emptySubtext}>
+                Check back soon for new protection assignments
+              </Text>
+            </View>
+          ) : (
+            pendingBookings.map((booking) => (
+              <TouchableOpacity
+                key={booking.id}
+                style={styles.jobCard}
+                onPress={() => router.push(`/booking/${booking.id}` as any)}
+              >
+                <View style={styles.jobHeader}>
+                  <View style={styles.jobBadge}>
+                    <Text style={styles.jobBadgeText}>NEW JOB</Text>
+                  </View>
+                  <Text style={styles.jobId}>#{booking.id.slice(0, 8)}</Text>
+                </View>
+
+                <View style={styles.jobDetail}>
+                  <Calendar size={16} color={Colors.textSecondary} />
+                  <Text style={styles.jobDetailText}>
+                    {booking.scheduledDate} at {booking.scheduledTime}
+                  </Text>
+                </View>
+
+                <View style={styles.jobDetail}>
+                  <MapPin size={16} color={Colors.textSecondary} />
+                  <Text style={styles.jobDetailText} numberOfLines={1}>
+                    {booking.pickupAddress}
+                  </Text>
+                </View>
+
+                <View style={styles.jobDetail}>
+                  <Clock size={16} color={Colors.textSecondary} />
+                  <Text style={styles.jobDetailText}>
+                    {booking.duration} hours • {booking.protectionType} • {booking.vehicleType}
+                  </Text>
+                </View>
+
+                <View style={styles.jobFooter}>
+                  <View style={styles.jobDetail}>
+                    <DollarSign size={16} color={Colors.gold} />
+                    <Text style={styles.jobPayout}>${booking.guardPayout}</Text>
+                  </View>
+                  <View style={styles.jobActions}>
+                    <TouchableOpacity
+                      style={styles.viewButton}
+                      onPress={() => router.push(`/booking/${booking.id}` as any)}
+                    >
+                      <Text style={styles.viewButtonText}>View Details</Text>
+                      <ChevronRight size={16} color={Colors.gold} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
       </View>
     );
@@ -511,6 +601,91 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
     textAlign: 'center' as const,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginTop: 16,
+  },
+  jobCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+  },
+  jobHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  jobBadge: {
+    backgroundColor: Colors.gold,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  jobBadgeText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: Colors.background,
+  },
+  jobId: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontWeight: '600' as const,
+  },
+  jobDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  jobDetailText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  jobFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  jobPayout: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.gold,
+  },
+  jobActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  viewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+  },
+  viewButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.gold,
   },
   mapContainer: {
     flex: 1,

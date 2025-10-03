@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, initializeAuth, Auth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes",
@@ -25,5 +26,6 @@ try {
 }
 
 const db = getFirestore(app);
+const realtimeDb = getDatabase(app);
 
-export { app, auth, db };
+export { app, auth, db, realtimeDb };

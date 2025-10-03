@@ -1,8 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const PUSH_TOKEN_KEY = '@escolta_push_token';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/config/firebase';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -14,24 +13,9 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export interface NotificationData {
-  type: 'booking_assigned' | 'guard_en_route' | 'payment_success' | 'booking_started' | 'booking_completed' | 'message_received' | 'booking_extended';
-  bookingId?: string;
-  guardId?: string;
-  amount?: number;
-  message?: string;
-}
-
-class NotificationService {
-  private pushToken: string | null = null;
-
-  async initialize(): Promise<boolean> {
+export const notificationService = {
+  async requestPermissions(): Promise<boolean> {
     try {
-      if (Platform.OS === 'web') {
-        console.log('Push notifications not supported on web');
-        return false;
-      }
-
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
@@ -41,18 +25,9 @@ class NotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.error('Push notification permission denied');
+        console.log('[Notifications] Permission denied');
         return false;
       }
-
-      const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: 'your-project-id',
-      });
-      
-      this.pushToken = tokenData.data;
-      await AsyncStorage.setItem(PUSH_TOKEN_KEY, this.pushToken);
-      
-      console.log('Push token:', this.pushToken);
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
@@ -63,163 +38,137 @@ class NotificationService {
         });
       }
 
+      console.log('[Notifications] Permission granted');
       return true;
     } catch (error) {
-      console.error('Error initializing notifications:', error);
+      console.error('[Notifications] Error requesting permissions:', error);
       return false;
     }
-  }
+  },
 
-  async getPushToken(): Promise<string | null> {
-    if (this.pushToken) return this.pushToken;
-    
+  async registerForPushNotifications(userId: string): Promise<string | null> {
     try {
-      const stored = await AsyncStorage.getItem(PUSH_TOKEN_KEY);
-      if (stored) {
-        this.pushToken = stored;
-        return stored;
-      }
-    } catch (error) {
-      console.error('Error getting push token:', error);
-    }
-    
-    return null;
-  }
-
-  async scheduleLocalNotification(
-    title: string,
-    body: string,
-    data?: NotificationData,
-    delaySeconds: number = 0
-  ): Promise<string | null> {
-    try {
-      if (Platform.OS === 'web') {
-        console.log('Local notifications not supported on web');
+      const hasPermission = await this.requestPermissions();
+      if (!hasPermission) {
         return null;
       }
 
-      const notificationId = await Notifications.scheduleNotificationAsync({
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log('[Notifications] Push token:', token);
+
+      await updateDoc(doc(db, 'users', userId), {
+        pushToken: token,
+        pushTokenUpdatedAt: new Date().toISOString(),
+      });
+
+      return token;
+    } catch (error) {
+      console.error('[Notifications] Error registering for push notifications:', error);
+      return null;
+    }
+  },
+
+  async sendLocalNotification(title: string, body: string, data?: any): Promise<void> {
+    try {
+      await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body,
-          data: (data ? { ...data } : {}) as Record<string, unknown>,
+          data,
           sound: true,
-          priority: Notifications.AndroidNotificationPriority.HIGH,
         },
-        trigger: delaySeconds > 0 ? { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: delaySeconds, repeats: false } : null,
+        trigger: null,
       });
-
-      return notificationId;
+      console.log('[Notifications] Local notification sent:', title);
     } catch (error) {
-      console.error('Error scheduling notification:', error);
-      return null;
+      console.error('[Notifications] Error sending local notification:', error);
     }
-  }
+  },
 
-  async cancelNotification(notificationId: string): Promise<void> {
-    try {
-      if (Platform.OS === 'web') return;
-      await Notifications.cancelScheduledNotificationAsync(notificationId);
-    } catch (error) {
-      console.error('Error canceling notification:', error);
+  async notifyBookingStatusChange(bookingId: string, status: string, guardName?: string): Promise<void> {
+    const statusMessages: Record<string, { title: string; body: string }> = {
+      confirmed: {
+        title: 'Booking Confirmed',
+        body: 'Your protection booking has been confirmed. Waiting for guard assignment.',
+      },
+      assigned: {
+        title: 'Guard Assigned',
+        body: guardName ? `${guardName} has been assigned to your booking.` : 'A guard has been assigned to your booking.',
+      },
+      accepted: {
+        title: 'Guard Accepted',
+        body: guardName ? `${guardName} accepted your booking request.` : 'Your guard accepted the booking.',
+      },
+      en_route: {
+        title: 'Guard En Route',
+        body: guardName ? `${guardName} is on the way to your location.` : 'Your guard is on the way.',
+      },
+      active: {
+        title: 'Service Started',
+        body: 'Your protection service has started. Stay safe!',
+      },
+      completed: {
+        title: 'Service Completed',
+        body: 'Your protection service has been completed. Please rate your experience.',
+      },
+      cancelled: {
+        title: 'Booking Cancelled',
+        body: 'Your booking has been cancelled.',
+      },
+    };
+
+    const message = statusMessages[status];
+    if (message) {
+      await this.sendLocalNotification(message.title, message.body, { bookingId, status });
     }
-  }
+  },
+
+  async notifyNewMessage(senderName: string, messagePreview: string, bookingId: string): Promise<void> {
+    await this.sendLocalNotification(
+      `Message from ${senderName}`,
+      messagePreview,
+      { type: 'message', bookingId }
+    );
+  },
+
+  async notifyNewBookingRequest(clientName: string, bookingId: string): Promise<void> {
+    await this.sendLocalNotification(
+      'New Booking Request',
+      `${clientName} requested your protection services.`,
+      { type: 'booking_request', bookingId }
+    );
+  },
+
+  setupNotificationListeners(
+    onNotificationReceived?: (notification: Notifications.Notification) => void,
+    onNotificationResponse?: (response: Notifications.NotificationResponse) => void
+  ) {
+    const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+      console.log('[Notifications] Notification received:', notification);
+      onNotificationReceived?.(notification);
+    });
+
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      console.log('[Notifications] Notification response:', response);
+      onNotificationResponse?.(response);
+    });
+
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
+  },
 
   async cancelAllNotifications(): Promise<void> {
-    try {
-      if (Platform.OS === 'web') return;
-      await Notifications.cancelAllScheduledNotificationsAsync();
-    } catch (error) {
-      console.error('Error canceling all notifications:', error);
-    }
-  }
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    console.log('[Notifications] All notifications cancelled');
+  },
 
   async getBadgeCount(): Promise<number> {
-    try {
-      if (Platform.OS === 'web') return 0;
-      return await Notifications.getBadgeCountAsync();
-    } catch (error) {
-      console.error('Error getting badge count:', error);
-      return 0;
-    }
-  }
+    return await Notifications.getBadgeCountAsync();
+  },
 
   async setBadgeCount(count: number): Promise<void> {
-    try {
-      if (Platform.OS === 'web') return;
-      await Notifications.setBadgeCountAsync(count);
-    } catch (error) {
-      console.error('Error setting badge count:', error);
-    }
-  }
-
-  addNotificationReceivedListener(
-    callback: (notification: Notifications.Notification) => void
-  ): Notifications.Subscription {
-    return Notifications.addNotificationReceivedListener(callback);
-  }
-
-  addNotificationResponseReceivedListener(
-    callback: (response: Notifications.NotificationResponse) => void
-  ): Notifications.Subscription {
-    return Notifications.addNotificationResponseReceivedListener(callback);
-  }
-
-  async notifyBookingAssigned(bookingId: string, guardName: string): Promise<void> {
-    await this.scheduleLocalNotification(
-      'Guard Assigned',
-      `${guardName} has been assigned to your booking`,
-      { type: 'booking_assigned', bookingId }
-    );
-  }
-
-  async notifyGuardEnRoute(bookingId: string, guardName: string, eta: string): Promise<void> {
-    await this.scheduleLocalNotification(
-      'Guard En Route',
-      `${guardName} is on the way. ETA: ${eta}`,
-      { type: 'guard_en_route', bookingId }
-    );
-  }
-
-  async notifyPaymentSuccess(bookingId: string, amount: number): Promise<void> {
-    await this.scheduleLocalNotification(
-      'Payment Successful',
-      `Your payment of $${amount} has been processed`,
-      { type: 'payment_success', bookingId, amount }
-    );
-  }
-
-  async notifyBookingStarted(bookingId: string): Promise<void> {
-    await this.scheduleLocalNotification(
-      'Service Started',
-      'Your protection service has begun',
-      { type: 'booking_started', bookingId }
-    );
-  }
-
-  async notifyBookingCompleted(bookingId: string): Promise<void> {
-    await this.scheduleLocalNotification(
-      'Service Completed',
-      'Your protection service has ended. Please rate your experience',
-      { type: 'booking_completed', bookingId }
-    );
-  }
-
-  async notifyMessageReceived(guardName: string, message: string): Promise<void> {
-    await this.scheduleLocalNotification(
-      `Message from ${guardName}`,
-      message,
-      { type: 'message_received', message }
-    );
-  }
-
-  async notifyBookingExtended(bookingId: string, additionalHours: number): Promise<void> {
-    await this.scheduleLocalNotification(
-      'Booking Extended',
-      `Your service has been extended by ${additionalHours} hour(s)`,
-      { type: 'booking_extended', bookingId }
-    );
-  }
-}
-
-export const notificationService = new NotificationService();
+    await Notifications.setBadgeCountAsync(count);
+  },
+};

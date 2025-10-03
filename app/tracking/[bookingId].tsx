@@ -30,7 +30,7 @@ export default function TrackingScreen() {
   const insets = useSafeAreaInsets();
   const {
     currentLocation,
-    updateGuardLocation,
+    subscribeToGuardLocation,
     getGuardLocation,
     calculateDistance,
     calculateETA,
@@ -49,25 +49,16 @@ export default function TrackingScreen() {
   }, [hasPermission, requestLocationPermission]);
 
   useEffect(() => {
-    if (guard && guard.latitude && guard.longitude) {
-      updateGuardLocation(guardId, {
-        latitude: guard.latitude,
-        longitude: guard.longitude,
-      });
-    }
+    if (!guardId) return;
 
-    const interval = setInterval(() => {
-      if (guard && guard.latitude && guard.longitude) {
-        const randomOffset = 0.001;
-        updateGuardLocation(guardId, {
-          latitude: guard.latitude + (Math.random() - 0.5) * randomOffset,
-          longitude: guard.longitude + (Math.random() - 0.5) * randomOffset,
-        });
-      }
-    }, 5000);
+    console.log('[Tracking] Subscribing to guard location:', guardId);
+    const unsubscribe = subscribeToGuardLocation(guardId);
 
-    return () => clearInterval(interval);
-  }, [guard, guardId, updateGuardLocation]);
+    return () => {
+      console.log('[Tracking] Unsubscribing from guard location:', guardId);
+      unsubscribe();
+    };
+  }, [guardId, subscribeToGuardLocation]);
 
   if (!guard) {
     return (

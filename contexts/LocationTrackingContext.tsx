@@ -1,6 +1,8 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as Location from 'expo-location';
+import { ref, onValue, set, off } from 'firebase/database';
+import { realtimeDb } from '@/config/firebase';
 
 interface LocationCoords {
   latitude: number;
@@ -36,7 +38,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
         setError('Location permission denied');
       }
     } catch (err) {
-      console.error('Location permission error:', err);
+      console.error('[Location] Permission error:', err);
       setError('Failed to get location permission');
       setHasPermission(false);
     }
@@ -74,7 +76,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
         subscription.remove();
       };
     } catch (err) {
-      console.error('Start tracking error:', err);
+      console.error('[Location] Start tracking error:', err);
       setError('Failed to start location tracking');
       setIsTracking(false);
     }
@@ -84,18 +86,49 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     setIsTracking(false);
   }, []);
 
-  const updateGuardLocation = useCallback((guardId: string, location: LocationCoords, heading?: number, speed?: number) => {
-    setGuardLocations((prev) => {
-      const newMap = new Map(prev);
-      newMap.set(guardId, {
+  const updateGuardLocation = useCallback(async (guardId: string, location: LocationCoords, heading?: number, speed?: number) => {
+    try {
+      const guardLocationData: GuardLocation = {
         guardId,
         ...location,
         heading,
         speed,
         timestamp: Date.now(),
+      };
+
+      const locationRef = ref(realtimeDb, `guardLocations/${guardId}`);
+      await set(locationRef, guardLocationData);
+
+      setGuardLocations((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(guardId, guardLocationData);
+        return newMap;
       });
-      return newMap;
+
+      console.log('[Location] Updated guard location:', guardId);
+    } catch (err) {
+      console.error('[Location] Error updating guard location:', err);
+    }
+  }, []);
+
+  const subscribeToGuardLocation = useCallback((guardId: string) => {
+    const locationRef = ref(realtimeDb, `guardLocations/${guardId}`);
+    
+    onValue(locationRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setGuardLocations((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(guardId, data as GuardLocation);
+          return newMap;
+        });
+        console.log('[Location] Received guard location update:', guardId);
+      }
     });
+
+    return () => {
+      off(locationRef);
+    };
   }, []);
 
   const getGuardLocation = useCallback((guardId: string): GuardLocation | null => {
@@ -130,6 +163,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     startTracking,
     stopTracking,
     updateGuardLocation,
+    subscribeToGuardLocation,
     getGuardLocation,
     calculateDistance,
     calculateETA,
@@ -143,6 +177,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     startTracking,
     stopTracking,
     updateGuardLocation,
+    subscribeToGuardLocation,
     getGuardLocation,
     calculateDistance,
     calculateETA,

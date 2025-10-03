@@ -1,71 +1,114 @@
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
   onSnapshot,
   Timestamp,
-  QuerySnapshot,
-  DocumentData,
-  updateDoc,
-  doc,
-  serverTimestamp
+  getDocs,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { ChatMessage, Language, UserRole } from '@/types';
+import { db } from '@/config/firebase';
+import { ChatMessage, Language } from '@/types';
+import { translationService } from './translationService';
 
-export const sendMessage = async (
-  bookingId: string,
-  senderId: string,
-  senderRole: UserRole,
-  text: string,
-  originalLanguage: Language
-): Promise<ChatMessage> => {
-  try {
-    console.log('[Chat] Sending message:', { bookingId, senderId, text });
+export const chatService = {
+  async sendMessage(
+    bookingId: string,
+    senderId: string,
+    senderRole: 'client' | 'guard',
+    text: string,
+    originalLanguage: Language
+  ): Promise<void> {
+    try {
+      const messageData = {
+        bookingId,
+        senderId,
+        senderRole,
+        text,
+        originalLanguage,
+        timestamp: Timestamp.now(),
+      };
 
-    const message = {
-      bookingId,
-      senderId,
-      senderRole,
-      text,
-      originalLanguage,
-      timestamp: Timestamp.now(),
-    };
+      await addDoc(collection(db, 'messages'), messageData);
+      console.log('[Chat] Message sent:', bookingId);
+    } catch (error) {
+      console.error('[Chat] Error sending message:', error);
+      throw error;
+    }
+  },
 
-    const dbInstance = db();
-    const docRef = await addDoc(collection(dbInstance, 'messages'), message);
+  subscribeToMessages(
+    bookingId: string,
+    userLanguage: Language,
+    onMessagesUpdate: (messages: ChatMessage[]) => void
+  ): () => void {
+    try {
+      const messagesQuery = query(
+        collection(db, 'messages'),
+        where('bookingId', '==', bookingId),
+        orderBy('timestamp', 'asc')
+      );
 
-    return {
-      id: docRef.id,
-      ...message,
-      timestamp: new Date().toISOString(),
-    };
-  } catch (error) {
-    console.error('[Chat] Send message error:', error);
-    throw error;
-  }
-};
+      const unsubscribe = onSnapshot(messagesQuery, async (snapshot) => {
+        const messages: ChatMessage[] = [];
 
-export const subscribeToMessages = (
-  bookingId: string,
-  callback: (messages: ChatMessage[]) => void
-): (() => void) => {
-  try {
-    console.log('[Chat] Subscribing to messages:', bookingId);
+        for (const doc of snapshot.docs) {
+          const data = doc.data();
+          let translatedText: string | undefined;
+          let translatedLanguage: Language | undefined;
 
-    const dbInstance = db();
-    const q = query(
-      collection(dbInstance, 'messages'),
-      where('bookingId', '==', bookingId),
-      orderBy('timestamp', 'asc')
-    );
+          if (data.originalLanguage !== userLanguage) {
+            try {
+              translatedText = await translationService.translate(
+                data.text,
+                data.originalLanguage,
+                userLanguage
+              );
+              translatedLanguage = userLanguage;
+            } catch (error) {
+              console.error('[Chat] Translation error:', error);
+            }
+          }
 
-    const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-      const messages: ChatMessage[] = snapshot.docs.map((doc) => {
+          messages.push({
+            id: doc.id,
+            bookingId: data.bookingId,
+            senderId: data.senderId,
+            senderRole: data.senderRole,
+            text: data.text,
+            originalLanguage: data.originalLanguage,
+            translatedText,
+            translatedLanguage,
+            timestamp: data.timestamp.toDate().toISOString(),
+          });
+        }
+
+        onMessagesUpdate(messages);
+        console.log('[Chat] Messages updated:', messages.length);
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.error('[Chat] Error subscribing to messages:', error);
+      return () => {};
+    }
+  },
+
+  async getMessages(bookingId: string): Promise<ChatMessage[]> {
+    try {
+      const messagesQuery = query(
+        collection(db, 'messages'),
+        where('bookingId', '==', bookingId),
+        orderBy('timestamp', 'asc')
+      );
+
+      const snapshot = await getDocs(messagesQuery);
+      const messages: ChatMessage[] = [];
+
+      snapshot.forEach((doc) => {
         const data = doc.data();
-        return {
+        messages.push({
           id: doc.id,
           bookingId: data.bookingId,
           senderId: data.senderId,
@@ -74,102 +117,31 @@ export const subscribeToMessages = (
           originalLanguage: data.originalLanguage,
           translatedText: data.translatedText,
           translatedLanguage: data.translatedLanguage,
-          timestamp: data.timestamp?.toDate?.()?.toISOString() || new Date().toISOString(),
-        };
-      });
-
-      callback(messages);
-    });
-
-    return unsubscribe;
-  } catch (error) {
-    console.error('[Chat] Subscribe error:', error);
-    return () => {};
-  }
-};
-
-export const translateMessage = async (
-  text: string,
-  targetLanguage: Language
-): Promise<string> => {
-  try {
-    console.log('[Chat] Translating message:', { text, targetLanguage });
-
-    return text;
-  } catch (error) {
-    console.error('[Chat] Translation error:', error);
-    return text;
-  }
-};
-
-export const updateTypingStatus = async (
-  bookingId: string,
-  userId: string,
-  isTyping: boolean
-): Promise<void> => {
-  try {
-    console.log('[Chat] Updating typing status:', { bookingId, userId, isTyping });
-
-    const dbInstance = db();
-    const typingRef = doc(dbInstance, 'typing', `${bookingId}_${userId}`);
-    
-    if (isTyping) {
-      await updateDoc(typingRef, {
-        bookingId,
-        userId,
-        isTyping: true,
-        timestamp: serverTimestamp(),
-      }).catch(async () => {
-        await addDoc(collection(dbInstance, 'typing'), {
-          bookingId,
-          userId,
-          isTyping: true,
-          timestamp: serverTimestamp(),
+          timestamp: data.timestamp.toDate().toISOString(),
         });
       });
-    } else {
-      await updateDoc(typingRef, {
-        isTyping: false,
-        timestamp: serverTimestamp(),
-      }).catch(() => {});
+
+      console.log('[Chat] Loaded messages:', messages.length);
+      return messages;
+    } catch (error) {
+      console.error('[Chat] Error getting messages:', error);
+      return [];
     }
-  } catch (error) {
-    console.error('[Chat] Update typing status error:', error);
-  }
-};
+  },
 
-export const subscribeToTypingStatus = (
-  bookingId: string,
-  currentUserId: string,
-  callback: (isTyping: boolean, userId: string) => void
-): (() => void) => {
-  try {
-    console.log('[Chat] Subscribing to typing status:', bookingId);
+  async getUnreadCount(bookingId: string, userId: string): Promise<number> {
+    try {
+      const messagesQuery = query(
+        collection(db, 'messages'),
+        where('bookingId', '==', bookingId),
+        where('senderId', '!=', userId)
+      );
 
-    const dbInstance = db();
-    const q = query(
-      collection(dbInstance, 'typing'),
-      where('bookingId', '==', bookingId),
-      where('isTyping', '==', true)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-      snapshot.docs.forEach((doc) => {
-        const data = doc.data();
-        if (data.userId !== currentUserId) {
-          const timestamp = data.timestamp?.toDate?.()?.getTime() || 0;
-          const now = Date.now();
-          
-          if (now - timestamp < 5000) {
-            callback(true, data.userId);
-          }
-        }
-      });
-    });
-
-    return unsubscribe;
-  } catch (error) {
-    console.error('[Chat] Subscribe to typing error:', error);
-    return () => {};
-  }
+      const snapshot = await getDocs(messagesQuery);
+      return snapshot.size;
+    } catch (error) {
+      console.error('[Chat] Error getting unread count:', error);
+      return 0;
+    }
+  },
 };

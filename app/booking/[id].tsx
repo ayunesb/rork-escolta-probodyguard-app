@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,16 +26,20 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import Colors from '@/constants/colors';
 import { bookingService } from '@/services/bookingService';
+import { chatService } from '@/services/chatService';
 import { mockGuards } from '@/mocks/guards';
-import type { Booking } from '@/types';
+import type { Booking, ChatMessage } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [message, setMessage] = useState<string>('');
-  const [messages, setMessages] = useState<{ id: string; text: string; sender: 'client' | 'guard'; timestamp: Date }[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isSending, setIsSending] = useState<boolean>(false);
 
   useEffect(() => {
     const load = async () => {
@@ -46,23 +50,48 @@ export default function BookingDetailScreen() {
     load();
   }, [id]);
 
+  useEffect(() => {
+    if (!id || !user) return;
+
+    console.log('[BookingDetail] Subscribing to messages:', id);
+    const unsubscribe = chatService.subscribeToMessages(
+      id,
+      user.language,
+      (updatedMessages) => {
+        setMessages(updatedMessages);
+      }
+    );
+
+    return () => {
+      console.log('[BookingDetail] Unsubscribing from messages:', id);
+      unsubscribe();
+    };
+  }, [id, user]);
+
 
 
   const guard = booking ? mockGuards.find((g) => g.id === booking.guardId) : null;
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
+  const handleSendMessage = useCallback(async () => {
+    if (!message.trim() || !booking || !user || isSending) return;
 
-    const newMessage = {
-      id: Date.now().toString(),
-      text: message.trim(),
-      sender: 'client' as const,
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, newMessage]);
-    setMessage('');
-  };
+    setIsSending(true);
+    try {
+      await chatService.sendMessage(
+        booking.id,
+        user.id,
+        user.role === 'client' ? 'client' : 'guard',
+        message.trim(),
+        user.language
+      );
+      setMessage('');
+    } catch (error) {
+      console.error('[BookingDetail] Error sending message:', error);
+      Alert.alert('Error', 'Failed to send message. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
+  }, [message, booking, user, isSending]);
 
   const handleCopyCode = async () => {
     if (booking?.startCode) {
@@ -227,35 +256,50 @@ export default function BookingDetailScreen() {
                   </Text>
                 </View>
               ) : (
-                messages.map((msg) => (
-                  <View
-                    key={msg.id}
-                    style={[
-                      styles.messageBubble,
-                      msg.sender === 'client' ? styles.messageBubbleClient : styles.messageBubbleGuard,
-                    ]}
-                  >
-                    <Text
+                messages.map((msg) => {
+                  const isOwnMessage = msg.senderId === user?.id;
+                  const displayText = msg.translatedText || msg.text;
+                  
+                  return (
+                    <View
+                      key={msg.id}
                       style={[
-                        styles.messageText,
-                        msg.sender === 'client' ? styles.messageTextClient : styles.messageTextGuard,
+                        styles.messageBubble,
+                        isOwnMessage ? styles.messageBubbleClient : styles.messageBubbleGuard,
                       ]}
                     >
-                      {msg.text}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.messageTime,
-                        msg.sender === 'client' ? styles.messageTimeClient : styles.messageTimeGuard,
-                      ]}
-                    >
-                      {msg.timestamp.toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </Text>
-                  </View>
-                ))
+                      <Text
+                        style={[
+                          styles.messageText,
+                          isOwnMessage ? styles.messageTextClient : styles.messageTextGuard,
+                        ]}
+                      >
+                        {displayText}
+                      </Text>
+                      {msg.translatedText && (
+                        <Text
+                          style={[
+                            styles.originalText,
+                            isOwnMessage ? styles.messageTimeClient : styles.messageTimeGuard,
+                          ]}
+                        >
+                          Original: {msg.text}
+                        </Text>
+                      )}
+                      <Text
+                        style={[
+                          styles.messageTime,
+                          isOwnMessage ? styles.messageTimeClient : styles.messageTimeGuard,
+                        ]}
+                      >
+                        {new Date(msg.timestamp).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+                  );
+                })
               )}
             </View>
           </View>
@@ -275,9 +319,9 @@ export default function BookingDetailScreen() {
           maxLength={500}
         />
         <TouchableOpacity
-          style={[styles.sendButton, !message.trim() && styles.sendButtonDisabled]}
+          style={[styles.sendButton, (!message.trim() || isSending) && styles.sendButtonDisabled]}
           onPress={handleSendMessage}
-          disabled={!message.trim()}
+          disabled={!message.trim() || isSending}
         >
           <Send size={20} color={Colors.background} />
         </TouchableOpacity>
@@ -528,6 +572,11 @@ const styles = StyleSheet.create({
   },
   messageTimeGuard: {
     color: Colors.textSecondary,
+  },
+  originalText: {
+    fontSize: 11,
+    fontStyle: 'italic' as const,
+    marginTop: 4,
   },
   bottomPadding: {
     height: 20,

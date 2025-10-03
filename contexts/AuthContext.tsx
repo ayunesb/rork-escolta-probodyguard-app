@@ -9,6 +9,7 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { notificationService } from '@/services/notificationService';
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
@@ -24,6 +25,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           if (userDoc.exists()) {
             const userData = userDoc.data() as Omit<User, 'id'>;
             setUser({ id: firebaseUser.uid, ...userData });
+            
+            await notificationService.registerForPushNotifications(firebaseUser.uid);
           } else {
             console.error('[Auth] User document not found');
             setUser(null);

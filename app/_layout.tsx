@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocationTrackingProvider, useLocationTracking } from "@/contexts/LocationTrackingContext";
@@ -16,6 +16,7 @@ function RootLayoutNav() {
   const { setRole } = useLocationTracking();
   const segments = useSegments();
   const router = useRouter();
+  const navigationHandledRef = useRef(false);
 
   useEffect(() => {
     if (user) {
@@ -34,9 +35,17 @@ function RootLayoutNav() {
     const isIndexRoute = !firstSegment || firstSegment === 'index';
 
     if (!user && !inAuthGroup && !isIndexRoute) {
-      router.replace('/auth/sign-in');
+      if (!navigationHandledRef.current) {
+        navigationHandledRef.current = true;
+        router.replace('/auth/sign-in');
+      }
     } else if (user && !inTabsGroup && (isIndexRoute || inAuthGroup)) {
-      router.replace('/(tabs)/home');
+      if (!navigationHandledRef.current) {
+        navigationHandledRef.current = true;
+        router.replace('/(tabs)/home');
+      }
+    } else {
+      navigationHandledRef.current = false;
     }
   }, [user, isLoading, segments]);
 

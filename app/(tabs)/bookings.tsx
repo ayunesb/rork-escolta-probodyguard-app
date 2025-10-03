@@ -1,13 +1,14 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import { Calendar, MapPin, Clock, DollarSign } from 'lucide-react-native';
+import { Stack, useRouter } from 'expo-router';
+import { Calendar, MapPin, Clock, DollarSign, Navigation } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockBookings } from '@/mocks/bookings';
 import Colors from '@/constants/colors';
 
 export default function BookingsScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const userBookings = mockBookings.filter(b => {
@@ -48,7 +49,7 @@ export default function BookingsScreen() {
           </View>
         ) : (
           userBookings.map((booking) => (
-            <TouchableOpacity key={booking.id} style={styles.bookingCard}>
+            <View key={booking.id} style={styles.bookingCard}>
               <View style={styles.bookingHeader}>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) + '20' }]}>
                   <Text style={[styles.statusText, { color: getStatusColor(booking.status) }]}>
@@ -90,7 +91,17 @@ export default function BookingsScreen() {
                   <Text style={styles.ratingText}>⭐ {booking.rating.toFixed(1)}</Text>
                 )}
               </View>
-            </TouchableOpacity>
+
+              {(booking.status === 'accepted' || booking.status === 'en_route' || booking.status === 'active') && (
+                <TouchableOpacity 
+                  style={styles.trackButton}
+                  onPress={() => router.push(`/tracking/${booking.id}`)}
+                >
+                  <Navigation size={16} color={Colors.background} />
+                  <Text style={styles.trackButtonText}>Track Guard</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           ))
         )}
       </ScrollView>
@@ -194,5 +205,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.textPrimary,
+  },
+  trackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.gold,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  trackButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.background,
   },
 });

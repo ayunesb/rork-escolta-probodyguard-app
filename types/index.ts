@@ -48,6 +48,7 @@ export interface Guard extends User {
   insuranceUrls: string[];
   certifications: string[];
   rating: number;
+  ratingBreakdown?: RatingBreakdown;
   completedJobs: number;
   isFreelancer: boolean;
   companyId?: string;
@@ -65,6 +66,13 @@ export interface Company extends User {
 
 export interface Admin extends User {
   role: 'admin';
+}
+
+export interface RatingBreakdown {
+  professionalism: number;
+  punctuality: number;
+  communication: number;
+  languageClarity: number;
 }
 
 export interface Booking {
@@ -95,6 +103,7 @@ export interface Booking {
   startedAt?: string;
   completedAt?: string;
   rating?: number;
+  ratingBreakdown?: RatingBreakdown;
   review?: string;
 }
 

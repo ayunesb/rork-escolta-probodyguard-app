@@ -19,6 +19,10 @@ import {
   Weight,
   Ruler,
   ChevronLeft,
+  TrendingUp,
+  Clock,
+  MessageCircle,
+  Mic,
 } from 'lucide-react-native';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
@@ -141,11 +145,64 @@ export default function GuardDetailScreen() {
             </View>
           </View>
 
+          {guard.ratingBreakdown && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Rating Breakdown</Text>
+              <View style={styles.ratingBreakdownContainer}>
+                <View style={styles.ratingItem}>
+                  <View style={styles.ratingItemHeader}>
+                    <TrendingUp size={16} color={Colors.gold} />
+                    <Text style={styles.ratingItemLabel}>Professionalism</Text>
+                  </View>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: `${(guard.ratingBreakdown.professionalism / 5) * 100}%` }]} />
+                  </View>
+                  <Text style={styles.ratingItemValue}>{guard.ratingBreakdown.professionalism.toFixed(1)}</Text>
+                </View>
+
+                <View style={styles.ratingItem}>
+                  <View style={styles.ratingItemHeader}>
+                    <Clock size={16} color={Colors.gold} />
+                    <Text style={styles.ratingItemLabel}>Punctuality</Text>
+                  </View>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: `${(guard.ratingBreakdown.punctuality / 5) * 100}%` }]} />
+                  </View>
+                  <Text style={styles.ratingItemValue}>{guard.ratingBreakdown.punctuality.toFixed(1)}</Text>
+                </View>
+
+                <View style={styles.ratingItem}>
+                  <View style={styles.ratingItemHeader}>
+                    <MessageCircle size={16} color={Colors.gold} />
+                    <Text style={styles.ratingItemLabel}>Communication</Text>
+                  </View>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: `${(guard.ratingBreakdown.communication / 5) * 100}%` }]} />
+                  </View>
+                  <Text style={styles.ratingItemValue}>{guard.ratingBreakdown.communication.toFixed(1)}</Text>
+                </View>
+
+                <View style={styles.ratingItem}>
+                  <View style={styles.ratingItemHeader}>
+                    <Mic size={16} color={Colors.gold} />
+                    <Text style={styles.ratingItemLabel}>Language Clarity</Text>
+                  </View>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: `${(guard.ratingBreakdown.languageClarity / 5) * 100}%` }]} />
+                  </View>
+                  <Text style={styles.ratingItemValue}>{guard.ratingBreakdown.languageClarity.toFixed(1)}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Location</Text>
             <View style={styles.locationRow}>
               <MapPin size={16} color={Colors.textSecondary} />
-              <Text style={styles.locationText}>2.3 mi away • Available now</Text>
+              <Text style={styles.locationText}>
+                {guard.availability ? 'Available now' : 'Currently unavailable'}
+              </Text>
             </View>
           </View>
 
@@ -156,7 +213,7 @@ export default function GuardDetailScreen() {
       <View style={styles.footer}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Starting at</Text>
-          <Text style={styles.priceValue}>${guard.hourlyRate}/hr</Text>
+          <Text style={styles.priceValue}>${guard.hourlyRate} MXN/hr</Text>
         </View>
         <TouchableOpacity
           style={styles.bookButton}
@@ -395,5 +452,41 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.textPrimary,
     marginTop: 16,
+  },
+  ratingBreakdownContainer: {
+    gap: 16,
+  },
+  ratingItem: {
+    gap: 8,
+  },
+  ratingItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ratingItemLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  ratingItemValue: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.gold,
+    position: 'absolute' as const,
+    right: 0,
+    top: 0,
+  },
+  ratingBar: {
+    height: 6,
+    backgroundColor: Colors.surface,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  ratingBarFill: {
+    height: '100%',
+    backgroundColor: Colors.gold,
+    borderRadius: 3,
   },
 });

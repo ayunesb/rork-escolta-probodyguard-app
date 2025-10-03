@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,10 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -29,18 +32,39 @@ export default function CreateBookingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const guard = mockGuards.find((g) => g.id === guardId);
-
   const [vehicleType, setVehicleType] = useState<VehicleType>('standard');
   const [protectionType, setProtectionType] = useState<ProtectionType>('unarmed');
   const [dressCode, setDressCode] = useState<DressCode>('business_casual');
   const [numberOfProtectors, setNumberOfProtectors] = useState<number>(1);
   const [numberOfProtectees, setNumberOfProtectees] = useState<number>(1);
   const [duration, setDuration] = useState<number>(4);
-  const [scheduledDate, setScheduledDate] = useState<string>('');
-  const [scheduledTime, setScheduledTime] = useState<string>('');
+  const [scheduledDate, setScheduledDate] = useState<Date>(new Date());
+  const [scheduledTime, setScheduledTime] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+  const [pickupCoords, setPickupCoords] = useState<{ latitude: number; longitude: number }>({ 
+    latitude: 40.7580, 
+    longitude: -73.9855 
+  });
+  const [showMap, setShowMap] = useState<boolean>(false);
   const [pickupAddress, setPickupAddress] = useState<string>('');
   const [destinationAddress, setDestinationAddress] = useState<string>('');
+
+  const handleDateChange = useCallback((event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setScheduledDate(selectedDate);
+    }
+  }, []);
+
+  const handleTimeChange = useCallback((event: any, selectedTime?: Date) => {
+    setShowTimePicker(Platform.OS === 'ios');
+    if (selectedTime) {
+      setScheduledTime(selectedTime);
+    }
+  }, []);
+
+  const guard = mockGuards.find((g) => g.id === guardId);
 
   if (!guard) {
     return (
@@ -63,15 +87,23 @@ export default function CreateBookingScreen() {
   const processingFee = subtotal * 0.029 + 0.3;
   const total = subtotal + processingFee;
 
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const formatTime = (date: Date): string => {
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
+
   const handleBooking = () => {
-    if (!pickupAddress || !scheduledDate || !scheduledTime) {
-      Alert.alert('Missing Information', 'Please fill in all required fields');
+    if (!pickupAddress) {
+      Alert.alert('Missing Information', 'Please enter a pickup address');
       return;
     }
 
     Alert.alert(
       'Confirm Booking',
-      `Total: $${total.toFixed(2)} MXN\n\nProceed to payment?`,
+      `Total: ${total.toFixed(2)} MXN\n\nProceed to payment?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -246,27 +278,38 @@ export default function CreateBookingScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Schedule</Text>
             <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
+              <TouchableOpacity 
+                style={styles.inputContainer}
+                onPress={() => setShowDatePicker(true)}
+              >
                 <Calendar size={16} color={Colors.textSecondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Date (YYYY-MM-DD)"
-                  placeholderTextColor={Colors.textTertiary}
-                  value={scheduledDate}
-                  onChangeText={setScheduledDate}
-                />
-              </View>
-              <View style={styles.inputContainer}>
+                <Text style={styles.inputText}>{formatDate(scheduledDate)}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.inputContainer}
+                onPress={() => setShowTimePicker(true)}
+              >
                 <Clock size={16} color={Colors.textSecondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Time (HH:MM)"
-                  placeholderTextColor={Colors.textTertiary}
-                  value={scheduledTime}
-                  onChangeText={setScheduledTime}
-                />
-              </View>
+                <Text style={styles.inputText}>{formatTime(scheduledTime)}</Text>
+              </TouchableOpacity>
             </View>
+            {showDatePicker && (
+              <DateTimePicker
+                value={scheduledDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+              />
+            )}
+            {showTimePicker && (
+              <DateTimePicker
+                value={scheduledTime}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleTimeChange}
+              />
+            )}
           </View>
 
           <View style={styles.section}>
@@ -281,6 +324,34 @@ export default function CreateBookingScreen() {
                 onChangeText={setPickupAddress}
               />
             </View>
+            <TouchableOpacity 
+              style={styles.mapToggleButton}
+              onPress={() => setShowMap(!showMap)}
+            >
+              <MapPin size={16} color={Colors.gold} />
+              <Text style={styles.mapToggleText}>
+                {showMap ? 'Hide Map' : 'Show Map'}
+              </Text>
+            </TouchableOpacity>
+            {showMap && (
+              <View style={styles.mapContainer}>
+                <MapView
+                  provider={PROVIDER_DEFAULT}
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: pickupCoords.latitude,
+                    longitude: pickupCoords.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  onPress={(e) => {
+                    setPickupCoords(e.nativeEvent.coordinate);
+                  }}
+                >
+                  <Marker coordinate={pickupCoords} title="Pickup Location" />
+                </MapView>
+              </View>
+            )}
           </View>
 
           <View style={styles.section}>
@@ -509,6 +580,40 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: Colors.textPrimary,
+  },
+  inputText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.textPrimary,
+  },
+  mapToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginTop: 12,
+  },
+  mapToggleText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.gold,
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
   },
   priceBreakdown: {
     backgroundColor: Colors.surface,

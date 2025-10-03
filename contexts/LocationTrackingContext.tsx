@@ -1,7 +1,6 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as Location from 'expo-location';
-import { Platform } from 'react-native';
 
 interface LocationCoords {
   latitude: number;
@@ -24,39 +23,17 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
 
   const requestLocationPermission = useCallback(async () => {
     try {
-      if (Platform.OS === 'web') {
-        if ('geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setHasPermission(true);
-              setCurrentLocation({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              });
-            },
-            (err) => {
-              console.error('Web geolocation error:', err);
-              setError('Location permission denied');
-              setHasPermission(false);
-            }
-          );
-        } else {
-          setError('Geolocation not supported');
-          setHasPermission(false);
-        }
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setHasPermission(status === 'granted');
+      
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({});
+        setCurrentLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
       } else {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        setHasPermission(status === 'granted');
-        
-        if (status === 'granted') {
-          const location = await Location.getCurrentPositionAsync({});
-          setCurrentLocation({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          });
-        } else {
-          setError('Location permission denied');
-        }
+        setError('Location permission denied');
       }
     } catch (err) {
       console.error('Location permission error:', err);
@@ -79,45 +56,23 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     setError(null);
 
     try {
-      if (Platform.OS === 'web') {
-        if ('geolocation' in navigator) {
-          const watchId = navigator.geolocation.watchPosition(
-            (position) => {
-              setCurrentLocation({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              });
-            },
-            (err) => {
-              console.error('Web tracking error:', err);
-              setError('Failed to track location');
-            },
-            { enableHighAccuracy: true, maximumAge: 1000 }
-          );
-          
-          return () => {
-            navigator.geolocation.clearWatch(watchId);
-          };
+      const subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 5000,
+          distanceInterval: 10,
+        },
+        (location) => {
+          setCurrentLocation({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
         }
-      } else {
-        const subscription = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.High,
-            timeInterval: 5000,
-            distanceInterval: 10,
-          },
-          (location) => {
-            setCurrentLocation({
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-            });
-          }
-        );
+      );
 
-        return () => {
-          subscription.remove();
-        };
-      }
+      return () => {
+        subscription.remove();
+      };
     } catch (err) {
       console.error('Start tracking error:', err);
       setError('Failed to start location tracking');

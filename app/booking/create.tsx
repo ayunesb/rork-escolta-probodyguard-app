@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,17 +26,7 @@ import {
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
 import type { VehicleType, ProtectionType, DressCode } from '@/types';
-import { Platform } from 'react-native';
-let MapView: any;
-let Marker: any;
-let PROVIDER_DEFAULT: any;
-
-if (Platform.OS !== 'web') {
-  const maps = require('react-native-maps');
-  MapView = maps.default;
-  Marker = maps.Marker;
-  PROVIDER_DEFAULT = maps.PROVIDER_DEFAULT;
-}
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import PaymentSheet from '@/components/PaymentSheet';
 import { paymentService } from '@/services/paymentService';
 import { bookingService } from '@/services/bookingService';
@@ -99,7 +90,6 @@ export default function CreateBookingScreen() {
   const protectionMultiplier = protectionType === 'armed' ? 1.3 : 1;
   const protectorMultiplier = numberOfProtectors;
 
-  const subtotal = baseRate * duration * vehicleMultiplier * protectionMultiplier * protectorMultiplier;
   const breakdown = paymentService.calculateBreakdown(baseRate * vehicleMultiplier * protectionMultiplier * protectorMultiplier, duration);
 
   const formatDate = (date: Date): string => {
@@ -382,7 +372,7 @@ export default function CreateBookingScreen() {
                 {showMap ? 'Hide Map' : 'Show Map'}
               </Text>
             </TouchableOpacity>
-            {showMap && Platform.OS !== 'web' && MapView && (
+            {showMap && (
               <View style={styles.mapContainer}>
                 <MapView
                   provider={PROVIDER_DEFAULT}
@@ -401,14 +391,6 @@ export default function CreateBookingScreen() {
                 >
                   <Marker coordinate={pickupCoords} title="Pickup Location" />
                 </MapView>
-
-              </View>
-            )}
-            {showMap && Platform.OS === 'web' && (
-              <View style={styles.mapContainer}>
-                <View style={styles.mapPlaceholder}>
-                  <Text style={styles.mapPlaceholderText}>Map not available on web</Text>
-                </View>
               </View>
             )}
           </View>
@@ -683,17 +665,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  mapPlaceholder: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surfaceLight,
-  },
-  mapPlaceholderText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
+
   priceBreakdown: {
     backgroundColor: Colors.surface,
     padding: 20,

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -21,18 +20,7 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
-let MapView: any;
-let Marker: any;
-let Polyline: any;
-let PROVIDER_DEFAULT: any;
-
-if (Platform.OS !== 'web') {
-  const maps = require('react-native-maps');
-  MapView = maps.default;
-  Marker = maps.Marker;
-  Polyline = maps.Polyline;
-  PROVIDER_DEFAULT = maps.PROVIDER_DEFAULT;
-}
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 
 const { width, height } = Dimensions.get('window');
 
@@ -119,8 +107,7 @@ export default function TrackingScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {Platform.OS !== 'web' && MapView ? (
-        <MapView
+      <MapView
           provider={PROVIDER_DEFAULT}
           style={styles.map}
           initialRegion={{
@@ -159,11 +146,6 @@ export default function TrackingScreen() {
             />
           )}
         </MapView>
-      ) : (
-        <View style={styles.mapPlaceholder}>
-          <Text style={styles.mapPlaceholderText}>Map not available on web</Text>
-        </View>
-      )}
 
 
 
@@ -350,15 +332,5 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-  mapPlaceholder: {
-    width: width,
-    height: height,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surfaceLight,
-  },
-  mapPlaceholderText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
+
 });

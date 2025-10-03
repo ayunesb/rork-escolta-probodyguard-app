@@ -25,6 +25,7 @@ import {
   Check,
   X,
   User,
+  AlertCircle,
 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import Colors from '@/constants/colors';
@@ -236,7 +237,25 @@ export default function BookingDetailScreen() {
             </View>
           )}
 
-          {isClientView && guard && (
+          {isClientView && booking.status === 'rejected' && (
+            <View style={styles.rejectedCard}>
+              <View style={styles.rejectedHeader}>
+                <AlertCircle size={24} color={Colors.error} />
+                <Text style={styles.rejectedTitle}>Guard Declined</Text>
+              </View>
+              {booking.rejectionReason && (
+                <Text style={styles.rejectionReason}>{booking.rejectionReason}</Text>
+              )}
+              <TouchableOpacity
+                style={styles.selectNewGuardButton}
+                onPress={() => router.push(`/booking/select-guard?bookingId=${booking.id}` as any)}
+              >
+                <Text style={styles.selectNewGuardText}>Select Another Guard</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {isClientView && guard && booking.status !== 'rejected' && (
             <View style={styles.guardCard}>
               <View style={styles.guardHeader}>
                 <View>
@@ -785,5 +804,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     lineHeight: 20,
+  },
+  rejectedCard: {
+    backgroundColor: Colors.error + '20',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: Colors.error,
+  },
+  rejectedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  rejectedTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.error,
+  },
+  rejectionReason: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  selectNewGuardButton: {
+    backgroundColor: Colors.gold,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  selectNewGuardText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.background,
   },
 });

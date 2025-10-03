@@ -204,12 +204,33 @@ export const bookingService = {
         bookings[index].status = 'rejected';
         bookings[index].rejectedAt = new Date().toISOString();
         bookings[index].rejectionReason = reason;
+        bookings[index].guardId = undefined;
         
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
         console.log('[Booking] Guard rejected booking:', bookingId, reason);
       }
     } catch (error) {
       console.error('[Booking] Error rejecting booking:', error);
+      throw error;
+    }
+  },
+
+  async reassignGuard(bookingId: string, newGuardId: string): Promise<void> {
+    try {
+      const bookings = await this.getAllBookings();
+      const index = bookings.findIndex(b => b.id === bookingId);
+      
+      if (index !== -1) {
+        bookings[index].guardId = newGuardId;
+        bookings[index].status = 'pending';
+        bookings[index].rejectedAt = undefined;
+        bookings[index].rejectionReason = undefined;
+        
+        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+        console.log('[Booking] Reassigned booking to new guard:', bookingId, newGuardId);
+      }
+    } catch (error) {
+      console.error('[Booking] Error reassigning guard:', error);
       throw error;
     }
   },

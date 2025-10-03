@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import { Calendar, MapPin, Clock, DollarSign, Navigation } from 'lucide-react-native';
+import { Calendar, MapPin, Clock, DollarSign, Navigation, AlertCircle } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { bookingService } from '@/services/bookingService';
 import Colors from '@/constants/colors';
@@ -126,6 +126,16 @@ export default function BookingsScreen() {
                   <Text style={styles.ratingText}>⭐ {booking.rating.toFixed(1)}</Text>
                 )}
               </View>
+
+              {booking.status === 'rejected' && user?.role === 'client' && (
+                <TouchableOpacity 
+                  style={styles.rejectedButton}
+                  onPress={() => router.push(`/booking/select-guard?bookingId=${booking.id}` as any)}
+                >
+                  <AlertCircle size={16} color={Colors.error} />
+                  <Text style={styles.rejectedButtonText}>Select Another Guard</Text>
+                </TouchableOpacity>
+              )}
 
               {(booking.status === 'accepted' || booking.status === 'en_route' || booking.status === 'active') && (
                 <TouchableOpacity 
@@ -265,5 +275,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700' as const,
     color: Colors.background,
+  },
+  rejectedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 2,
+    borderColor: Colors.error,
+  },
+  rejectedButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.error,
   },
 });

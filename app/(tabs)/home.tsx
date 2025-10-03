@@ -8,7 +8,7 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { Shield, Star, MapPin, Languages, Award, ChevronRight } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
@@ -16,6 +16,7 @@ import Colors from '@/constants/colors';
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'armed' | 'unarmed'>('all');
 
@@ -101,7 +102,11 @@ export default function HomeScreen() {
         </View>
 
         {availableGuards.map((guard) => (
-          <TouchableOpacity key={guard.id} style={styles.guardCard}>
+          <TouchableOpacity 
+            key={guard.id} 
+            style={styles.guardCard}
+            onPress={() => router.push(`/guard/${guard.id}`)}
+          >
             <Image source={{ uri: guard.photos[0] }} style={styles.guardImage} />
             
             <View style={styles.guardInfo}>
@@ -149,7 +154,10 @@ export default function HomeScreen() {
                   <Text style={styles.rateLabel}>Starting at</Text>
                   <Text style={styles.rateValue}>${guard.hourlyRate}/hr</Text>
                 </View>
-                <TouchableOpacity style={styles.bookButton}>
+                <TouchableOpacity 
+                  style={styles.bookButton}
+                  onPress={() => router.push(`/guard/${guard.id}`)}
+                >
                   <Text style={styles.bookButtonText}>Book Now</Text>
                   <ChevronRight size={16} color={Colors.background} />
                 </TouchableOpacity>

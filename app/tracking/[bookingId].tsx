@@ -21,7 +21,7 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView.native';
 
 const { width, height } = Dimensions.get('window');
 

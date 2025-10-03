@@ -20,7 +20,7 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
 
 const { width, height } = Dimensions.get('window');
 

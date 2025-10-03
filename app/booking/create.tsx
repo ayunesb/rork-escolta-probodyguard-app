@@ -26,7 +26,7 @@ import {
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
 import type { VehicleType, ProtectionType, DressCode } from '@/types';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
 import PaymentSheet from '@/components/PaymentSheet';
 import { paymentService } from '@/services/paymentService';
 import { bookingService } from '@/services/bookingService';

@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet } from 'react-native';
+import Colors from '@/constants/colors';
 
 const MapView = ({ children, ...props }: any) => {
   return (
-    <View style={[styles.container, props.style]}>
-      <Text style={styles.text}>Map not available on web</Text>
+    <View style={[styles.mapPlaceholder, props.style]}>
+      <Text style={styles.placeholderText}>Map view not available on web</Text>
       {children}
     </View>
   );
@@ -14,15 +15,14 @@ export const Polyline = (props: any) => null;
 export const PROVIDER_DEFAULT = 'default';
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  mapPlaceholder: {
+    backgroundColor: Colors.surfaceLight,
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
   },
-  text: {
-    color: '#666',
-    fontSize: 16,
+  placeholderText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
   },
 });
 

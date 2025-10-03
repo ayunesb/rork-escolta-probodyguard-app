@@ -3,7 +3,6 @@ import {
   addDoc,
   query,
   where,
-  orderBy,
   onSnapshot,
   Timestamp,
   getDocs,
@@ -46,8 +45,7 @@ export const chatService = {
     try {
       const messagesQuery = query(
         collection(db, 'messages'),
-        where('bookingId', '==', bookingId),
-        orderBy('timestamp', 'asc')
+        where('bookingId', '==', bookingId)
       );
 
       const unsubscribe = onSnapshot(messagesQuery, async (snapshot) => {
@@ -84,6 +82,8 @@ export const chatService = {
           });
         }
 
+        messages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
         onMessagesUpdate(messages);
         console.log('[Chat] Messages updated:', messages.length);
       });
@@ -99,8 +99,7 @@ export const chatService = {
     try {
       const messagesQuery = query(
         collection(db, 'messages'),
-        where('bookingId', '==', bookingId),
-        orderBy('timestamp', 'asc')
+        where('bookingId', '==', bookingId)
       );
 
       const snapshot = await getDocs(messagesQuery);
@@ -120,6 +119,8 @@ export const chatService = {
           timestamp: data.timestamp.toDate().toISOString(),
         });
       });
+
+      messages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
       console.log('[Chat] Loaded messages:', messages.length);
       return messages;

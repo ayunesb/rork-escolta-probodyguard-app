@@ -27,6 +27,8 @@ export interface User {
   phone: string;
   language: Language;
   kycStatus: KYCStatus;
+  braintreeCustomerId?: string;
+  savedPaymentMethods?: SavedPaymentMethod[];
   createdAt: string;
 }
 
@@ -96,7 +98,7 @@ export interface Booking {
   destinationLongitude?: number;
   startCode: string;
   totalAmount: number;
-  stripeFee: number;
+  processingFee: number;
   platformCut: number;
   guardPayout: number;
   createdAt: string;
@@ -119,17 +121,25 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export interface SavedPaymentMethod {
+  token: string;
+  last4: string;
+  cardType: string;
+  expirationMonth: string;
+  expirationYear: string;
+}
+
 export interface Payment {
   id: string;
   bookingId: string;
   clientId: string;
   guardId: string;
   amount: number;
-  stripeFee: number;
+  processingFee: number;
   platformCut: number;
   guardPayout: number;
   status: 'pending' | 'completed' | 'refunded';
-  stripePaymentIntentId: string;
+  braintreeTransactionId: string;
   createdAt: string;
 }
 

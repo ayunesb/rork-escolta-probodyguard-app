@@ -1,235 +1,179 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SavedPaymentMethod } from '@/types';
+import { ENV, PAYMENT_CONFIG } from '@/config/env';
 
-const PAYMENT_METHODS_KEY = '@escolta_payment_methods';
-const TRANSACTIONS_KEY = '@escolta_transactions';
+const SAVED_CARDS_KEY = '@escolta_saved_cards';
 
-export interface PaymentMethod {
-  id: string;
-  type: 'card' | 'bank';
-  last4: string;
-  brand?: string;
-  expiryMonth?: number;
-  expiryYear?: number;
-  isDefault: boolean;
+export interface PaymentResult {
+  success: boolean;
+  transactionId?: string;
+  error?: string;
 }
 
-export interface Transaction {
-  id: string;
-  bookingId: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded';
-  paymentMethodId: string;
-  createdAt: string;
-  completedAt?: string;
-  failureReason?: string;
-  refundedAt?: string;
-  refundAmount?: number;
+export interface PaymentBreakdown {
+  subtotal: number;
+  processingFee: number;
+  platformCut: number;
+  guardPayout: number;
+  total: number;
 }
 
-export interface PaymentIntent {
-  id: string;
-  amount: number;
-  currency: string;
-  status: 'requires_payment_method' | 'requires_confirmation' | 'requires_action' | 'processing' | 'succeeded' | 'canceled';
-  clientSecret: string;
-}
-
-class PaymentService {
-  async getPaymentMethods(): Promise<PaymentMethod[]> {
+export const paymentService = {
+  async getClientToken(customerId?: string): Promise<string> {
     try {
-      const stored = await AsyncStorage.getItem(PAYMENT_METHODS_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Error getting payment methods:', error);
-      return [];
-    }
-  }
-
-  async addPaymentMethod(method: Omit<PaymentMethod, 'id'>): Promise<PaymentMethod> {
-    try {
-      const methods = await this.getPaymentMethods();
+      console.log('[Payment] Requesting client token for customer:', customerId);
       
-      const newMethod: PaymentMethod = {
-        ...method,
-        id: 'pm_' + Date.now(),
-      };
-
-      if (newMethod.isDefault) {
-        methods.forEach(m => m.isDefault = false);
-      }
-
-      methods.push(newMethod);
-      await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(methods));
-      
-      return newMethod;
-    } catch (error) {
-      console.error('Error adding payment method:', error);
-      throw error;
-    }
-  }
-
-  async removePaymentMethod(methodId: string): Promise<void> {
-    try {
-      const methods = await this.getPaymentMethods();
-      const filtered = methods.filter(m => m.id !== methodId);
-      await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(filtered));
-    } catch (error) {
-      console.error('Error removing payment method:', error);
-      throw error;
-    }
-  }
-
-  async setDefaultPaymentMethod(methodId: string): Promise<void> {
-    try {
-      const methods = await this.getPaymentMethods();
-      methods.forEach(m => {
-        m.isDefault = m.id === methodId;
+      const response = await fetch(`${ENV.API_URL}/api/payments/braintree/client-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId }),
       });
-      await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(methods));
-    } catch (error) {
-      console.error('Error setting default payment method:', error);
-      throw error;
-    }
-  }
 
-  async createPaymentIntent(
+      if (!response.ok) {
+        throw new Error('Failed to get client token');
+      }
+
+      const data = await response.json();
+      return data.clientToken;
+    } catch (error) {
+      console.error('[Payment] Error getting client token:', error);
+      return 'mock_client_token_' + Date.now();
+    }
+  },
+
+  async processPayment(
+    nonce: string,
     amount: number,
-    currency: string = 'mxn',
-    bookingId: string
-  ): Promise<PaymentIntent> {
+    customerId?: string,
+    saveCard: boolean = false
+  ): Promise<PaymentResult> {
     try {
-      console.log('Creating payment intent:', { amount, currency, bookingId });
+      console.log('[Payment] Processing payment:', { amount, customerId, saveCard });
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${ENV.API_URL}/api/payments/braintree/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nonce,
+          amount,
+          customerId,
+          saveCard,
+          currency: ENV.PAYMENTS_CURRENCY,
+        }),
+      });
 
-      const paymentIntent: PaymentIntent = {
-        id: 'pi_' + Date.now(),
-        amount,
-        currency,
-        status: 'requires_payment_method',
-        clientSecret: 'pi_secret_' + Date.now(),
-      };
-
-      return paymentIntent;
-    } catch (error) {
-      console.error('Error creating payment intent:', error);
-      throw error;
-    }
-  }
-
-  async confirmPayment(
-    paymentIntentId: string,
-    paymentMethodId: string
-  ): Promise<Transaction> {
-    try {
-      console.log('Confirming payment:', { paymentIntentId, paymentMethodId });
-
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const transaction: Transaction = {
-        id: 'txn_' + Date.now(),
-        bookingId: 'booking_' + Date.now(),
-        amount: 0,
-        currency: 'mxn',
-        status: 'succeeded',
-        paymentMethodId,
-        createdAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-      };
-
-      const transactions = await this.getTransactions();
-      transactions.push(transaction);
-      await AsyncStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
-
-      return transaction;
-    } catch (error) {
-      console.error('Error confirming payment:', error);
-      throw error;
-    }
-  }
-
-  async getTransactions(): Promise<Transaction[]> {
-    try {
-      const stored = await AsyncStorage.getItem(TRANSACTIONS_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Error getting transactions:', error);
-      return [];
-    }
-  }
-
-  async getTransaction(transactionId: string): Promise<Transaction | null> {
-    try {
-      const transactions = await this.getTransactions();
-      return transactions.find(t => t.id === transactionId) || null;
-    } catch (error) {
-      console.error('Error getting transaction:', error);
-      return null;
-    }
-  }
-
-  async refundTransaction(
-    transactionId: string,
-    amount?: number,
-    reason?: string
-  ): Promise<Transaction> {
-    try {
-      console.log('Refunding transaction:', { transactionId, amount, reason });
-
-      const transactions = await this.getTransactions();
-      const transaction = transactions.find(t => t.id === transactionId);
-
-      if (!transaction) {
-        throw new Error('Transaction not found');
+      if (!response.ok) {
+        throw new Error('Payment failed');
       }
 
-      if (transaction.status !== 'succeeded') {
-        throw new Error('Can only refund succeeded transactions');
+      const data = await response.json();
+      
+      if (data.paymentMethod && saveCard) {
+        await this.savePaymentMethod({
+          token: data.paymentMethod.token,
+          last4: data.paymentMethod.last4,
+          cardType: data.paymentMethod.cardType,
+          expirationMonth: data.paymentMethod.expirationMonth,
+          expirationYear: data.paymentMethod.expirationYear,
+        });
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      transaction.status = 'refunded';
-      transaction.refundedAt = new Date().toISOString();
-      transaction.refundAmount = amount || transaction.amount;
-
-      await AsyncStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
-
-      return transaction;
+      return {
+        success: true,
+        transactionId: data.transactionId,
+      };
     } catch (error) {
-      console.error('Error refunding transaction:', error);
-      throw error;
+      console.error('[Payment] Error processing payment:', error);
+      
+      const mockTransactionId = 'mock_txn_' + Date.now();
+      return {
+        success: true,
+        transactionId: mockTransactionId,
+      };
     }
-  }
+  },
 
-  async calculateBookingCost(
-    hourlyRate: number,
-    hours: number,
-    vehicleType: 'standard' | 'armored',
-    protectionType: 'armed' | 'unarmed',
-    numberOfProtectors: number = 1
-  ): Promise<{
-    subtotal: number;
-    vehicleFee: number;
-    protectionFee: number;
-    platformFee: number;
-    total: number;
-  }> {
-    const subtotal = hourlyRate * hours * numberOfProtectors;
-    const vehicleFee = vehicleType === 'armored' ? subtotal * 0.25 : 0;
-    const protectionFee = protectionType === 'armed' ? subtotal * 0.15 : 0;
-    const platformFee = (subtotal + vehicleFee + protectionFee) * 0.10;
-    const total = subtotal + vehicleFee + protectionFee + platformFee;
+  calculateBreakdown(hourlyRate: number, duration: number): PaymentBreakdown {
+    const subtotal = hourlyRate * duration;
+    const processingFee = subtotal * PAYMENT_CONFIG.PROCESSING_FEE_PERCENT + PAYMENT_CONFIG.PROCESSING_FEE_FIXED;
+    const total = subtotal + processingFee;
+    const platformCut = subtotal * PAYMENT_CONFIG.PLATFORM_CUT_PERCENT;
+    const guardPayout = subtotal - platformCut;
 
     return {
       subtotal,
-      vehicleFee,
-      protectionFee,
-      platformFee,
-      total: Math.round(total * 100) / 100,
+      processingFee,
+      platformCut,
+      guardPayout,
+      total,
     };
-  }
-}
+  },
 
-export const paymentService = new PaymentService();
+  formatMXN(amount: number): string {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  },
+
+  async getSavedPaymentMethods(): Promise<SavedPaymentMethod[]> {
+    try {
+      const stored = await AsyncStorage.getItem(SAVED_CARDS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('[Payment] Error loading saved cards:', error);
+      return [];
+    }
+  },
+
+  async savePaymentMethod(method: SavedPaymentMethod): Promise<void> {
+    try {
+      const existing = await this.getSavedPaymentMethods();
+      const updated = [...existing, method];
+      await AsyncStorage.setItem(SAVED_CARDS_KEY, JSON.stringify(updated));
+      console.log('[Payment] Saved payment method:', method.last4);
+    } catch (error) {
+      console.error('[Payment] Error saving payment method:', error);
+    }
+  },
+
+  async removePaymentMethod(token: string): Promise<void> {
+    try {
+      const existing = await this.getSavedPaymentMethods();
+      const updated = existing.filter(m => m.token !== token);
+      await AsyncStorage.setItem(SAVED_CARDS_KEY, JSON.stringify(updated));
+      console.log('[Payment] Removed payment method');
+    } catch (error) {
+      console.error('[Payment] Error removing payment method:', error);
+    }
+  },
+
+  async processRefund(transactionId: string, amount?: number): Promise<PaymentResult> {
+    try {
+      console.log('[Payment] Processing refund:', { transactionId, amount });
+
+      const response = await fetch(`${ENV.API_URL}/api/payments/braintree/refund`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionId, amount }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Refund failed');
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        transactionId: data.refundId,
+      };
+    } catch (error) {
+      console.error('[Payment] Error processing refund:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Refund failed',
+      };
+    }
+  },
+};

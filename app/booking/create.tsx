@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import * as Haptics from 'expo-haptics';
 import {
   View,
   Text,
@@ -25,7 +26,11 @@ import {
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
 import type { VehicleType, ProtectionType, DressCode } from '@/types';
-import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
+import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView.native';
+import PaymentSheet from '@/components/PaymentSheet';
+import { paymentService } from '@/services/paymentService';
+import { bookingService } from '@/services/bookingService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function CreateBookingScreen() {
   const { guardId } = useLocalSearchParams<{ guardId: string }>();
@@ -49,6 +54,8 @@ export default function CreateBookingScreen() {
   const [showMap, setShowMap] = useState<boolean>(false);
   const [pickupAddress, setPickupAddress] = useState<string>('');
   const [destinationAddress, setDestinationAddress] = useState<string>('');
+  const [showPayment, setShowPayment] = useState<boolean>(false);
+  const { user } = useAuth();
 
   const handleDateChange = useCallback((event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -84,8 +91,7 @@ export default function CreateBookingScreen() {
   const protectorMultiplier = numberOfProtectors;
 
   const subtotal = baseRate * duration * vehicleMultiplier * protectionMultiplier * protectorMultiplier;
-  const processingFee = subtotal * 0.029 + 0.3;
-  const total = subtotal + processingFee;
+  const breakdown = paymentService.calculateBreakdown(baseRate * vehicleMultiplier * protectionMultiplier * protectorMultiplier, duration);
 
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -101,19 +107,53 @@ export default function CreateBookingScreen() {
       return;
     }
 
-    Alert.alert(
-      'Confirm Booking',
-      `Total: ${total.toFixed(2)} MXN\n\nProceed to payment?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Continue',
-          onPress: () => {
-            router.push('/bookings');
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setShowPayment(true);
+  };
+
+  const handlePaymentSuccess = async (transactionId: string) => {
+    try {
+      console.log('[Booking] Payment successful:', transactionId);
+
+      const booking = await bookingService.createBooking({
+        clientId: user?.id || '',
+        guardId: guard.id,
+        vehicleType,
+        protectionType,
+        dressCode,
+        numberOfProtectees,
+        numberOfProtectors,
+        scheduledDate: scheduledDate.toISOString().split('T')[0],
+        scheduledTime: scheduledTime.toTimeString().split(' ')[0],
+        duration,
+        pickupAddress,
+        pickupLatitude: pickupCoords.latitude,
+        pickupLongitude: pickupCoords.longitude,
+        destinationAddress: destinationAddress || undefined,
+        totalAmount: breakdown.total,
+        processingFee: breakdown.processingFee,
+        platformCut: breakdown.platformCut,
+        guardPayout: breakdown.guardPayout,
+      });
+
+      setShowPayment(false);
+
+      Alert.alert(
+        'Booking Confirmed!',
+        `Your protection service has been booked.\n\nStart Code: ${booking.startCode}\n\nSave this code to start your service.`,
+        [
+          {
+            text: 'View Booking',
+            onPress: () => router.push('/bookings'),
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error) {
+      console.error('[Booking] Error creating booking:', error);
+      Alert.alert('Error', 'Failed to create booking. Please try again.');
+    }
   };
 
   return (
@@ -403,12 +443,12 @@ export default function CreateBookingScreen() {
             )}
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Processing fee</Text>
-              <Text style={styles.breakdownValue}>${processingFee.toFixed(2)}</Text>
+              <Text style={styles.breakdownValue}>{paymentService.formatMXN(breakdown.processingFee)}</Text>
             </View>
             <View style={styles.breakdownDivider} />
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownTotal}>Total</Text>
-              <Text style={styles.breakdownTotalValue}>${total.toFixed(2)} MXN</Text>
+              <Text style={styles.breakdownTotalValue}>{paymentService.formatMXN(breakdown.total)}</Text>
             </View>
           </View>
 
@@ -419,13 +459,22 @@ export default function CreateBookingScreen() {
       <View style={styles.footer}>
         <View style={styles.footerLeft}>
           <Text style={styles.footerLabel}>Total</Text>
-          <Text style={styles.footerValue}>${total.toFixed(2)} MXN</Text>
+          <Text style={styles.footerValue}>{paymentService.formatMXN(breakdown.total)}</Text>
         </View>
         <TouchableOpacity style={styles.confirmButton} onPress={handleBooking}>
           <CreditCard size={20} color={Colors.background} />
           <Text style={styles.confirmButtonText}>Proceed to Payment</Text>
         </TouchableOpacity>
       </View>
+
+      <PaymentSheet
+        visible={showPayment}
+        amount={breakdown.total}
+        breakdown={breakdown}
+        customerId={user?.braintreeCustomerId}
+        onSuccess={handlePaymentSuccess}
+        onCancel={() => setShowPayment(false)}
+      />
     </View>
   );
 }

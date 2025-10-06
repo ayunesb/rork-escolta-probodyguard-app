@@ -118,6 +118,7 @@ export default function CreateBookingScreen() {
 
       const booking = await bookingService.createBooking({
         clientId: user?.id || '',
+        guardId: guardId,
         vehicleType,
         protectionType,
         dressCode,

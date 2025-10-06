@@ -239,10 +239,13 @@ export const bookingService = {
     try {
       const bookings = await this.getAllBookings();
       console.log('[Booking] Total bookings:', bookings.length);
-      const pending = bookings.filter(b => 
-        b.status === 'pending' && 
-        (!b.guardId || b.guardId === guardId)
-      );
+      const pending = bookings.filter(b => {
+        const isPending = b.status === 'pending';
+        const isAssignedToGuard = b.guardId === guardId;
+        const isUnassigned = !b.guardId;
+        
+        return isPending && (isAssignedToGuard || isUnassigned);
+      });
       console.log('[Booking] Pending bookings for guard', guardId, ':', pending.length);
       pending.forEach(b => console.log('  - Booking', b.id, 'guardId:', b.guardId, 'status:', b.status));
       return pending;

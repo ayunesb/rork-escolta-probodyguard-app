@@ -22,12 +22,12 @@ export default function Index() {
             router.replace('/(tabs)/home');
             break;
           case 'company':
-            console.log('[Index] Company role detected - routing to home (company dashboard not yet implemented)');
-            router.replace('/(tabs)/home');
+            console.log('[Index] Company role detected - routing to company dashboard');
+            router.replace('/(tabs)/company-home');
             break;
           case 'admin':
-            console.log('[Index] Admin role detected - routing to home (admin dashboard not yet implemented)');
-            router.replace('/(tabs)/home');
+            console.log('[Index] Admin role detected - routing to admin dashboard');
+            router.replace('/(tabs)/admin-home');
             break;
           default:
             console.log('[Index] Unknown role, routing to home');

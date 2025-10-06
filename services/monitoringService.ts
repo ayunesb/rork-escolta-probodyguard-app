@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { db } from '@/config/firebase';
+import { db, auth } from '@/config/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 type LogLevel = 'info' | 'warn' | 'error' | 'critical';
@@ -61,6 +61,14 @@ class MonitoringService {
   async flush(): Promise<void> {
     if (!this.enabled || this.logBuffer.length === 0) return;
 
+    if (!auth.currentUser) {
+      if (__DEV__) {
+        console.log('[Monitoring] Skipping log flush (not authenticated)');
+      }
+      this.logBuffer = [];
+      return;
+    }
+
     const logsToFlush = [...this.logBuffer];
     this.logBuffer = [];
 
@@ -69,7 +77,7 @@ class MonitoringService {
         level: entry.level,
         message: entry.message,
         context: entry.context || {},
-        userId: entry.userId || null,
+        userId: entry.userId || auth.currentUser?.uid || null,
         timestamp: Timestamp.fromDate(entry.timestamp),
         platform: entry.platform,
       }));
@@ -88,12 +96,19 @@ class MonitoringService {
   async reportError(report: ErrorReport): Promise<void> {
     const { error, context, userId, fatal = false } = report;
 
+    if (!auth.currentUser) {
+      if (__DEV__) {
+        console.log('[Monitoring] Skipping error reporting (not authenticated):', error.message);
+      }
+      return;
+    }
+
     const errorData = {
       name: error.name,
       message: error.message,
       stack: error.stack || '',
       context: context || {},
-      userId: userId || null,
+      userId: userId || auth.currentUser.uid,
       fatal,
       timestamp: Timestamp.now(),
       platform: Platform.OS,
@@ -109,15 +124,22 @@ class MonitoringService {
     await this.log(fatal ? 'critical' : 'error', error.message, {
       ...context,
       stack: error.stack,
-    }, userId);
+    }, userId || auth.currentUser.uid);
   }
 
   async trackEvent(eventName: string, properties?: Record<string, any>, userId?: string): Promise<void> {
+    if (!auth.currentUser) {
+      if (__DEV__) {
+        console.log('[Monitoring] Skipping event tracking (not authenticated):', eventName);
+      }
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'analytics'), {
         eventName,
         properties: properties || {},
-        userId: userId || null,
+        userId: userId || auth.currentUser.uid,
         timestamp: Timestamp.now(),
         platform: Platform.OS,
       });
@@ -129,6 +151,13 @@ class MonitoringService {
   }
 
   async trackPerformance(metric: string, value: number, context?: Record<string, any>): Promise<void> {
+    if (!auth.currentUser) {
+      if (__DEV__) {
+        console.log('[Monitoring] Skipping performance tracking (not authenticated):', metric);
+      }
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'performance'), {
         metric,

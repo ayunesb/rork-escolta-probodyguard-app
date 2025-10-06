@@ -11,6 +11,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { notificationService } from '@/services/notificationService';
 import { rateLimitService } from '@/services/rateLimitService';
+import { monitoringService } from '@/services/monitoringService';
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
@@ -63,10 +64,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('[Auth] Sign in successful:', userCredential.user.uid);
       
       await rateLimitService.resetRateLimit('login', email);
+      await monitoringService.trackEvent('user_login', { email, userId: userCredential.user.uid }, userCredential.user.uid);
       
       return { success: true };
     } catch (error: any) {
       console.error('[Auth] Sign in error:', error);
+      await monitoringService.reportError({ error, context: { action: 'signIn', email } });
       let errorMessage = 'Failed to sign in';
       
       if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
@@ -110,10 +113,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       
       await setDoc(doc(db, 'users', userId), userData);
       console.log('[Auth] User document created:', userId);
+      await monitoringService.trackEvent('user_signup', { email, role, userId }, userId);
       
       return { success: true };
     } catch (error: any) {
       console.error('[Auth] Sign up error:', error);
+      await monitoringService.reportError({ error, context: { action: 'signUp', email, role } });
       let errorMessage = 'Failed to sign up';
       
       if (error.code === 'auth/email-already-in-use') {

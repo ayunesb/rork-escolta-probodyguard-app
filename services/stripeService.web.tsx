@@ -1,3 +1,4 @@
+// Stripe service removed
 import { trpcClient } from '@/lib/trpc';
 
 export interface PaymentIntent {

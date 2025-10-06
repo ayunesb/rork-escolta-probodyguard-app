@@ -1,3 +1,4 @@
+// Stripe service removed
 import { Platform } from 'react-native';
 
 export interface PaymentIntent {

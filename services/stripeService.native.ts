@@ -1,3 +1,4 @@
+// Stripe service removed
 import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
 import { trpcClient } from '@/lib/trpc';
 

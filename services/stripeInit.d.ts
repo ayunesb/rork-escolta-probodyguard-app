@@ -1,3 +1,4 @@
+// Stripe init types removed
 import React from 'react';
 
 export function useStripeInit(): void;

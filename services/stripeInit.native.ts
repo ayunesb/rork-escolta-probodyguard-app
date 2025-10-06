@@ -1,3 +1,4 @@
+// Stripe init removed
 import { useEffect } from 'react';
 
 export const useStripeInit = () => {

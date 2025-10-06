@@ -1,3 +1,4 @@
+// Stripe payment form removed
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';

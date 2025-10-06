@@ -13,32 +13,28 @@ export default function Index() {
   useEffect(() => {
     if (isLoading) return;
 
-    const timer = setTimeout(() => {
-      if (user) {
-        console.log('[Index] User role:', user.role);
-        switch (user.role) {
-          case 'client':
-          case 'guard':
-            router.replace('/(tabs)/home');
-            break;
-          case 'company':
-            console.log('[Index] Company role detected - routing to company dashboard');
-            router.replace('/(tabs)/company-home');
-            break;
-          case 'admin':
-            console.log('[Index] Admin role detected - routing to admin dashboard');
-            router.replace('/(tabs)/admin-home');
-            break;
-          default:
-            console.log('[Index] Unknown role, routing to home');
-            router.replace('/(tabs)/home');
-        }
-      } else {
-        router.replace('/auth/sign-in');
+    if (user) {
+      console.log('[Index] User role:', user.role);
+      switch (user.role) {
+        case 'client':
+        case 'guard':
+          router.replace('/(tabs)/home');
+          break;
+        case 'company':
+          console.log('[Index] Company role detected - routing to company dashboard');
+          router.replace('/(tabs)/company-home');
+          break;
+        case 'admin':
+          console.log('[Index] Admin role detected - routing to admin dashboard');
+          router.replace('/(tabs)/admin-home');
+          break;
+        default:
+          console.log('[Index] Unknown role, routing to home');
+          router.replace('/(tabs)/home');
       }
-    }, 100);
-
-    return () => clearTimeout(timer);
+    } else {
+      router.replace('/auth/sign-in');
+    }
   }, [user, isLoading, router]);
 
   return (

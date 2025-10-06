@@ -26,7 +26,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             const userData = userDoc.data() as Omit<User, 'id'>;
             setUser({ id: firebaseUser.uid, ...userData });
             
-            await notificationService.registerForPushNotifications(firebaseUser.uid);
+            notificationService.registerForPushNotifications(firebaseUser.uid).catch(err => {
+              console.error('[Auth] Notification registration failed:', err);
+            });
           } else {
             console.error('[Auth] User document not found');
             setUser(null);

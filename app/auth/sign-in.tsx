@@ -54,13 +54,10 @@ export default function SignInScreen() {
 
     const result = await signIn(trimmedEmail, trimmedPassword);
 
-    if (result.success) {
-      router.replace('/(tabs)/home');
-    } else {
+    if (!result.success) {
       setError(result.error || 'Failed to sign in');
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleBiometricSignIn = async () => {
@@ -86,17 +83,15 @@ export default function SignInScreen() {
 
       const result = await signIn(credentials.email, credentials.encryptedPassword);
 
-      if (result.success) {
-        router.replace('/(tabs)/home');
-      } else {
+      if (!result.success) {
         setError(result.error || 'Failed to sign in');
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('[SignIn] Biometric sign in error:', error);
       setError('Biometric sign in failed');
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (

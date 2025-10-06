@@ -24,12 +24,15 @@ service cloud.firestore {
     
     match /users/{userId} {
       allow read: if isAuthenticated() && (
-        isOwner(userId) ||
-        hasRole('admin') ||
-        (hasRole('company') && get(/databases/$(database)/documents/users/$(userId)).data.companyId == request.auth.uid)
+        request.auth.uid == userId ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'company' && 
+         get(/databases/$(database)/documents/users/$(userId)).data.companyId == request.auth.uid)
       );
       
-      allow create: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
       
       allow update: if isAuthenticated() && (
         isOwner(userId) ||

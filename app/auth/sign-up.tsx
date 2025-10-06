@@ -29,6 +29,7 @@ export default function SignUpScreen() {
   const [role, setRole] = useState<UserRole>('client');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
 
   const handleSignUp = async () => {
     const trimmedEmail = email.trim();
@@ -47,13 +48,15 @@ export default function SignUpScreen() {
 
     const result = await signUp(trimmedEmail, trimmedPassword, trimmedFirstName, trimmedLastName, trimmedPhone, role);
 
-    if (result.success) {
+    if (result.success && result.needsVerification) {
+      setShowVerificationMessage(true);
+      setIsLoading(false);
+    } else if (result.success) {
       router.replace('/(tabs)/home');
     } else {
       setError(result.error || 'Failed to sign up');
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -62,10 +65,30 @@ export default function SignUpScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
-        keyboardShouldPersistTaps="handled"
-      >
+      {showVerificationMessage ? (
+        <View style={[styles.verificationContainer, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
+          <View style={styles.iconContainer}>
+            <Shield size={48} color={Colors.gold} strokeWidth={2} />
+          </View>
+          <Text style={styles.title}>Verify Your Email</Text>
+          <Text style={styles.verificationText}>
+            We&apos;ve sent a verification link to {email}. Please check your email and click the link to verify your account.
+          </Text>
+          <Text style={styles.verificationSubtext}>
+            After verifying, you can sign in to your account.
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.replace('/auth/sign-in')}
+          >
+            <Text style={styles.buttonText}>Go to Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Shield size={48} color={Colors.gold} strokeWidth={2} />
@@ -202,6 +225,7 @@ export default function SignUpScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -324,5 +348,25 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     fontSize: 14,
     fontWeight: '600' as const,
+  },
+  verificationContainer: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verificationText: {
+    fontSize: 16,
+    color: Colors.textPrimary,
+    textAlign: 'center' as const,
+    marginTop: 24,
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+  verificationSubtext: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center' as const,
+    marginBottom: 32,
   },
 });

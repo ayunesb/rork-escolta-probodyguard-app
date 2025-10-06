@@ -35,19 +35,28 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!user || user.role !== 'guard') return;
 
-    console.log('[Home] Setting up real-time listener for guard:', user.id);
+    console.log('[Home] Setting up polling for guard:', user.id);
     setIsLoadingJobs(true);
 
-    const unsubscribe = bookingService.subscribeToGuardBookings(user.id, (bookings) => {
-      const pending = bookings.filter(b => b.status === 'pending');
-      console.log('[Home] Real-time update - pending jobs:', pending.length);
-      setPendingBookings(pending);
-      setIsLoadingJobs(false);
-    });
+    const fetchJobs = async () => {
+      try {
+        const jobs = await bookingService.getPendingBookingsForGuard(user.id);
+        const pending = jobs.filter(b => b.status === 'pending');
+        console.log('[Home] Polling update - pending jobs:', pending.length);
+        setPendingBookings(pending);
+        setIsLoadingJobs(false);
+      } catch (error) {
+        console.error('[Home] Error fetching jobs:', error);
+        setIsLoadingJobs(false);
+      }
+    };
+
+    fetchJobs();
+    const intervalId = setInterval(fetchJobs, 30000);
 
     return () => {
-      console.log('[Home] Cleaning up real-time listener');
-      unsubscribe();
+      console.log('[Home] Cleaning up polling interval');
+      clearInterval(intervalId);
     };
   }, [user]);
   

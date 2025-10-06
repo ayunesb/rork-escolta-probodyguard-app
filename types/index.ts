@@ -44,6 +44,7 @@ export interface Guard extends User {
   languages: Language[];
   hourlyRate: number;
   photos: string[];
+  outfitPhotos: string[];
   licenseUrls: string[];
   vehicleDocUrls: string[];
   insuranceUrls: string[];
@@ -63,6 +64,7 @@ export interface Company extends User {
   companyName: string;
   businessLicenseUrl?: string;
   guards: string[];
+  handlesPayouts: boolean;
 }
 
 export interface Admin extends User {
@@ -76,10 +78,18 @@ export interface RatingBreakdown {
   languageClarity: number;
 }
 
+export interface RouteStop {
+  address: string;
+  latitude: number;
+  longitude: number;
+  order: number;
+}
+
 export interface Booking {
   id: string;
   clientId: string;
   guardId?: string;
+  companyId?: string;
   status: BookingStatus;
   vehicleType: VehicleType;
   protectionType: ProtectionType;
@@ -95,6 +105,7 @@ export interface Booking {
   destinationAddress?: string;
   destinationLatitude?: number;
   destinationLongitude?: number;
+  routeStops?: RouteStop[];
   startCode: string;
   totalAmount: number;
   processingFee: number;
@@ -114,6 +125,8 @@ export interface Booking {
   review?: string;
   clientRating?: number;
   clientReview?: string;
+  extensionCount?: number;
+  originalDuration?: number;
 }
 
 export interface ChatMessage {

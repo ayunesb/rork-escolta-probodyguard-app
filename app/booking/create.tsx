@@ -25,7 +25,7 @@ import {
 } from 'lucide-react-native';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
-import type { VehicleType, ProtectionType, DressCode } from '@/types';
+import type { VehicleType, ProtectionType, DressCode, RouteStop } from '@/types';
 import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
 import PaymentSheet from '@/components/PaymentSheet';
 import { paymentService } from '@/services/paymentService';
@@ -54,6 +54,9 @@ export default function CreateBookingScreen() {
   const [showMap, setShowMap] = useState<boolean>(false);
   const [pickupAddress, setPickupAddress] = useState<string>('');
   const [destinationAddress, setDestinationAddress] = useState<string>('');
+  const [routeStops, setRouteStops] = useState<RouteStop[]>([]);
+  const [showRouteBuilder, setShowRouteBuilder] = useState<boolean>(false);
+  const [newStopAddress, setNewStopAddress] = useState<string>('');
   const [showPayment, setShowPayment] = useState<boolean>(false);
   const { user } = useAuth();
 
@@ -131,6 +134,7 @@ export default function CreateBookingScreen() {
         pickupLatitude: pickupCoords.latitude,
         pickupLongitude: pickupCoords.longitude,
         destinationAddress: destinationAddress || undefined,
+        routeStops: routeStops.length > 0 ? routeStops : undefined,
         totalAmount: breakdown.total,
         processingFee: breakdown.processingFee,
         platformCut: breakdown.platformCut,
@@ -400,6 +404,73 @@ export default function CreateBookingScreen() {
             </View>
           </View>
 
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Multi-Stop Route (Optional)</Text>
+              <TouchableOpacity
+                style={styles.toggleRouteButton}
+                onPress={() => setShowRouteBuilder(!showRouteBuilder)}
+              >
+                <Text style={styles.toggleRouteText}>
+                  {showRouteBuilder ? 'Hide' : 'Add Stops'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            {showRouteBuilder && (
+              <View style={styles.routeBuilder}>
+                <View style={styles.inputContainer}>
+                  <MapPin size={16} color={Colors.textSecondary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter stop address"
+                    placeholderTextColor={Colors.textTertiary}
+                    value={newStopAddress}
+                    onChangeText={setNewStopAddress}
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.addStopButton}
+                  onPress={() => {
+                    if (newStopAddress.trim()) {
+                      setRouteStops([...routeStops, {
+                        address: newStopAddress,
+                        latitude: pickupCoords.latitude + (Math.random() - 0.5) * 0.01,
+                        longitude: pickupCoords.longitude + (Math.random() - 0.5) * 0.01,
+                        order: routeStops.length + 1,
+                      }]);
+                      setNewStopAddress('');
+                    }
+                  }}
+                >
+                  <Text style={styles.addStopButtonText}>Add Stop</Text>
+                </TouchableOpacity>
+
+                {routeStops.length > 0 && (
+                  <View style={styles.stopsContainer}>
+                    <Text style={styles.stopsTitle}>Route Stops ({routeStops.length})</Text>
+                    {routeStops.map((stop, index) => (
+                      <View key={index} style={styles.stopItem}>
+                        <View style={styles.stopNumber}>
+                          <Text style={styles.stopNumberText}>{index + 1}</Text>
+                        </View>
+                        <Text style={styles.stopAddress} numberOfLines={1}>{stop.address}</Text>
+                        <TouchableOpacity
+                          style={styles.removeStopButton}
+                          onPress={() => {
+                            setRouteStops(routeStops.filter((_, i) => i !== index).map((s, i) => ({ ...s, order: i + 1 })));
+                          }}
+                        >
+                          <Text style={styles.removeStopText}>×</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+
           <View style={styles.priceBreakdown}>
             <Text style={styles.breakdownTitle}>Price Breakdown</Text>
             <View style={styles.breakdownRow}>
@@ -454,7 +525,6 @@ export default function CreateBookingScreen() {
         visible={showPayment}
         amount={breakdown.total}
         breakdown={breakdown}
-        customerId={user?.braintreeCustomerId}
         onSuccess={handlePaymentSuccess}
         onCancel={() => setShowPayment(false)}
       />
@@ -750,5 +820,88 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 16,
   },
-
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  toggleRouteButton: {
+    backgroundColor: Colors.gold + '20',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  toggleRouteText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.gold,
+  },
+  routeBuilder: {
+    gap: 12,
+  },
+  addStopButton: {
+    backgroundColor: Colors.gold,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  addStopButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.background,
+  },
+  stopsContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  stopsTitle: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 12,
+  },
+  stopItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: Colors.background,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  stopNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stopNumberText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.background,
+  },
+  stopAddress: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.textPrimary,
+  },
+  removeStopButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.error + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeStopText: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.error,
+  },
 });

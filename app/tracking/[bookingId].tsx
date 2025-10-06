@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -42,9 +42,37 @@ export default function TrackingScreen() {
     requestLocationPermission,
   } = useLocationTracking();
 
+  const [booking, setBooking] = useState<any>(null);
   const [guardId] = useState<string>('guard-1');
   const guard = mockGuards.find((g) => g.id === guardId);
   const guardLocation = getGuardLocation(guardId);
+
+  useEffect(() => {
+    const loadBooking = async () => {
+      if (!bookingId) return;
+      const bookingData = await bookingService.getBookingById(bookingId);
+      setBooking(bookingData);
+    };
+    loadBooking();
+  }, [bookingId]);
+
+  const shouldShowGuardLocation = useMemo(() => {
+    if (!booking) return false;
+    
+    const now = new Date();
+    const scheduledDateTime = new Date(`${booking.scheduledDate}T${booking.scheduledTime}`);
+    const minutesUntilStart = (scheduledDateTime.getTime() - now.getTime()) / (1000 * 60);
+    
+    const isInstantBooking = minutesUntilStart <= 0;
+    const isWithinT10 = minutesUntilStart <= 10;
+    const hasStarted = booking.status === 'active';
+    
+    if (isInstantBooking) {
+      return hasStarted;
+    }
+    
+    return isWithinT10 || hasStarted;
+  }, [booking]);
 
   useEffect(() => {
     if (!hasPermission) {
@@ -98,7 +126,7 @@ export default function TrackingScreen() {
     ]);
   };
 
-  const handleStartService = async () => {
+  const handleStartService = async (): Promise<void> => {
     Alert.prompt(
       'Enter Start Code',
       'Enter the 6-digit code provided by your guard',
@@ -142,7 +170,7 @@ export default function TrackingScreen() {
           showsUserLocation={true}
           showsMyLocationButton={false}
         >
-          {guardLocation && (
+          {shouldShowGuardLocation && guardLocation && (
             <Marker
               coordinate={{
                 latitude: guardLocation.latitude,
@@ -157,7 +185,7 @@ export default function TrackingScreen() {
             </Marker>
           )}
 
-          {currentLocation && guardLocation && (
+          {shouldShowGuardLocation && currentLocation && guardLocation && (
             <Polyline
               coordinates={[
                 { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
@@ -206,23 +234,34 @@ export default function TrackingScreen() {
           </View>
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Navigation size={20} color={Colors.gold} />
-            <Text style={styles.statValue}>
-              {distance ? `${distance.toFixed(1)} km` : '---'}
+        {!shouldShowGuardLocation && (
+          <View style={styles.waitingCard}>
+            <Clock size={24} color={Colors.gold} />
+            <Text style={styles.waitingText}>
+              Guard location will be visible 10 minutes before scheduled time
             </Text>
-            <Text style={styles.statLabel}>Distance</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Clock size={20} color={Colors.gold} />
-            <Text style={styles.statValue}>
-              {eta ? `${Math.round(eta)} min` : '---'}
-            </Text>
-            <Text style={styles.statLabel}>ETA</Text>
+        )}
+
+        {shouldShowGuardLocation && (
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Navigation size={20} color={Colors.gold} />
+              <Text style={styles.statValue}>
+                {distance ? `${distance.toFixed(1)} km` : '---'}
+              </Text>
+              <Text style={styles.statLabel}>Distance</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Clock size={20} color={Colors.gold} />
+              <Text style={styles.statValue}>
+                {eta ? `${Math.round(eta)} min` : '---'}
+              </Text>
+              <Text style={styles.statLabel}>ETA</Text>
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
@@ -371,5 +410,21 @@ const styles = StyleSheet.create({
   panicButtonContainer: {
     position: 'absolute' as const,
     right: 16,
+  },
+  waitingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: Colors.gold + '20',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  waitingText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.gold,
+    lineHeight: 20,
   },
 });

@@ -137,6 +137,30 @@ service cloud.firestore {
       allow read, write: if false;
     }
     
+    match /logs/{logId} {
+      allow read: if hasRole('admin');
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    match /errors/{errorId} {
+      allow read: if hasRole('admin');
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    match /analytics/{eventId} {
+      allow read: if hasRole('admin');
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    match /performance/{metricId} {
+      allow read: if hasRole('admin');
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
     match /{document=**} {
       allow read, write: if false;
     }

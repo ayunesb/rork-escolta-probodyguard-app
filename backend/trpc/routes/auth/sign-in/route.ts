@@ -5,14 +5,14 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { checkRateLimit, resetRateLimit } from "@/backend/middleware/rateLimitMiddleware";
 
+const signInSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
 export default publicProcedure
-  .input(
-    z.object({
-      email: z.string().email(),
-      password: z.string().min(6),
-    })
-  )
-  .mutation(async ({ input }) => {
+  .input(signInSchema)
+  .mutation(async ({ input }: { input: z.infer<typeof signInSchema> }) => {
     const { email, password } = input;
 
     try {

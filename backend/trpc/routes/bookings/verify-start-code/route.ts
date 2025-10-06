@@ -4,15 +4,15 @@ import { db as getDb } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { checkRateLimit, resetRateLimit } from "@/backend/middleware/rateLimitMiddleware";
 
+const verifyStartCodeSchema = z.object({
+  bookingId: z.string(),
+  startCode: z.string().length(6),
+  userId: z.string(),
+});
+
 export default publicProcedure
-  .input(
-    z.object({
-      bookingId: z.string(),
-      startCode: z.string().length(6),
-      userId: z.string(),
-    })
-  )
-  .mutation(async ({ input }) => {
+  .input(verifyStartCodeSchema)
+  .mutation(async ({ input }: { input: z.infer<typeof verifyStartCodeSchema> }) => {
     const { bookingId, startCode, userId } = input;
 
     try {

@@ -95,6 +95,24 @@ export default function SignUpScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+            <View style={[styles.roleButtons, { marginTop: 12 }]}>
+              <TouchableOpacity
+                style={[styles.roleButton, role === 'company' && styles.roleButtonActive]}
+                onPress={() => setRole('company')}
+              >
+                <Text style={[styles.roleButtonText, role === 'company' && styles.roleButtonTextActive]}>
+                  Company
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.roleButton, role === 'admin' && styles.roleButtonActive]}
+                onPress={() => setRole('admin')}
+              >
+                <Text style={[styles.roleButtonText, role === 'admin' && styles.roleButtonTextActive]}>
+                  Admin
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.row}>

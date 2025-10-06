@@ -15,14 +15,31 @@ export default function Index() {
 
     const timer = setTimeout(() => {
       if (user) {
-        router.replace('/(tabs)/home');
+        console.log('[Index] User role:', user.role);
+        switch (user.role) {
+          case 'client':
+          case 'guard':
+            router.replace('/(tabs)/home');
+            break;
+          case 'company':
+            console.log('[Index] Company role detected - routing to home (company dashboard not yet implemented)');
+            router.replace('/(tabs)/home');
+            break;
+          case 'admin':
+            console.log('[Index] Admin role detected - routing to home (admin dashboard not yet implemented)');
+            router.replace('/(tabs)/home');
+            break;
+          default:
+            console.log('[Index] Unknown role, routing to home');
+            router.replace('/(tabs)/home');
+        }
       } else {
         router.replace('/auth/sign-in');
       }
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [user, isLoading]);
+  }, [user, isLoading, router]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>

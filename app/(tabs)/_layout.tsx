@@ -1,5 +1,5 @@
 import { Tabs, Redirect } from "expo-router";
-import { Shield, Calendar, User, Briefcase, Settings, LayoutDashboard, Users as UsersIcon } from "lucide-react-native";
+import { Shield, Calendar, User, Briefcase, Settings, LayoutDashboard, Users as UsersIcon, FileText } from "lucide-react-native";
 import React, { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationTracking } from "@/contexts/LocationTrackingContext";
@@ -55,7 +55,10 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen name="company-home" options={{ href: null }} />
+        <Tabs.Screen name="company-guards" options={{ href: null }} />
         <Tabs.Screen name="admin-home" options={{ href: null }} />
+        <Tabs.Screen name="admin-kyc" options={{ href: null }} />
+        <Tabs.Screen name="admin-users" options={{ href: null }} />
       </Tabs>
     );
   }
@@ -96,7 +99,10 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen name="company-home" options={{ href: null }} />
+        <Tabs.Screen name="company-guards" options={{ href: null }} />
         <Tabs.Screen name="admin-home" options={{ href: null }} />
+        <Tabs.Screen name="admin-kyc" options={{ href: null }} />
+        <Tabs.Screen name="admin-users" options={{ href: null }} />
       </Tabs>
     );
   }
@@ -123,6 +129,13 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="company-guards"
+          options={{
+            title: "Guards",
+            tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="bookings"
           options={{
             title: "Bookings",
@@ -138,6 +151,8 @@ export default function TabLayout() {
         />
         <Tabs.Screen name="home" options={{ href: null }} />
         <Tabs.Screen name="admin-home" options={{ href: null }} />
+        <Tabs.Screen name="admin-kyc" options={{ href: null }} />
+        <Tabs.Screen name="admin-users" options={{ href: null }} />
       </Tabs>
     );
   }
@@ -164,6 +179,20 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="admin-kyc"
+          options={{
+            title: "KYC",
+            tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="admin-users"
+          options={{
+            title: "Users",
+            tabBarIcon: ({ color }) => <UsersIcon size={24} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="bookings"
           options={{
             title: "Bookings",
@@ -179,6 +208,7 @@ export default function TabLayout() {
         />
         <Tabs.Screen name="home" options={{ href: null }} />
         <Tabs.Screen name="company-home" options={{ href: null }} />
+        <Tabs.Screen name="company-guards" options={{ href: null }} />
       </Tabs>
     );
   }

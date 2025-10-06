@@ -104,14 +104,6 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
-      ],
-      [
-        "@stripe/stripe-react-native",
-        {
-          "merchantIdentifier": "string | string[]",
-          "enableGooglePay": "boolean"
-        }
-      ]
     ],
     "experiments": {
       "typedRoutes": true

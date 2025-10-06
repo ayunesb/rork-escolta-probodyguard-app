@@ -5,6 +5,12 @@ import { getDatabase, ref, onValue, set, off } from 'firebase/database';
 import { getApp } from 'firebase/app';
 import { Booking, LocationUpdate } from '../types/booking';
 import { shouldShowGuardLocation } from '../utils/trackingRules';
+import { 
+  geofencingService, 
+  proximityAlertService, 
+  setupBookingGeofences, 
+  cleanupBookingGeofences 
+} from '../services/geofencingService';
 
 interface LocationTrackingContextType {
   isTracking: boolean;
@@ -13,6 +19,8 @@ interface LocationTrackingContextType {
   startTracking: (bookingId: string, booking: Booking) => Promise<void>;
   stopTracking: () => void;
   error: string | null;
+  isNearPickup: boolean;
+  isNearDestination: boolean;
 }
 
 const LocationTrackingContext = createContext<LocationTrackingContextType | undefined>(undefined);
@@ -24,6 +32,8 @@ export function LocationTrackingProvider({ children }: { children: React.ReactNo
   const [error, setError] = useState<string | null>(null);
   const [locationSubscription, setLocationSubscription] = useState<Location.LocationSubscription | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [isNearPickup, setIsNearPickup] = useState<boolean>(false);
+  const [isNearDestination, setIsNearDestination] = useState<boolean>(false);
 
   const stopTracking = useCallback(() => {
     if (locationSubscription) {
@@ -34,12 +44,16 @@ export function LocationTrackingProvider({ children }: { children: React.ReactNo
       const database = getDatabase(getApp());
       const trackingRef = ref(database, `tracking/${bookingId}`);
       off(trackingRef);
+      cleanupBookingGeofences(bookingId);
       setBookingId(null);
     }
+    geofencingService.stopMonitoring();
     setIsTracking(false);
     setCurrentLocation(null);
     setGuardLocation(null);
     setError(null);
+    setIsNearPickup(false);
+    setIsNearDestination(false);
   }, [locationSubscription, bookingId]);
 
   const startTracking = useCallback(async (newBookingId: string, booking: Booking) => {
@@ -61,6 +75,30 @@ export function LocationTrackingProvider({ children }: { children: React.ReactNo
 
       setBookingId(newBookingId);
       setIsTracking(true);
+
+      await geofencingService.startMonitoring();
+
+      if (booking.location && booking.destination) {
+        setupBookingGeofences(
+          newBookingId,
+          {
+            latitude: booking.location.latitude,
+            longitude: booking.location.longitude,
+          },
+          {
+            latitude: booking.destination.latitude,
+            longitude: booking.destination.longitude,
+          },
+          () => {
+            console.log('Guard arrived at pickup');
+            setIsNearPickup(true);
+          },
+          () => {
+            console.log('Guard arrived at destination');
+            setIsNearDestination(true);
+          }
+        );
+      }
 
       const database = getDatabase(getApp());
       const trackingRef = ref(database, `tracking/${newBookingId}`);
@@ -104,6 +142,11 @@ export function LocationTrackingProvider({ children }: { children: React.ReactNo
 
           setCurrentLocation(update);
 
+          proximityAlertService.checkProximity({
+            latitude: update.latitude,
+            longitude: update.longitude,
+          });
+
           set(trackingRef, {
             latitude: update.latitude,
             longitude: update.longitude,
@@ -139,8 +182,10 @@ export function LocationTrackingProvider({ children }: { children: React.ReactNo
       startTracking,
       stopTracking,
       error,
+      isNearPickup,
+      isNearDestination,
     }),
-    [isTracking, currentLocation, guardLocation, startTracking, stopTracking, error]
+    [isTracking, currentLocation, guardLocation, startTracking, stopTracking, error, isNearPickup, isNearDestination]
   );
 
   return (

@@ -2,19 +2,27 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { MapPin, Clock, AlertCircle } from 'lucide-react-native';
+import { MapPin, Clock, AlertCircle, Navigation } from 'lucide-react-native';
 import { useLocationTracking } from '../../contexts/LocationTrackingContext';
 import { shouldShowGuardLocation, getTrackingMessage } from '../../utils/trackingRules';
 import { Booking } from '../../types/booking';
 import MapView from '../../components/MapView';
+import { 
+  calculateRoute, 
+  formatDistance, 
+  formatDuration, 
+  formatETA,
+  type RouteInfo 
+} from '../../services/routeService';
 
 export default function TrackingScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { isTracking, guardLocation, startTracking, error } = useLocationTracking();
+  const { isTracking, guardLocation, startTracking, error, isNearPickup, isNearDestination } = useLocationTracking();
   const insets = useSafeAreaInsets();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [trackingVisibility, setTrackingVisibility] = useState<ReturnType<typeof shouldShowGuardLocation> | null>(null);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
 
   const loadBooking = useCallback(async () => {
     try {
@@ -78,6 +86,33 @@ export default function TrackingScreen() {
   }, [booking, bookingId, isTracking, startTracking]);
 
   useEffect(() => {
+    async function fetchRoute() {
+      if (!guardLocation || !booking?.location) return;
+
+      try {
+        const route = await calculateRoute({
+          origin: {
+            latitude: guardLocation.latitude,
+            longitude: guardLocation.longitude,
+          },
+          destination: {
+            latitude: booking.location.latitude,
+            longitude: booking.location.longitude,
+          },
+          mode: 'driving',
+        });
+        setRouteInfo(route);
+      } catch (err) {
+        console.error('Failed to calculate route:', err);
+      }
+    }
+
+    if (trackingVisibility?.shouldShowLiveLocation && guardLocation) {
+      fetchRoute();
+    }
+  }, [guardLocation, booking, trackingVisibility]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       if (booking) {
         const visibility = shouldShowGuardLocation(booking);
@@ -131,7 +166,26 @@ export default function TrackingScreen() {
           </View>
         )}
 
-        {trackingVisibility?.estimatedArrival && (
+        {routeInfo && (
+          <View style={styles.routeInfo}>
+            <View style={styles.routeInfoRow}>
+              <Navigation size={16} color="#007AFF" />
+              <Text style={styles.routeInfoText}>
+                {formatDistance(routeInfo.distance)} • {formatDuration(routeInfo.duration)}
+              </Text>
+            </View>
+            <Text style={styles.etaText}>
+              ETA: {formatETA(routeInfo.eta)}
+            </Text>
+            {routeInfo.trafficDelay && routeInfo.trafficDelay > 5 && (
+              <Text style={styles.trafficWarning}>
+                +{Math.round(routeInfo.trafficDelay)} min delay due to traffic
+              </Text>
+            )}
+          </View>
+        )}
+
+        {trackingVisibility?.estimatedArrival && !routeInfo && (
           <Text style={styles.etaText}>
             ETA: {new Date(trackingVisibility.estimatedArrival).toLocaleTimeString()}
           </Text>
@@ -163,6 +217,7 @@ export default function TrackingScreen() {
                 },
                 title: 'Guard Location',
                 description: 'Your guard is here',
+                pinColor: '#007AFF',
               },
               {
                 id: 'destination',
@@ -172,8 +227,15 @@ export default function TrackingScreen() {
                 },
                 title: 'Destination',
                 description: booking.location.address,
+                pinColor: '#34C759',
               },
             ]}
+            polylines={routeInfo ? [{
+              coordinates: routeInfo.polyline,
+              strokeColor: '#007AFF',
+              strokeWidth: 4,
+            }] : []}
+            followsUserLocation={false}
           />
         ) : (
           <View style={styles.mapPlaceholder}>
@@ -186,6 +248,24 @@ export default function TrackingScreen() {
           </View>
         )}
       </View>
+
+      {isNearPickup && (
+        <View style={styles.proximityCard}>
+          <Text style={styles.proximityTitle}>🎯 Guard Nearby</Text>
+          <Text style={styles.proximityText}>
+            Your guard has arrived at the pickup location
+          </Text>
+        </View>
+      )}
+
+      {isNearDestination && (
+        <View style={styles.proximityCard}>
+          <Text style={styles.proximityTitle}>📍 Approaching Destination</Text>
+          <Text style={styles.proximityText}>
+            You are near your destination
+          </Text>
+        </View>
+      )}
 
       {booking.status === 'en_route' && !booking.startCodeVerified && (
         <View style={styles.startCodeCard}>
@@ -298,6 +378,46 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   startCodeText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  routeInfo: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+  },
+  routeInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  routeInfoText: {
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 8,
+    fontWeight: '500' as const,
+  },
+  trafficWarning: {
+    fontSize: 12,
+    color: '#FF9500',
+    marginTop: 4,
+  },
+  proximityCard: {
+    backgroundColor: '#E8F5E9',
+    padding: 16,
+    margin: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#34C759',
+  },
+  proximityTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#000',
+    marginBottom: 8,
+  },
+  proximityText: {
     fontSize: 14,
     color: '#666',
   },

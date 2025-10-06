@@ -44,7 +44,7 @@ export const bookingService = {
         const data = snapshot.val();
         const allBookings: Booking[] = data ? Object.values(data) : [];
         const guardBookings = allBookings.filter(b => 
-          (b.status === 'pending' && (!b.guardId || b.guardId === guardId)) ||
+          ((b.status === 'pending' || b.status === 'confirmed') && (!b.guardId || b.guardId === guardId)) ||
           (b.guardId === guardId)
         );
         
@@ -181,6 +181,41 @@ export const bookingService = {
       }
     } catch (error) {
       console.error('[Booking] Error updating booking status:', error);
+      throw error;
+    }
+  },
+
+  async confirmBookingPayment(id: string, transactionId: string): Promise<void> {
+    try {
+      const bookings = await this.getAllBookings();
+      const index = bookings.findIndex(b => b.id === id);
+      
+      if (index !== -1) {
+        bookings[index].status = 'confirmed';
+        bookings[index].transactionId = transactionId;
+        bookings[index].confirmedAt = new Date().toISOString();
+        
+        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+
+        try {
+          const bookingRef = ref(realtimeDb, `bookings/${id}`);
+          await update(bookingRef, bookings[index]);
+          console.log('[Booking] Synced payment confirmation to Firebase');
+
+          await notificationService.notifyBookingStatusChange(
+            id,
+            'confirmed',
+            undefined,
+            undefined
+          );
+        } catch (firebaseError) {
+          console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+        }
+        
+        console.log('[Booking] Confirmed booking payment:', id, transactionId);
+      }
+    } catch (error) {
+      console.error('[Booking] Error confirming booking payment:', error);
       throw error;
     }
   },
@@ -415,13 +450,13 @@ export const bookingService = {
       const bookings = await this.getAllBookings();
       console.log('[Booking] Total bookings:', bookings.length);
       const pending = bookings.filter(b => {
-        const isPending = b.status === 'pending';
+        const isPendingOrConfirmed = b.status === 'pending' || b.status === 'confirmed';
         const isAssignedToGuard = b.guardId === guardId;
         const isUnassigned = !b.guardId;
         
-        return isPending && (isAssignedToGuard || isUnassigned);
+        return isPendingOrConfirmed && (isAssignedToGuard || isUnassigned);
       });
-      console.log('[Booking] Pending bookings for guard', guardId, ':', pending.length);
+      console.log('[Booking] Pending/confirmed bookings for guard', guardId, ':', pending.length);
       pending.forEach(b => console.log('  - Booking', b.id, 'guardId:', b.guardId, 'status:', b.status));
       return pending;
     } catch (error) {

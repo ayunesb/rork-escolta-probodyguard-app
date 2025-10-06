@@ -153,11 +153,15 @@ export default function CreateBookingScreen() {
   const handlePaymentSuccess = async (transactionId: string) => {
     try {
       console.log('[Booking] Payment successful:', transactionId);
+      
+      await bookingService.confirmBookingPayment(tempBookingId, transactionId);
+      console.log('[Booking] Booking confirmed with payment');
+      
       setShowPayment(false);
       router.replace(`/booking/${tempBookingId}` as any);
     } catch (error) {
       console.error('[Booking] Error after payment:', error);
-      Alert.alert('Error', 'Payment succeeded but navigation failed.');
+      Alert.alert('Error', 'Payment succeeded but booking confirmation failed.');
     }
   };
 

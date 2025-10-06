@@ -4,6 +4,7 @@ export type Language = 'en' | 'es' | 'fr' | 'de';
 
 export type BookingStatus = 
   | 'pending'
+  | 'confirmed'
   | 'accepted' 
   | 'rejected'
   | 'en_route' 
@@ -111,7 +112,9 @@ export interface Booking {
   processingFee: number;
   platformCut: number;
   guardPayout: number;
+  transactionId?: string;
   createdAt: string;
+  confirmedAt?: string;
   acceptedAt?: string;
   rejectedAt?: string;
   rejectionReason?: string;

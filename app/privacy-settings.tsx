@@ -12,14 +12,57 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 
-import { ChevronRight, Download, Trash2, Shield, FileText } from 'lucide-react-native';
+import { ChevronRight, Download, Trash2, Shield, FileText, ToggleLeft, ToggleRight } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { gdprService } from '@/services/gdprService';
+import { consentService } from '@/services/consentService';
 
 export default function PrivacySettingsScreen() {
   const { user } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [analyticsConsent, setAnalyticsConsent] = useState(false);
+  const [locationConsent, setLocationConsent] = useState(false);
+  const [isLoadingConsent, setIsLoadingConsent] = useState(true);
+
+  React.useEffect(() => {
+    loadConsent();
+  }, [user]);
+
+  const loadConsent = async () => {
+    if (!user) return;
+    
+    try {
+      const consent = await consentService.getConsent(user.id);
+      if (consent) {
+        setMarketingConsent(consent.marketing);
+        setAnalyticsConsent(consent.analytics);
+        setLocationConsent(consent.locationTracking);
+      }
+    } catch (error) {
+      console.error('Failed to load consent:', error);
+    } finally {
+      setIsLoadingConsent(false);
+    }
+  };
+
+  const handleConsentToggle = async (type: 'marketing' | 'analytics' | 'locationTracking', value: boolean) => {
+    if (!user) return;
+
+    try {
+      await consentService.updateConsent(user.id, { [type]: value });
+      
+      if (type === 'marketing') setMarketingConsent(value);
+      if (type === 'analytics') setAnalyticsConsent(value);
+      if (type === 'locationTracking') setLocationConsent(value);
+
+      Alert.alert('Success', 'Your consent preferences have been updated.');
+    } catch (error) {
+      console.error('Failed to update consent:', error);
+      Alert.alert('Error', 'Failed to update consent preferences.');
+    }
+  };
 
   const handleExportData = async () => {
     if (!user) return;
@@ -185,6 +228,93 @@ export default function PrivacySettingsScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Consent Management</Text>
+          <Text style={styles.sectionDescription}>
+            Manage your consent preferences. You can change these at any time.
+          </Text>
+
+          {isLoadingConsent ? (
+            <View style={[styles.option, { justifyContent: 'center' }]}>
+              <ActivityIndicator size="small" color="#fff" />
+            </View>
+          ) : (
+            <>
+              <View style={styles.option}>
+                <View style={styles.optionLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: '#FF9800' }]}>
+                    {marketingConsent ? (
+                      <ToggleRight size={20} color="#fff" />
+                    ) : (
+                      <ToggleLeft size={20} color="#fff" />
+                    )}
+                  </View>
+                  <View style={styles.optionText}>
+                    <Text style={styles.optionTitle}>Marketing Communications</Text>
+                    <Text style={styles.optionDescription}>
+                      Receive updates about new features and offers
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleConsentToggle('marketing', !marketingConsent)}
+                  style={[styles.toggle, marketingConsent && styles.toggleActive]}
+                >
+                  <View style={[styles.toggleThumb, marketingConsent && styles.toggleThumbActive]} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.option}>
+                <View style={styles.optionLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: '#3F51B5' }]}>
+                    {analyticsConsent ? (
+                      <ToggleRight size={20} color="#fff" />
+                    ) : (
+                      <ToggleLeft size={20} color="#fff" />
+                    )}
+                  </View>
+                  <View style={styles.optionText}>
+                    <Text style={styles.optionTitle}>Analytics</Text>
+                    <Text style={styles.optionDescription}>
+                      Help us improve by sharing usage data
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleConsentToggle('analytics', !analyticsConsent)}
+                  style={[styles.toggle, analyticsConsent && styles.toggleActive]}
+                >
+                  <View style={[styles.toggleThumb, analyticsConsent && styles.toggleThumbActive]} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.option}>
+                <View style={styles.optionLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: '#009688' }]}>
+                    {locationConsent ? (
+                      <ToggleRight size={20} color="#fff" />
+                    ) : (
+                      <ToggleLeft size={20} color="#fff" />
+                    )}
+                  </View>
+                  <View style={styles.optionText}>
+                    <Text style={styles.optionTitle}>Location Tracking</Text>
+                    <Text style={styles.optionDescription}>
+                      Allow location tracking for better service
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleConsentToggle('locationTracking', !locationConsent)}
+                  style={[styles.toggle, locationConsent && styles.toggleActive]}
+                >
+                  <View style={[styles.toggleThumb, locationConsent && styles.toggleThumbActive]} />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Danger Zone</Text>
 
           <TouchableOpacity
@@ -308,5 +438,25 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     marginBottom: 8,
+  },
+  toggle: {
+    width: 50,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#333',
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleActive: {
+    backgroundColor: '#4CAF50',
+  },
+  toggleThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+  },
+  toggleThumbActive: {
+    alignSelf: 'flex-end',
   },
 });

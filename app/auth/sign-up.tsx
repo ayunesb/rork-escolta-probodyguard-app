@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { Shield } from 'lucide-react-native';
+import { Shield, CheckSquare, Square } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
 import Colors from '@/constants/colors';
@@ -30,6 +30,10 @@ export default function SignUpScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [acceptedDataProcessing, setAcceptedDataProcessing] = useState(false);
+  const [acceptedMarketing, setAcceptedMarketing] = useState(false);
 
   const handleSignUp = async () => {
     const trimmedEmail = email.trim();
@@ -40,6 +44,11 @@ export default function SignUpScreen() {
     
     if (!trimmedEmail || !trimmedPassword || !trimmedFirstName || !trimmedLastName || !trimmedPhone) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    if (!acceptedTerms || !acceptedPrivacy || !acceptedDataProcessing) {
+      setError('Please accept the required terms and conditions');
       return;
     }
 
@@ -201,6 +210,68 @@ export default function SignUpScreen() {
               secureTextEntry
               autoCapitalize="none"
             />
+          </View>
+
+          <View style={styles.consentSection}>
+            <Text style={styles.consentTitle}>Terms & Conditions</Text>
+            
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setAcceptedTerms(!acceptedTerms)}
+            >
+              {acceptedTerms ? (
+                <CheckSquare size={24} color={Colors.gold} />
+              ) : (
+                <Square size={24} color={Colors.textSecondary} />
+              )}
+              <Text style={styles.checkboxText}>
+                I accept the <Text style={styles.link}>Terms of Service</Text> *
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setAcceptedPrivacy(!acceptedPrivacy)}
+            >
+              {acceptedPrivacy ? (
+                <CheckSquare size={24} color={Colors.gold} />
+              ) : (
+                <Square size={24} color={Colors.textSecondary} />
+              )}
+              <Text style={styles.checkboxText}>
+                I accept the <Text style={styles.link}>Privacy Policy</Text> *
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setAcceptedDataProcessing(!acceptedDataProcessing)}
+            >
+              {acceptedDataProcessing ? (
+                <CheckSquare size={24} color={Colors.gold} />
+              ) : (
+                <Square size={24} color={Colors.textSecondary} />
+              )}
+              <Text style={styles.checkboxText}>
+                I consent to data processing for service delivery *
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setAcceptedMarketing(!acceptedMarketing)}
+            >
+              {acceptedMarketing ? (
+                <CheckSquare size={24} color={Colors.gold} />
+              ) : (
+                <Square size={24} color={Colors.textSecondary} />
+              )}
+              <Text style={styles.checkboxText}>
+                I agree to receive marketing communications (optional)
+              </Text>
+            </TouchableOpacity>
+
+            <Text style={styles.requiredNote}>* Required</Text>
           </View>
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -368,5 +439,42 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center' as const,
     marginBottom: 32,
+  },
+  consentSection: {
+    marginTop: 8,
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  consentTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+    marginBottom: 16,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  checkboxText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.textPrimary,
+    lineHeight: 20,
+  },
+  link: {
+    color: Colors.gold,
+    textDecorationLine: 'underline' as const,
+  },
+  requiredNote: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 8,
+    fontStyle: 'italic' as const,
   },
 });

@@ -10,9 +10,11 @@ const signInSchema = z.object({
   password: z.string().min(6),
 });
 
+type SignInInput = z.infer<typeof signInSchema>;
+
 export default publicProcedure
   .input(signInSchema)
-  .mutation(async ({ input }: { input: z.infer<typeof signInSchema> }) => {
+  .mutation(async ({ input }: { input: SignInInput }) => {
     const { email, password } = input;
 
     try {

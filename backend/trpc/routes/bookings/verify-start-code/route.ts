@@ -10,9 +10,11 @@ const verifyStartCodeSchema = z.object({
   userId: z.string(),
 });
 
+type VerifyStartCodeInput = z.infer<typeof verifyStartCodeSchema>;
+
 export default publicProcedure
   .input(verifyStartCodeSchema)
-  .mutation(async ({ input }: { input: z.infer<typeof verifyStartCodeSchema> }) => {
+  .mutation(async ({ input }: { input: VerifyStartCodeInput }) => {
     const { bookingId, startCode, userId } = input;
 
     try {

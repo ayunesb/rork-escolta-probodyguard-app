@@ -1,297 +1,472 @@
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { db } from '@/config/firebase';
 import { Booking } from '@/types';
 
 export interface BookingAnalytics {
   totalBookings: number;
   completedBookings: number;
   cancelledBookings: number;
-  totalSpent: number;
-  totalEarned: number;
-  averageRating: number;
-  averageBookingDuration: number;
-  mostBookedGuard?: {
-    guardId: string;
-    count: number;
-  };
-  bookingsByMonth: {
-    month: string;
-    count: number;
-    amount: number;
-  }[];
-  bookingsByStatus: {
-    status: string;
-    count: number;
-  }[];
-  topGuards: {
-    guardId: string;
-    bookings: number;
-    earnings: number;
-    rating: number;
-  }[];
+  activeBookings: number;
+  totalRevenue: number;
+  averageBookingValue: number;
+  bookingsByStatus: Record<string, number>;
+  bookingsByType: Record<string, number>;
+  revenueByMonth: Array<{ month: string; revenue: number }>;
+  topGuards: Array<{ guardId: string; guardName: string; bookings: number; revenue: number }>;
 }
 
 export interface GuardAnalytics {
-  totalJobs: number;
-  completedJobs: number;
+  guardId: string;
+  totalBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
   totalEarnings: number;
   averageRating: number;
-  ratingTrend: {
-    date: string;
-    rating: number;
-  }[];
-  earningsByMonth: {
-    month: string;
-    earnings: number;
-    jobs: number;
-  }[];
-  topClients: {
-    clientId: string;
-    bookings: number;
-    totalPaid: number;
-  }[];
-  peakHours: {
-    hour: number;
-    bookings: number;
-  }[];
+  totalReviews: number;
+  acceptanceRate: number;
+  completionRate: number;
+  responseTime: number;
+  bookingsByMonth: Array<{ month: string; bookings: number }>;
+  earningsByMonth: Array<{ month: string; earnings: number }>;
 }
 
-function getMonthKey(dateStr: string): string {
-  const date = new Date(dateStr);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+export interface ClientAnalytics {
+  clientId: string;
+  totalBookings: number;
+  completedBookings: number;
+  totalSpent: number;
+  averageBookingValue: number;
+  favoriteGuards: Array<{ guardId: string; guardName: string; bookings: number }>;
+  bookingsByMonth: Array<{ month: string; bookings: number }>;
+  spendingByMonth: Array<{ month: string; spent: number }>;
+}
+
+export interface PlatformAnalytics {
+  totalUsers: number;
+  totalClients: number;
+  totalGuards: number;
+  totalCompanies: number;
+  activeUsers: number;
+  totalBookings: number;
+  totalRevenue: number;
+  platformRevenue: number;
+  averageBookingValue: number;
+  userGrowth: Array<{ month: string; users: number }>;
+  revenueGrowth: Array<{ month: string; revenue: number }>;
+  topPerformingGuards: Array<{ guardId: string; guardName: string; rating: number; bookings: number }>;
+  bookingTrends: Array<{ date: string; bookings: number }>;
 }
 
 export const analyticsService = {
-  calculateClientAnalytics(bookings: Booking[]): BookingAnalytics {
-    const totalBookings = bookings.length;
-    const completedBookings = bookings.filter(b => b.status === 'completed').length;
-    const cancelledBookings = bookings.filter(b => b.status === 'cancelled').length;
-    
-    const totalSpent = bookings
-      .filter(b => b.status === 'completed')
-      .reduce((sum, b) => sum + b.totalAmount, 0);
+  async getBookingAnalytics(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<BookingAnalytics> {
+    try {
+      let bookingsQuery = query(collection(db, 'bookings'));
 
-    const ratingsSum = bookings
-      .filter(b => b.rating)
-      .reduce((sum, b) => sum + (b.rating || 0), 0);
-    const ratingsCount = bookings.filter(b => b.rating).length;
-    const averageRating = ratingsCount > 0 ? ratingsSum / ratingsCount : 0;
-
-    const totalDuration = bookings
-      .filter(b => b.status === 'completed')
-      .reduce((sum, b) => sum + b.duration, 0);
-    const averageBookingDuration = completedBookings > 0 
-      ? totalDuration / completedBookings 
-      : 0;
-
-    const guardCounts = new Map<string, number>();
-    bookings.forEach(b => {
-      if (b.guardId) {
-        guardCounts.set(b.guardId, (guardCounts.get(b.guardId) || 0) + 1);
+      if (startDate && endDate) {
+        bookingsQuery = query(
+          collection(db, 'bookings'),
+          where('createdAt', '>=', startDate.toISOString()),
+          where('createdAt', '<=', endDate.toISOString())
+        );
       }
-    });
 
-    let mostBookedGuard: { guardId: string; count: number } | undefined;
-    let maxCount = 0;
-    guardCounts.forEach((count, guardId) => {
-      if (count > maxCount) {
-        maxCount = count;
-        mostBookedGuard = { guardId, count };
-      }
-    });
+      const snapshot = await getDocs(bookingsQuery);
+      const bookings: Booking[] = [];
 
-    const monthlyData = new Map<string, { count: number; amount: number }>();
-    bookings.forEach(b => {
-      const month = getMonthKey(b.createdAt);
-      const existing = monthlyData.get(month) || { count: 0, amount: 0 };
-      monthlyData.set(month, {
-        count: existing.count + 1,
-        amount: existing.amount + (b.status === 'completed' ? b.totalAmount : 0),
+      snapshot.forEach((doc) => {
+        bookings.push({
+          id: doc.id,
+          ...doc.data(),
+        } as Booking);
       });
+
+      const totalBookings = bookings.length;
+      const completedBookings = bookings.filter((b) => b.status === 'completed').length;
+      const cancelledBookings = bookings.filter((b) => b.status === 'cancelled').length;
+      const activeBookings = bookings.filter((b) =>
+        ['confirmed', 'accepted', 'en_route', 'active'].includes(b.status)
+      ).length;
+
+      const totalRevenue = bookings
+        .filter((b) => b.status === 'completed')
+        .reduce((sum, b) => sum + b.totalAmount, 0);
+
+      const averageBookingValue = totalRevenue / (completedBookings || 1);
+
+      const bookingsByStatus: Record<string, number> = {};
+      bookings.forEach((b) => {
+        bookingsByStatus[b.status] = (bookingsByStatus[b.status] || 0) + 1;
+      });
+
+      const bookingsByType: Record<string, number> = {};
+      bookings.forEach((b) => {
+        bookingsByType[b.bookingType] = (bookingsByType[b.bookingType] || 0) + 1;
+      });
+
+      const revenueByMonth = this.calculateRevenueByMonth(bookings);
+      const topGuards = await this.getTopGuards(bookings);
+
+      return {
+        totalBookings,
+        completedBookings,
+        cancelledBookings,
+        activeBookings,
+        totalRevenue,
+        averageBookingValue,
+        bookingsByStatus,
+        bookingsByType,
+        revenueByMonth,
+        topGuards,
+      };
+    } catch (error) {
+      console.error('[Analytics] Error getting booking analytics:', error);
+      throw error;
+    }
+  },
+
+  async getGuardAnalytics(guardId: string): Promise<GuardAnalytics> {
+    try {
+      const bookingsQuery = query(
+        collection(db, 'bookings'),
+        where('guardId', '==', guardId)
+      );
+
+      const snapshot = await getDocs(bookingsQuery);
+      const bookings: Booking[] = [];
+
+      snapshot.forEach((doc) => {
+        bookings.push({
+          id: doc.id,
+          ...doc.data(),
+        } as Booking);
+      });
+
+      const totalBookings = bookings.length;
+      const completedBookings = bookings.filter((b) => b.status === 'completed').length;
+      const cancelledBookings = bookings.filter((b) => b.status === 'cancelled').length;
+
+      const totalEarnings = bookings
+        .filter((b) => b.status === 'completed')
+        .reduce((sum, b) => sum + b.guardPayout, 0);
+
+      const ratings = bookings
+        .filter((b) => b.rating)
+        .map((b) => b.rating!);
+      const averageRating = ratings.length > 0
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        : 0;
+
+      const acceptedBookings = bookings.filter((b) =>
+        ['accepted', 'en_route', 'active', 'completed'].includes(b.status)
+      ).length;
+      const acceptanceRate = (acceptedBookings / totalBookings) * 100;
+
+      const completionRate = (completedBookings / acceptedBookings) * 100;
+
+      const bookingsByMonth = this.calculateBookingsByMonth(bookings);
+      const earningsByMonth = this.calculateEarningsByMonth(bookings);
+
+      return {
+        guardId,
+        totalBookings,
+        completedBookings,
+        cancelledBookings,
+        totalEarnings,
+        averageRating,
+        totalReviews: ratings.length,
+        acceptanceRate,
+        completionRate,
+        responseTime: 0,
+        bookingsByMonth,
+        earningsByMonth,
+      };
+    } catch (error) {
+      console.error('[Analytics] Error getting guard analytics:', error);
+      throw error;
+    }
+  },
+
+  async getClientAnalytics(clientId: string): Promise<ClientAnalytics> {
+    try {
+      const bookingsQuery = query(
+        collection(db, 'bookings'),
+        where('clientId', '==', clientId)
+      );
+
+      const snapshot = await getDocs(bookingsQuery);
+      const bookings: Booking[] = [];
+
+      snapshot.forEach((doc) => {
+        bookings.push({
+          id: doc.id,
+          ...doc.data(),
+        } as Booking);
+      });
+
+      const totalBookings = bookings.length;
+      const completedBookings = bookings.filter((b) => b.status === 'completed').length;
+
+      const totalSpent = bookings
+        .filter((b) => b.status === 'completed')
+        .reduce((sum, b) => sum + b.totalAmount, 0);
+
+      const averageBookingValue = totalSpent / (completedBookings || 1);
+
+      const guardCounts: Record<string, number> = {};
+      bookings.forEach((b) => {
+        if (b.guardId) {
+          guardCounts[b.guardId] = (guardCounts[b.guardId] || 0) + 1;
+        }
+      });
+
+      const favoriteGuards = Object.entries(guardCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([guardId, bookings]) => ({
+          guardId,
+          guardName: 'Guard',
+          bookings,
+        }));
+
+      const bookingsByMonth = this.calculateBookingsByMonth(bookings);
+      const spendingByMonth = this.calculateSpendingByMonth(bookings);
+
+      return {
+        clientId,
+        totalBookings,
+        completedBookings,
+        totalSpent,
+        averageBookingValue,
+        favoriteGuards,
+        bookingsByMonth,
+        spendingByMonth,
+      };
+    } catch (error) {
+      console.error('[Analytics] Error getting client analytics:', error);
+      throw error;
+    }
+  },
+
+  async getPlatformAnalytics(): Promise<PlatformAnalytics> {
+    try {
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const users: any[] = [];
+
+      usersSnapshot.forEach((doc) => {
+        users.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+
+      const totalUsers = users.length;
+      const totalClients = users.filter((u) => u.role === 'client').length;
+      const totalGuards = users.filter((u) => u.role === 'guard').length;
+      const totalCompanies = users.filter((u) => u.role === 'company').length;
+      const activeUsers = users.filter((u) => u.availability).length;
+
+      const bookingsSnapshot = await getDocs(collection(db, 'bookings'));
+      const bookings: Booking[] = [];
+
+      bookingsSnapshot.forEach((doc) => {
+        bookings.push({
+          id: doc.id,
+          ...doc.data(),
+        } as Booking);
+      });
+
+      const totalBookings = bookings.length;
+
+      const completedBookings = bookings.filter((b) => b.status === 'completed');
+      const totalRevenue = completedBookings.reduce((sum, b) => sum + b.totalAmount, 0);
+      const platformRevenue = completedBookings.reduce((sum, b) => sum + b.platformCut, 0);
+      const averageBookingValue = totalRevenue / (completedBookings.length || 1);
+
+      const userGrowth = this.calculateUserGrowth(users);
+      const revenueGrowth = this.calculateRevenueByMonth(bookings);
+      const topPerformingGuards = await this.getTopPerformingGuards();
+      const bookingTrends = this.calculateBookingTrends(bookings);
+
+      return {
+        totalUsers,
+        totalClients,
+        totalGuards,
+        totalCompanies,
+        activeUsers,
+        totalBookings,
+        totalRevenue,
+        platformRevenue,
+        averageBookingValue,
+        userGrowth,
+        revenueGrowth,
+        topPerformingGuards,
+        bookingTrends,
+      };
+    } catch (error) {
+      console.error('[Analytics] Error getting platform analytics:', error);
+      throw error;
+    }
+  },
+
+  calculateRevenueByMonth(bookings: Booking[]): Array<{ month: string; revenue: number }> {
+    const revenueByMonth: Record<string, number> = {};
+
+    bookings
+      .filter((b) => b.status === 'completed')
+      .forEach((booking) => {
+        const date = new Date(booking.completedAt || booking.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + booking.totalAmount;
+      });
+
+    return Object.entries(revenueByMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, revenue]) => ({ month, revenue }));
+  },
+
+  calculateBookingsByMonth(bookings: Booking[]): Array<{ month: string; bookings: number }> {
+    const bookingsByMonth: Record<string, number> = {};
+
+    bookings.forEach((booking) => {
+      const date = new Date(booking.createdAt);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      bookingsByMonth[monthKey] = (bookingsByMonth[monthKey] || 0) + 1;
     });
 
-    const bookingsByMonth = Array.from(monthlyData.entries())
-      .map(([month, data]) => ({ month, ...data }))
-      .sort((a, b) => a.month.localeCompare(b.month));
+    return Object.entries(bookingsByMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, bookings]) => ({ month, bookings }));
+  },
 
-    const statusCounts = new Map<string, number>();
-    bookings.forEach(b => {
-      statusCounts.set(b.status, (statusCounts.get(b.status) || 0) + 1);
+  calculateEarningsByMonth(bookings: Booking[]): Array<{ month: string; earnings: number }> {
+    const earningsByMonth: Record<string, number> = {};
+
+    bookings
+      .filter((b) => b.status === 'completed')
+      .forEach((booking) => {
+        const date = new Date(booking.completedAt || booking.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        earningsByMonth[monthKey] = (earningsByMonth[monthKey] || 0) + booking.guardPayout;
+      });
+
+    return Object.entries(earningsByMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, earnings]) => ({ month, earnings }));
+  },
+
+  calculateSpendingByMonth(bookings: Booking[]): Array<{ month: string; spent: number }> {
+    const spendingByMonth: Record<string, number> = {};
+
+    bookings
+      .filter((b) => b.status === 'completed')
+      .forEach((booking) => {
+        const date = new Date(booking.completedAt || booking.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        spendingByMonth[monthKey] = (spendingByMonth[monthKey] || 0) + booking.totalAmount;
+      });
+
+    return Object.entries(spendingByMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, spent]) => ({ month, spent }));
+  },
+
+  calculateUserGrowth(users: any[]): Array<{ month: string; users: number }> {
+    const usersByMonth: Record<string, number> = {};
+
+    users.forEach((user) => {
+      const date = new Date(user.createdAt);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      usersByMonth[monthKey] = (usersByMonth[monthKey] || 0) + 1;
     });
 
-    const bookingsByStatus = Array.from(statusCounts.entries())
-      .map(([status, count]) => ({ status, count }));
+    return Object.entries(usersByMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, users]) => ({ month, users }));
+  },
 
-    const guardStats = new Map<string, { bookings: number; earnings: number; ratings: number[] }>();
-    bookings.forEach(b => {
-      if (b.guardId && b.status === 'completed') {
-        const existing = guardStats.get(b.guardId) || { bookings: 0, earnings: 0, ratings: [] };
-        existing.bookings++;
-        existing.earnings += b.guardPayout;
-        if (b.rating) existing.ratings.push(b.rating);
-        guardStats.set(b.guardId, existing);
-      }
+  calculateBookingTrends(bookings: Booking[]): Array<{ date: string; bookings: number }> {
+    const bookingsByDate: Record<string, number> = {};
+
+    bookings.forEach((booking) => {
+      const date = new Date(booking.createdAt);
+      const dateKey = date.toISOString().split('T')[0];
+      bookingsByDate[dateKey] = (bookingsByDate[dateKey] || 0) + 1;
     });
 
-    const topGuards = Array.from(guardStats.entries())
+    return Object.entries(bookingsByDate)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-30)
+      .map(([date, bookings]) => ({ date, bookings }));
+  },
+
+  async getTopGuards(
+    bookings: Booking[]
+  ): Promise<Array<{ guardId: string; guardName: string; bookings: number; revenue: number }>> {
+    const guardStats: Record<string, { bookings: number; revenue: number }> = {};
+
+    bookings
+      .filter((b) => b.status === 'completed' && b.guardId)
+      .forEach((booking) => {
+        const guardId = booking.guardId!;
+        if (!guardStats[guardId]) {
+          guardStats[guardId] = { bookings: 0, revenue: 0 };
+        }
+        guardStats[guardId].bookings += 1;
+        guardStats[guardId].revenue += booking.totalAmount;
+      });
+
+    return Object.entries(guardStats)
+      .sort(([, a], [, b]) => b.revenue - a.revenue)
+      .slice(0, 10)
       .map(([guardId, stats]) => ({
         guardId,
-        bookings: stats.bookings,
-        earnings: stats.earnings,
-        rating: stats.ratings.length > 0 
-          ? stats.ratings.reduce((a, b) => a + b, 0) / stats.ratings.length 
-          : 0,
-      }))
-      .sort((a, b) => b.bookings - a.bookings)
-      .slice(0, 5);
-
-    return {
-      totalBookings,
-      completedBookings,
-      cancelledBookings,
-      totalSpent,
-      totalEarned: 0,
-      averageRating,
-      averageBookingDuration,
-      mostBookedGuard,
-      bookingsByMonth,
-      bookingsByStatus,
-      topGuards,
-    };
-  },
-
-  calculateGuardAnalytics(bookings: Booking[], guardId: string): GuardAnalytics {
-    const guardBookings = bookings.filter(b => b.guardId === guardId);
-    
-    const totalJobs = guardBookings.length;
-    const completedJobs = guardBookings.filter(b => b.status === 'completed').length;
-    
-    const totalEarnings = guardBookings
-      .filter(b => b.status === 'completed')
-      .reduce((sum, b) => sum + b.guardPayout, 0);
-
-    const ratingsSum = guardBookings
-      .filter(b => b.rating)
-      .reduce((sum, b) => sum + (b.rating || 0), 0);
-    const ratingsCount = guardBookings.filter(b => b.rating).length;
-    const averageRating = ratingsCount > 0 ? ratingsSum / ratingsCount : 0;
-
-    const ratingTrend = guardBookings
-      .filter(b => b.rating && b.completedAt)
-      .sort((a, b) => new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime())
-      .map(b => ({
-        date: b.completedAt!,
-        rating: b.rating!,
+        guardName: 'Guard',
+        ...stats,
       }));
-
-    const monthlyEarnings = new Map<string, { earnings: number; jobs: number }>();
-    guardBookings
-      .filter(b => b.status === 'completed')
-      .forEach(b => {
-        const month = getMonthKey(b.createdAt);
-        const existing = monthlyEarnings.get(month) || { earnings: 0, jobs: 0 };
-        monthlyEarnings.set(month, {
-          earnings: existing.earnings + b.guardPayout,
-          jobs: existing.jobs + 1,
-        });
-      });
-
-    const earningsByMonth = Array.from(monthlyEarnings.entries())
-      .map(([month, data]) => ({ month, ...data }))
-      .sort((a, b) => a.month.localeCompare(b.month));
-
-    const clientStats = new Map<string, { bookings: number; totalPaid: number }>();
-    guardBookings
-      .filter(b => b.status === 'completed')
-      .forEach(b => {
-        const existing = clientStats.get(b.clientId) || { bookings: 0, totalPaid: 0 };
-        clientStats.set(b.clientId, {
-          bookings: existing.bookings + 1,
-          totalPaid: existing.totalPaid + b.totalAmount,
-        });
-      });
-
-    const topClients = Array.from(clientStats.entries())
-      .map(([clientId, stats]) => ({ clientId, ...stats }))
-      .sort((a, b) => b.bookings - a.bookings)
-      .slice(0, 5);
-
-    const hourCounts = new Map<number, number>();
-    guardBookings.forEach(b => {
-      const hour = parseInt(b.scheduledTime.split(':')[0]);
-      hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
-    });
-
-    const peakHours = Array.from(hourCounts.entries())
-      .map(([hour, bookings]) => ({ hour, bookings }))
-      .sort((a, b) => b.bookings - a.bookings)
-      .slice(0, 5);
-
-    return {
-      totalJobs,
-      completedJobs,
-      totalEarnings,
-      averageRating,
-      ratingTrend,
-      earningsByMonth,
-      topClients,
-      peakHours,
-    };
   },
 
-  getBookingInsights(bookings: Booking[]): {
-    busyDays: string[];
-    popularTimeSlots: string[];
-    averageResponseTime: number;
-    completionRate: number;
-  } {
-    const dayCounts = new Map<string, number>();
-    bookings.forEach(b => {
-      const day = new Date(b.scheduledDate).toLocaleDateString('en-US', { weekday: 'long' });
-      dayCounts.set(day, (dayCounts.get(day) || 0) + 1);
-    });
+  async getTopPerformingGuards(): Promise<
+    Array<{ guardId: string; guardName: string; rating: number; bookings: number }>
+  > {
+    try {
+      const guardsQuery = query(
+        collection(db, 'users'),
+        where('role', '==', 'guard'),
+        orderBy('rating', 'desc')
+      );
 
-    const busyDays = Array.from(dayCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([day]) => day);
+      const snapshot = await getDocs(guardsQuery);
+      const guards: any[] = [];
 
-    const timeCounts = new Map<string, number>();
-    bookings.forEach(b => {
-      const hour = parseInt(b.scheduledTime.split(':')[0]);
-      let timeSlot: string;
-      if (hour < 12) timeSlot = 'Morning (6AM-12PM)';
-      else if (hour < 17) timeSlot = 'Afternoon (12PM-5PM)';
-      else if (hour < 21) timeSlot = 'Evening (5PM-9PM)';
-      else timeSlot = 'Night (9PM-6AM)';
-      
-      timeCounts.set(timeSlot, (timeCounts.get(timeSlot) || 0) + 1);
-    });
-
-    const popularTimeSlots = Array.from(timeCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([slot]) => slot);
-
-    const responseTimes = bookings
-      .filter(b => b.acceptedAt)
-      .map(b => {
-        const created = new Date(b.createdAt).getTime();
-        const accepted = new Date(b.acceptedAt!).getTime();
-        return (accepted - created) / (1000 * 60);
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        guards.push({
+          guardId: doc.id,
+          guardName: `${data.firstName} ${data.lastName}`,
+          rating: data.rating || 0,
+          bookings: data.completedJobs || 0,
+        });
       });
 
-    const averageResponseTime = responseTimes.length > 0
-      ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
-      : 0;
+      return guards.slice(0, 10);
+    } catch (error) {
+      console.error('[Analytics] Error getting top performing guards:', error);
+      return [];
+    }
+  },
 
-    const completedCount = bookings.filter(b => b.status === 'completed').length;
-    const completionRate = bookings.length > 0 
-      ? (completedCount / bookings.length) * 100 
-      : 0;
+  formatCurrency(amount: number): string {
+    return `$${amount.toFixed(2)} MXN`;
+  },
 
-    return {
-      busyDays,
-      popularTimeSlots,
-      averageResponseTime,
-      completionRate,
-    };
+  formatPercentage(value: number): string {
+    return `${value.toFixed(1)}%`;
+  },
+
+  formatNumber(value: number): string {
+    return value.toLocaleString();
   },
 };

@@ -6,11 +6,20 @@ import {
   onSnapshot,
   Timestamp,
   getDocs,
+  doc,
+  setDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { ChatMessage, Language } from '@/types';
 import { translationService } from './translationService';
 import { rateLimitService } from './rateLimitService';
+
+export interface TypingIndicator {
+  userId: string;
+  userName: string;
+  timestamp: string;
+}
 
 export const chatService = {
   async sendMessage(
@@ -151,6 +160,90 @@ export const chatService = {
     } catch (error) {
       console.error('[Chat] Error getting unread count:', error);
       return 0;
+    }
+  },
+
+  async setTyping(
+    bookingId: string,
+    userId: string,
+    userName: string,
+    isTyping: boolean
+  ): Promise<void> {
+    try {
+      const typingRef = doc(db, 'typing', `${bookingId}_${userId}`);
+      
+      if (isTyping) {
+        await setDoc(typingRef, {
+          bookingId,
+          userId,
+          userName,
+          timestamp: Timestamp.now(),
+        });
+        console.log('[Chat] User typing:', userId);
+      } else {
+        await deleteDoc(typingRef);
+        console.log('[Chat] User stopped typing:', userId);
+      }
+    } catch (error) {
+      console.error('[Chat] Error setting typing status:', error);
+    }
+  },
+
+  subscribeToTyping(
+    bookingId: string,
+    currentUserId: string,
+    onTypingUpdate: (typingUsers: TypingIndicator[]) => void
+  ): () => void {
+    try {
+      const typingQuery = query(
+        collection(db, 'typing'),
+        where('bookingId', '==', bookingId)
+      );
+
+      const unsubscribe = onSnapshot(typingQuery, (snapshot) => {
+        const typingUsers: TypingIndicator[] = [];
+        const now = Date.now();
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const typingTime = data.timestamp.toDate().getTime();
+          
+          if (data.userId !== currentUserId && now - typingTime < 5000) {
+            typingUsers.push({
+              userId: data.userId,
+              userName: data.userName,
+              timestamp: data.timestamp.toDate().toISOString(),
+            });
+          }
+        });
+
+        onTypingUpdate(typingUsers);
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.error('[Chat] Error subscribing to typing:', error);
+      return () => {};
+    }
+  },
+
+  async markAsRead(bookingId: string, userId: string): Promise<void> {
+    try {
+      const messagesQuery = query(
+        collection(db, 'messages'),
+        where('bookingId', '==', bookingId),
+        where('senderId', '!=', userId)
+      );
+
+      const snapshot = await getDocs(messagesQuery);
+      const updatePromises = snapshot.docs.map((doc) =>
+        setDoc(doc.ref, { read: true }, { merge: true })
+      );
+
+      await Promise.all(updatePromises);
+      console.log('[Chat] Messages marked as read:', bookingId);
+    } catch (error) {
+      console.error('[Chat] Error marking messages as read:', error);
     }
   },
 };

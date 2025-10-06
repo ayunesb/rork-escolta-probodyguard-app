@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,6 +16,8 @@ import { Send, ChevronLeft, Globe } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
 import type { ChatMessage } from '@/types';
+import { chatService, TypingIndicator } from '@/services/chatService';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function BookingChatScreen() {
   const { bookingId, guardName } = useLocalSearchParams<{
@@ -27,55 +30,86 @@ export default function BookingChatScreen() {
   const insets = useSafeAreaInsets();
   const flatListRef = useRef<FlatList>(null);
   
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg-1',
-      bookingId: bookingId || '',
-      senderId: 'guard-1',
-      senderRole: 'guard',
-      text: 'Hello! I am on my way to the pickup location. ETA 10 minutes.',
-      originalLanguage: 'en',
-      timestamp: new Date(Date.now() - 300000).toISOString(),
-    },
-  ]);
-  
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
+  const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const debouncedInputText = useDebounce(inputText, 300);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  useEffect(() => {
+    if (!bookingId || !user) return;
+
+    setIsLoading(true);
+    const unsubscribeMessages = chatService.subscribeToMessages(
+      bookingId,
+      user.language,
+      (updatedMessages) => {
+        setMessages(updatedMessages);
+        setIsLoading(false);
+      }
+    );
+
+    const unsubscribeTyping = chatService.subscribeToTyping(
+      bookingId,
+      user.id,
+      setTypingUsers
+    );
+
+    chatService.markAsRead(bookingId, user.id);
+
+    return () => {
+      unsubscribeMessages();
+      unsubscribeTyping();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [bookingId, user]);
 
   useEffect(() => {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  const handleSend = () => {
-    if (!inputText.trim() || !user) return;
+  useEffect(() => {
+    if (!bookingId || !user) return;
 
-    const newMessage: ChatMessage = {
-      id: 'msg-' + Date.now(),
-      bookingId: bookingId || '',
-      senderId: user.id,
-      senderRole: user.role,
-      text: inputText.trim(),
-      originalLanguage: user.language,
-      timestamp: new Date().toISOString(),
-    };
+    if (inputText.length > 0) {
+      chatService.setTyping(bookingId, user.id, `${user.firstName} ${user.lastName}`, true);
+      
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      typingTimeoutRef.current = setTimeout(() => {
+        chatService.setTyping(bookingId, user.id, `${user.firstName} ${user.lastName}`, false);
+      }, 3000);
+    } else {
+      chatService.setTyping(bookingId, user.id, `${user.firstName} ${user.lastName}`, false);
+    }
+  }, [debouncedInputText, bookingId, user, inputText.length]);
 
-    setMessages(prev => [...prev, newMessage]);
+  const handleSend = useCallback(async () => {
+    if (!inputText.trim() || !user || !bookingId) return;
+
+    const messageText = inputText.trim();
     setInputText('');
 
-    setTimeout(() => {
-      const autoReply: ChatMessage = {
-        id: 'msg-' + (Date.now() + 1),
-        bookingId: bookingId || '',
-        senderId: 'guard-1',
-        senderRole: 'guard',
-        text: 'Understood. I will be there shortly.',
-        originalLanguage: 'en',
-        translatedText: user.language !== 'en' ? 'Entendido. Estaré allí en breve.' : undefined,
-        translatedLanguage: user.language !== 'en' ? user.language : undefined,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, autoReply]);
-    }, 2000);
-  };
+    try {
+      await chatService.sendMessage(
+        bookingId,
+        user.id,
+        user.role as 'client' | 'guard',
+        messageText,
+        user.language
+      );
+      
+      chatService.setTyping(bookingId, user.id, `${user.firstName} ${user.lastName}`, false);
+    } catch (error) {
+      console.error('[Chat] Error sending message:', error);
+      setInputText(messageText);
+    }
+  }, [inputText, user, bookingId]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -134,6 +168,23 @@ export default function BookingChatScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={[styles.messagesList, { paddingBottom: insets.bottom + 80 }]}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Loading messages...</Text>
+            </View>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No messages yet</Text>
+              <Text style={styles.emptySubtext}>Start the conversation!</Text>
+            </View>
+          )
+        }
+        ListFooterComponent={
+          typingUsers.length > 0 ? (
+            <TypingIndicatorComponent typingUsers={typingUsers} />
+          ) : null
+        }
       />
 
       <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 8 }]}>
@@ -155,6 +206,54 @@ export default function BookingChatScreen() {
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+  );
+}
+
+function TypingIndicatorComponent({ typingUsers }: { typingUsers: TypingIndicator[] }) {
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animate = (dot: Animated.Value, delay: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, {
+            toValue: -8,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
+
+    animate(dot1, 0);
+    animate(dot2, 150);
+    animate(dot3, 300);
+  }, [dot1, dot2, dot3]);
+
+  const userName = typingUsers[0]?.userName || 'Someone';
+  const displayText = typingUsers.length === 1
+    ? `${userName} is typing`
+    : `${typingUsers.length} people are typing`;
+
+  return (
+    <View style={styles.typingContainer}>
+      <View style={styles.typingBubble}>
+        <Text style={styles.typingText}>{displayText}</Text>
+        <View style={styles.typingDots}>
+          <Animated.View style={[styles.typingDot, { transform: [{ translateY: dot1 }] }]} />
+          <Animated.View style={[styles.typingDot, { transform: [{ translateY: dot2 }] }]} />
+          <Animated.View style={[styles.typingDot, { transform: [{ translateY: dot3 }] }]} />
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -281,5 +380,51 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: Colors.surface,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+  },
+  typingContainer: {
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  typingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderBottomLeftRadius: 4,
+  },
+  typingText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontStyle: 'italic' as const,
+  },
+  typingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  typingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.textTertiary,
   },
 });

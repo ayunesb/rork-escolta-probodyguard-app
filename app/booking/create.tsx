@@ -58,6 +58,7 @@ export default function CreateBookingScreen() {
   const [showRouteBuilder, setShowRouteBuilder] = useState<boolean>(false);
   const [newStopAddress, setNewStopAddress] = useState<string>('');
   const [showPayment, setShowPayment] = useState<boolean>(false);
+  const [tempBookingId, setTempBookingId] = useState<string>('');
   const { user } = useAuth();
 
   const handleDateChange = useCallback((event: any, selectedDate?: Date) => {
@@ -103,24 +104,20 @@ export default function CreateBookingScreen() {
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!pickupAddress) {
       Alert.alert('Missing Information', 'Please enter a pickup address');
       return;
     }
 
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (!user?.id) {
+      Alert.alert('Error', 'You must be logged in to book');
+      return;
     }
-    setShowPayment(true);
-  };
 
-  const handlePaymentSuccess = async (transactionId: string) => {
     try {
-      console.log('[Booking] Payment successful:', transactionId);
-
       const booking = await bookingService.createBooking({
-        clientId: user?.id || '',
+        clientId: user.id,
         guardId: guardId,
         vehicleType,
         protectionType,
@@ -141,12 +138,26 @@ export default function CreateBookingScreen() {
         guardPayout: breakdown.guardPayout,
       });
 
-      setShowPayment(false);
+      setTempBookingId(booking.id);
 
-      router.replace(`/booking/${booking.id}` as any);
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+      setShowPayment(true);
     } catch (error) {
       console.error('[Booking] Error creating booking:', error);
       Alert.alert('Error', 'Failed to create booking. Please try again.');
+    }
+  };
+
+  const handlePaymentSuccess = async (transactionId: string) => {
+    try {
+      console.log('[Booking] Payment successful:', transactionId);
+      setShowPayment(false);
+      router.replace(`/booking/${tempBookingId}` as any);
+    } catch (error) {
+      console.error('[Booking] Error after payment:', error);
+      Alert.alert('Error', 'Payment succeeded but navigation failed.');
     }
   };
 
@@ -521,13 +532,17 @@ export default function CreateBookingScreen() {
         </TouchableOpacity>
       </View>
 
-      <PaymentSheet
-        visible={showPayment}
-        amount={breakdown.total}
-        breakdown={breakdown}
-        onSuccess={handlePaymentSuccess}
-        onCancel={() => setShowPayment(false)}
-      />
+      {user?.id && tempBookingId && (
+        <PaymentSheet
+          visible={showPayment}
+          amount={breakdown.total}
+          breakdown={breakdown}
+          userId={user.id}
+          bookingId={tempBookingId}
+          onSuccess={handlePaymentSuccess}
+          onCancel={() => setShowPayment(false)}
+        />
+      )}
     </View>
   );
 }

@@ -1,0 +1,64 @@
+{
+  "rules": {
+    "guardLocations": {
+      "$guardId": {
+        ".read": "auth != null && (
+          root.child('bookings').child($bookingId).child('guardId').val() === $guardId && (
+            root.child('bookings').child($bookingId).child('clientId').val() === auth.uid ||
+            root.child('bookings').child($bookingId).child('guardId').val() === auth.uid
+          ) && (
+            root.child('bookings').child($bookingId).child('status').val() === 'active' ||
+            (
+              (root.child('bookings').child($bookingId).child('status').val() === 'accepted' ||
+               root.child('bookings').child($bookingId).child('status').val() === 'en_route') &&
+              (
+                root.child('bookings').child($bookingId).child('bookingType').val() === 'scheduled' ||
+                root.child('bookings').child($bookingId).child('bookingType').val() === 'cross-city'
+              ) &&
+              now >= root.child('bookings').child($bookingId).child('scheduledDateTime').val() - 600000
+            )
+          )
+        )",
+        ".write": "auth != null && $guardId === auth.uid"
+      }
+    },
+    "bookings": {
+      "$bookingId": {
+        ".read": "auth != null && (
+          data.child('clientId').val() === auth.uid ||
+          data.child('guardId').val() === auth.uid ||
+          root.child('users').child(auth.uid).child('role').val() === 'admin' ||
+          (
+            root.child('users').child(auth.uid).child('role').val() === 'company' &&
+            root.child('users').child(data.child('guardId').val()).child('companyId').val() === auth.uid
+          )
+        )",
+        ".write": "auth != null && (
+          data.child('clientId').val() === auth.uid ||
+          data.child('guardId').val() === auth.uid ||
+          root.child('users').child(auth.uid).child('role').val() === 'admin' ||
+          (
+            root.child('users').child(auth.uid).child('role').val() === 'company' &&
+            root.child('users').child(data.child('guardId').val()).child('companyId').val() === auth.uid
+          )
+        )"
+      }
+    },
+    "users": {
+      "$userId": {
+        ".read": "auth != null && (
+          $userId === auth.uid ||
+          root.child('users').child(auth.uid).child('role').val() === 'admin' ||
+          (
+            root.child('users').child(auth.uid).child('role').val() === 'company' &&
+            data.child('companyId').val() === auth.uid
+          )
+        )",
+        ".write": "auth != null && (
+          $userId === auth.uid ||
+          root.child('users').child(auth.uid).child('role').val() === 'admin'
+        )"
+      }
+    }
+  }
+}

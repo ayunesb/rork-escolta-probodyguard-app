@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Booking, BookingStatus } from '@/types';
+import { Booking, BookingStatus, BookingType } from '@/types';
 import { ref, set, onValue, off, update } from 'firebase/database';
 import { realtimeDb } from '@/config/firebase';
 import { notificationService } from './notificationService';
@@ -13,11 +13,56 @@ function generateStartCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+function determineBookingType(
+  scheduledDate: string,
+  scheduledTime: string,
+  pickupCity?: string,
+  destinationCity?: string
+): BookingType {
+  const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+  const now = new Date();
+  const minutesUntilStart = (scheduledDateTime.getTime() - now.getTime()) / (1000 * 60);
+  
+  if (pickupCity && destinationCity && pickupCity.toLowerCase() !== destinationCity.toLowerCase()) {
+    return 'cross-city';
+  }
+  
+  if (minutesUntilStart <= 30) {
+    return 'instant';
+  }
+  
+  return 'scheduled';
+}
+
+function shouldShowGuardLocationByRule(booking: Booking): boolean {
+  if (booking.status === 'active') {
+    return true;
+  }
+  
+  if (booking.status !== 'accepted' && booking.status !== 'en_route') {
+    return false;
+  }
+  
+  const scheduledDateTime = new Date(`${booking.scheduledDate}T${booking.scheduledTime}`);
+  const now = new Date();
+  const minutesUntilStart = (scheduledDateTime.getTime() - now.getTime()) / (1000 * 60);
+  
+  if (booking.bookingType === 'instant') {
+    return false;
+  }
+  
+  if (booking.bookingType === 'scheduled' || booking.bookingType === 'cross-city') {
+    return minutesUntilStart <= 10;
+  }
+  
+  return false;
+}
+
 export const bookingService = {
   subscribeToBookings(callback: BookingListener): () => void {
     const bookingsRef = ref(realtimeDb, 'bookings');
     
-    const listener = onValue(bookingsRef, async (snapshot) => {
+    onValue(bookingsRef, async (snapshot) => {
       try {
         const data = snapshot.val();
         const bookings: Booking[] = data ? Object.values(data) : [];
@@ -39,7 +84,7 @@ export const bookingService = {
   subscribeToGuardBookings(guardId: string, callback: BookingListener): () => void {
     const bookingsRef = ref(realtimeDb, 'bookings');
     
-    const listener = onValue(bookingsRef, async (snapshot) => {
+    onValue(bookingsRef, async (snapshot) => {
       try {
         const data = snapshot.val();
         const allBookings: Booking[] = data ? Object.values(data) : [];
@@ -60,7 +105,7 @@ export const bookingService = {
       console.log('[Booking] Unsubscribed from guard real-time updates');
     };
   },
-  async createBooking(bookingData: Omit<Booking, 'id' | 'createdAt' | 'startCode' | 'status'>): Promise<Booking> {
+  async createBooking(bookingData: Omit<Booking, 'id' | 'createdAt' | 'startCode' | 'status' | 'bookingType'>): Promise<Booking> {
     try {
       const rateLimitCheck = await rateLimitService.checkRateLimit('booking', bookingData.clientId);
       if (!rateLimitCheck.allowed) {
@@ -69,13 +114,23 @@ export const bookingService = {
         throw new Error(errorMessage);
       }
       
+      const bookingType = determineBookingType(
+        bookingData.scheduledDate,
+        bookingData.scheduledTime,
+        bookingData.pickupCity,
+        bookingData.destinationCity
+      );
+      
       const booking: Booking = {
         ...bookingData,
         id: 'booking_' + Date.now(),
         status: 'pending',
+        bookingType,
         startCode: generateStartCode(),
         createdAt: new Date().toISOString(),
       };
+      
+      console.log('[Booking] Created booking type:', bookingType, 'scheduled:', `${bookingData.scheduledDate}T${bookingData.scheduledTime}`);
 
       const bookings = await this.getAllBookings();
       bookings.push(booking);
@@ -298,19 +353,26 @@ export const bookingService = {
   },
 
   shouldShowGuardLocation(booking: Booking): boolean {
-    if (booking.status === 'active') {
-      return true;
+    return shouldShowGuardLocationByRule(booking);
+  },
+  
+  getMinutesUntilStart(booking: Booking): number {
+    const scheduledDateTime = new Date(`${booking.scheduledDate}T${booking.scheduledTime}`);
+    const now = new Date();
+    return (scheduledDateTime.getTime() - now.getTime()) / (1000 * 60);
+  },
+  
+  getBookingTypeLabel(bookingType: BookingType): string {
+    switch (bookingType) {
+      case 'instant':
+        return 'Instant Booking';
+      case 'scheduled':
+        return 'Scheduled Booking';
+      case 'cross-city':
+        return 'Cross-City Booking';
+      default:
+        return 'Booking';
     }
-
-    if (booking.status === 'en_route' || booking.status === 'accepted') {
-      const scheduledTime = new Date(`${booking.scheduledDate}T${booking.scheduledTime}`);
-      const now = new Date();
-      const minutesUntilStart = (scheduledTime.getTime() - now.getTime()) / (1000 * 60);
-      
-      return minutesUntilStart <= 10;
-    }
-
-    return false;
   },
 
   async acceptBooking(bookingId: string, guardId: string): Promise<void> {

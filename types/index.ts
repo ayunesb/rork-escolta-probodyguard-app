@@ -86,12 +86,15 @@ export interface RouteStop {
   order: number;
 }
 
+export type BookingType = 'instant' | 'scheduled' | 'cross-city';
+
 export interface Booking {
   id: string;
   clientId: string;
   guardId?: string;
   companyId?: string;
   status: BookingStatus;
+  bookingType: BookingType;
   vehicleType: VehicleType;
   protectionType: ProtectionType;
   dressCode: DressCode;
@@ -103,9 +106,11 @@ export interface Booking {
   pickupAddress: string;
   pickupLatitude: number;
   pickupLongitude: number;
+  pickupCity?: string;
   destinationAddress?: string;
   destinationLatitude?: number;
   destinationLongitude?: number;
+  destinationCity?: string;
   routeStops?: RouteStop[];
   startCode: string;
   totalAmount: number;

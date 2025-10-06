@@ -34,7 +34,7 @@ app.post('/client-token', async (req: Request, res: Response) => {
 
 app.post('/process', async (req: Request, res: Response) => {
   try {
-    const { nonce, amount, bookingId, userId, saveCard, currency } = req.body;
+    const { nonce, amount, saveCard } = req.body;
     
     const saleRequest: braintree.TransactionRequest = {
       amount: amount.toString(),
@@ -42,10 +42,9 @@ app.post('/process', async (req: Request, res: Response) => {
       options: {
         submitForSettlement: true,
       },
-      merchantAccountId: undefined,
     };
     
-    if (saveCard) {
+    if (saveCard && saleRequest.options) {
       saleRequest.options.storeInVaultOnSuccess = true;
     }
     
@@ -154,7 +153,7 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (context: any) => {
+export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (_context) => {
   console.log('[ProcessPayouts] Starting weekly payout processing');
   
   try {
@@ -206,7 +205,7 @@ export const processPayouts = functions.pubsub.schedule('every monday 09:00').on
   }
 });
 
-export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: any) => {
+export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
@@ -254,7 +253,7 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (context: any) => {
+export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (_context) => {
   console.log('[RecordUsageMetrics] Recording daily usage metrics');
   
   try {

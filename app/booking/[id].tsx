@@ -168,6 +168,41 @@ export default function BookingDetailScreen() {
     );
   };
 
+  const handleCancelBooking = async () => {
+    if (!booking || !user) return;
+    
+    Alert.prompt(
+      'Cancel Booking',
+      'Please provide a reason for cancellation:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm Cancellation',
+          style: 'destructive',
+          onPress: async (reason) => {
+            if (!reason?.trim()) {
+              Alert.alert('Error', 'Please provide a reason for cancellation.');
+              return;
+            }
+            try {
+              await bookingService.cancelBooking(
+                booking.id,
+                user.role === 'client' ? 'client' : 'guard',
+                reason
+              );
+              Alert.alert('Booking Cancelled', 'The booking has been cancelled successfully.');
+              router.back();
+            } catch (error: any) {
+              console.error('[BookingDetail] Error cancelling booking:', error);
+              Alert.alert('Error', error.message || 'Failed to cancel booking. Please try again.');
+            }
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
   if (!booking) {
     return (
       <View style={styles.container}>
@@ -338,6 +373,13 @@ export default function BookingDetailScreen() {
             <TouchableOpacity style={styles.trackButton} onPress={handleTrackGuard}>
               <Navigation size={20} color={Colors.background} />
               <Text style={styles.trackButtonText}>Track Guard Location</Text>
+            </TouchableOpacity>
+          )}
+
+          {(booking.status === 'pending' || booking.status === 'accepted') && (
+            <TouchableOpacity style={styles.cancelBookingButton} onPress={handleCancelBooking}>
+              <X size={20} color={Colors.error} />
+              <Text style={styles.cancelBookingText}>Cancel Booking</Text>
             </TouchableOpacity>
           )}
 
@@ -840,5 +882,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700' as const,
     color: Colors.background,
+  },
+  cancelBookingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: Colors.error,
+  },
+  cancelBookingText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.error,
   },
 });

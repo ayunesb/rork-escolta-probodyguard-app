@@ -106,6 +106,9 @@ export interface Booking {
   rejectionReason?: string;
   startedAt?: string;
   completedAt?: string;
+  cancelledAt?: string;
+  cancelledBy?: 'client' | 'guard';
+  cancellationReason?: string;
   rating?: number;
   ratingBreakdown?: RatingBreakdown;
   review?: string;

@@ -349,6 +349,48 @@ export const bookingService = {
     }
   },
 
+  async cancelBooking(bookingId: string, cancelledBy: 'client' | 'guard', reason: string): Promise<void> {
+    try {
+      const bookings = await this.getAllBookings();
+      const index = bookings.findIndex(b => b.id === bookingId);
+      
+      if (index !== -1) {
+        const booking = bookings[index];
+        
+        if (booking.status === 'completed' || booking.status === 'cancelled') {
+          throw new Error('Cannot cancel a completed or already cancelled booking');
+        }
+        
+        bookings[index].status = 'cancelled';
+        bookings[index].cancelledAt = new Date().toISOString();
+        bookings[index].cancelledBy = cancelledBy;
+        bookings[index].cancellationReason = reason;
+        
+        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+
+        try {
+          const bookingRef = ref(realtimeDb, `bookings/${bookingId}`);
+          await update(bookingRef, bookings[index]);
+          console.log('[Booking] Synced cancellation to Firebase');
+
+          await notificationService.notifyBookingStatusChange(
+            bookingId,
+            'cancelled',
+            cancelledBy === 'client' ? 'Client' : 'Guard',
+            reason
+          );
+        } catch (firebaseError) {
+          console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+        }
+        
+        console.log('[Booking] Cancelled booking:', bookingId, 'by:', cancelledBy);
+      }
+    } catch (error) {
+      console.error('[Booking] Error cancelling booking:', error);
+      throw error;
+    }
+  },
+
   async getPendingBookingsForGuard(guardId: string): Promise<Booking[]> {
     try {
       const bookings = await this.getAllBookings();

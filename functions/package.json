@@ -12,6 +12,7 @@
     "node": "18"
   },
   "dependencies": {
+    "@trpc/react-query": "^11.6.0",
     "braintree": "^3.33.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",

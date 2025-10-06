@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as express from 'express';
-import * as cors from 'cors';
+import express, { Request, Response } from 'express';
+import cors from 'cors';
 import * as braintree from 'braintree';
 
 admin.initializeApp();
@@ -17,7 +17,7 @@ const gateway = new braintree.BraintreeGateway({
   privateKey: functions.config().braintree?.private_key || '',
 });
 
-app.post('/client-token', async (req, res) => {
+app.post('/client-token', async (req: Request, res: Response) => {
   try {
     const { userId } = req.body;
     
@@ -32,20 +32,17 @@ app.post('/client-token', async (req, res) => {
   }
 });
 
-app.post('/process', async (req, res) => {
+app.post('/process', async (req: Request, res: Response) => {
   try {
     const { nonce, amount, bookingId, userId, saveCard, currency } = req.body;
     
-    const saleRequest: any = {
+    const saleRequest: braintree.TransactionRequest = {
       amount: amount.toString(),
       paymentMethodNonce: nonce,
       options: {
         submitForSettlement: true,
       },
-      customFields: {
-        booking_id: bookingId,
-        user_id: userId,
-      },
+      merchantAccountId: undefined,
     };
     
     if (saveCard) {
@@ -71,7 +68,7 @@ app.post('/process', async (req, res) => {
   }
 });
 
-app.post('/refund', async (req, res) => {
+app.post('/refund', async (req: Request, res: Response) => {
   try {
     const { transactionId, amount } = req.body;
     
@@ -97,13 +94,13 @@ app.post('/refund', async (req, res) => {
   }
 });
 
-app.get('/methods/:userId', async (req, res) => {
+app.get('/methods/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     
     const customer = await gateway.customer.find(userId);
     
-    const paymentMethods = customer.paymentMethods?.map((method: any) => ({
+    const paymentMethods = customer.paymentMethods?.map((method: braintree.CreditCard | braintree.PayPalAccount) => ({
       token: method.token,
       last4: method.last4,
       cardType: method.cardType,
@@ -118,7 +115,7 @@ app.get('/methods/:userId', async (req, res) => {
   }
 });
 
-app.delete('/methods/:userId/:token', async (req, res) => {
+app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
   try {
     const { token } = req.params;
     
@@ -133,7 +130,7 @@ app.delete('/methods/:userId/:token', async (req, res) => {
 
 export const payments = functions.https.onRequest(app);
 
-export const handlePaymentWebhook = functions.https.onRequest(async (req, res) => {
+export const handlePaymentWebhook = functions.https.onRequest(async (req: functions.https.Request, res: express.Response) => {
   try {
     const { bt_signature, bt_payload } = req.body;
     
@@ -157,7 +154,7 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req, res) =
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (context) => {
+export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (context: functions.EventContext) => {
   console.log('[ProcessPayouts] Starting weekly payout processing');
   
   try {
@@ -209,7 +206,7 @@ export const processPayouts = functions.pubsub.schedule('every monday 09:00').on
   }
 });
 
-export const generateInvoice = functions.https.onCall(async (data, context) => {
+export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
@@ -257,7 +254,7 @@ export const generateInvoice = functions.https.onCall(async (data, context) => {
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (context) => {
+export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (context: functions.EventContext) => {
   console.log('[RecordUsageMetrics] Recording daily usage metrics');
   
   try {

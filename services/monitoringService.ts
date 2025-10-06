@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { db } from '@/config/firebase';
+import { db, auth } from '@/config/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 type LogLevel = 'info' | 'warn' | 'error' | 'critical';
@@ -61,6 +61,11 @@ class MonitoringService {
   async flush(): Promise<void> {
     if (!this.enabled || this.logBuffer.length === 0) return;
 
+    if (!auth.currentUser) {
+      this.logBuffer = [];
+      return;
+    }
+
     const logsToFlush = [...this.logBuffer];
     this.logBuffer = [];
 
@@ -69,7 +74,7 @@ class MonitoringService {
         level: entry.level,
         message: entry.message,
         context: entry.context || {},
-        userId: entry.userId || null,
+        userId: entry.userId || auth.currentUser?.uid || null,
         timestamp: Timestamp.fromDate(entry.timestamp),
         platform: entry.platform,
       }));
@@ -78,9 +83,13 @@ class MonitoringService {
         await addDoc(collection(db, 'logs'), log);
       }
 
-      console.log(`[Monitoring] Flushed ${batch.length} logs`);
+      if (__DEV__) {
+        console.log(`[Monitoring] Flushed ${batch.length} logs`);
+      }
     } catch (error) {
-      console.error('[Monitoring] Failed to flush logs:', error);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to flush logs:', error);
+      }
       this.logBuffer.unshift(...logsToFlush);
     }
   }
@@ -88,12 +97,16 @@ class MonitoringService {
   async reportError(report: ErrorReport): Promise<void> {
     const { error, context, userId, fatal = false } = report;
 
+    if (!auth.currentUser) {
+      return;
+    }
+
     const errorData = {
       name: error.name,
       message: error.message,
       stack: error.stack || '',
       context: context || {},
-      userId: userId || null,
+      userId: userId || auth.currentUser.uid,
       fatal,
       timestamp: Timestamp.now(),
       platform: Platform.OS,
@@ -101,34 +114,50 @@ class MonitoringService {
 
     try {
       await addDoc(collection(db, 'errors'), errorData);
-      console.log('[Monitoring] Error reported:', error.message);
+      if (__DEV__) {
+        console.log('[Monitoring] Error reported:', error.message);
+      }
     } catch (err) {
-      console.error('[Monitoring] Failed to report error:', err);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to report error:', err);
+      }
     }
 
     await this.log(fatal ? 'critical' : 'error', error.message, {
       ...context,
       stack: error.stack,
-    }, userId);
+    }, userId || auth.currentUser.uid);
   }
 
   async trackEvent(eventName: string, properties?: Record<string, any>, userId?: string): Promise<void> {
+    if (!auth.currentUser) {
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'analytics'), {
         eventName,
         properties: properties || {},
-        userId: userId || null,
+        userId: userId || auth.currentUser.uid,
         timestamp: Timestamp.now(),
         platform: Platform.OS,
       });
 
-      console.log('[Monitoring] Event tracked:', eventName);
+      if (__DEV__) {
+        console.log('[Monitoring] Event tracked:', eventName);
+      }
     } catch (error) {
-      console.error('[Monitoring] Failed to track event:', error);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to track event:', error);
+      }
     }
   }
 
   async trackPerformance(metric: string, value: number, context?: Record<string, any>): Promise<void> {
+    if (!auth.currentUser) {
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'performance'), {
         metric,
@@ -138,9 +167,13 @@ class MonitoringService {
         platform: Platform.OS,
       });
 
-      console.log(`[Monitoring] Performance tracked: ${metric} = ${value}`);
+      if (__DEV__) {
+        console.log(`[Monitoring] Performance tracked: ${metric} = ${value}`);
+      }
     } catch (error) {
-      console.error('[Monitoring] Failed to track performance:', error);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to track performance:', error);
+      }
     }
   }
 

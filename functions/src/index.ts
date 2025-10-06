@@ -205,8 +205,8 @@ export const processPayouts = functions.pubsub.schedule('every monday 09:00').on
   }
 });
 
-export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
-  if (!context.auth) {
+export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, _context: functions.https.CallableContext) => {
+  if (!_context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
   

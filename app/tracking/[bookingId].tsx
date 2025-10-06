@@ -16,11 +16,13 @@ import {
   Phone,
   MessageCircle,
   Shield,
+  AlertCircle,
 } from 'lucide-react-native';
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
 import { bookingService } from '@/services/bookingService';
+import { Booking } from '@/types';
 import Colors from '@/constants/colors';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
 import PanicButton from '@/components/PanicButton';
@@ -43,7 +45,7 @@ export default function TrackingScreen() {
     requestLocationPermission,
   } = useLocationTracking();
 
-  const [booking, setBooking] = useState<any>(null);
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [guardId] = useState<string>('guard-1');
   const [showStartCodeModal, setShowStartCodeModal] = useState(false);
   const guard = mockGuards.find((g) => g.id === guardId);
@@ -60,21 +62,36 @@ export default function TrackingScreen() {
 
   const shouldShowGuardLocation = useMemo(() => {
     if (!booking) return false;
+    return bookingService.shouldShowGuardLocation(booking);
+  }, [booking]);
+  
+  const minutesUntilStart = useMemo(() => {
+    if (!booking) return null;
+    return bookingService.getMinutesUntilStart(booking);
+  }, [booking]);
+  
+  const trackingMessage = useMemo(() => {
+    if (!booking) return null;
     
-    const now = new Date();
-    const scheduledDateTime = new Date(`${booking.scheduledDate}T${booking.scheduledTime}`);
-    const minutesUntilStart = (scheduledDateTime.getTime() - now.getTime()) / (1000 * 60);
-    
-    const isInstantBooking = minutesUntilStart <= 0;
-    const isWithinT10 = minutesUntilStart <= 10;
-    const hasStarted = booking.status === 'active';
-    
-    if (isInstantBooking) {
-      return hasStarted;
+    if (booking.status === 'active') {
+      return 'Service is active - Live tracking enabled';
     }
     
-    return isWithinT10 || hasStarted;
-  }, [booking]);
+    if (booking.bookingType === 'instant') {
+      return 'For instant bookings, guard location will be visible after you enter the start code';
+    }
+    
+    if (minutesUntilStart !== null && minutesUntilStart > 10) {
+      const minutesRounded = Math.ceil(minutesUntilStart);
+      return `Guard location will be visible ${minutesRounded - 10} minutes before scheduled time (T-10 rule)`;
+    }
+    
+    if (minutesUntilStart !== null && minutesUntilStart <= 10 && minutesUntilStart > 0) {
+      return 'Guard is en route - Live tracking enabled';
+    }
+    
+    return 'Waiting for service to begin';
+  }, [booking, minutesUntilStart]);
 
   useEffect(() => {
     if (!hasPermission) {
@@ -225,12 +242,25 @@ export default function TrackingScreen() {
           </View>
         </View>
 
-        {!shouldShowGuardLocation && (
+        {!shouldShowGuardLocation && trackingMessage && (
           <View style={styles.waitingCard}>
-            <Clock size={24} color={Colors.gold} />
+            <AlertCircle size={24} color={Colors.gold} />
             <Text style={styles.waitingText}>
-              Guard location will be visible 10 minutes before scheduled time
+              {trackingMessage}
             </Text>
+          </View>
+        )}
+        
+        {booking && (
+          <View style={styles.bookingTypeCard}>
+            <Text style={styles.bookingTypeLabel}>
+              {bookingService.getBookingTypeLabel(booking.bookingType)}
+            </Text>
+            {minutesUntilStart !== null && minutesUntilStart > 0 && (
+              <Text style={styles.bookingTypeTime}>
+                Starts in {Math.ceil(minutesUntilStart)} minutes
+              </Text>
+            )}
           </View>
         )}
 
@@ -432,6 +462,24 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.gold,
     lineHeight: 20,
+  },
+  bookingTypeCard: {
+    backgroundColor: Colors.background,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  bookingTypeLabel: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  bookingTypeTime: {
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
   startButton: {
     backgroundColor: Colors.gold,

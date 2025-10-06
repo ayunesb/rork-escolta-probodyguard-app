@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  sendEmailVerification,
+  reload,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { notificationService } from '@/services/notificationService';
@@ -49,7 +51,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     return () => unsubscribe();
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string; emailNotVerified?: boolean }> => {
     try {
       console.log('[Auth] Signing in:', email);
       
@@ -62,6 +64,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('[Auth] Sign in successful:', userCredential.user.uid);
+      
+      if (!userCredential.user.emailVerified) {
+        console.log('[Auth] Email not verified');
+        await firebaseSignOut(auth);
+        return { success: false, error: 'Please verify your email before signing in', emailNotVerified: true };
+      }
       
       await rateLimitService.resetRateLimit('login', email);
       await monitoringService.trackEvent('user_login', { email, userId: userCredential.user.uid }, userCredential.user.uid);
@@ -93,12 +101,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     lastName: string,
     phone: string,
     role: UserRole
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string; needsVerification?: boolean }> => {
     try {
       console.log('[Auth] Signing up:', email, role);
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
+      
+      await sendEmailVerification(userCredential.user);
+      console.log('[Auth] Verification email sent to:', email);
       
       const userData: Omit<User, 'id'> = {
         email,
@@ -115,7 +126,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('[Auth] User document created:', userId);
       await monitoringService.trackEvent('user_signup', { email, role, userId }, userId);
       
-      return { success: true };
+      await firebaseSignOut(auth);
+      
+      return { success: true, needsVerification: true };
     } catch (error: any) {
       console.error('[Auth] Sign up error:', error);
       await monitoringService.reportError({ error, context: { action: 'signUp', email, role } });
@@ -155,6 +168,27 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     }
   }, [user]);
 
+  const resendVerificationEmail = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      if (!auth.currentUser) {
+        return { success: false, error: 'No user signed in' };
+      }
+      
+      await reload(auth.currentUser);
+      
+      if (auth.currentUser.emailVerified) {
+        return { success: false, error: 'Email already verified' };
+      }
+      
+      await sendEmailVerification(auth.currentUser);
+      console.log('[Auth] Verification email resent');
+      return { success: true };
+    } catch (error: any) {
+      console.error('[Auth] Resend verification error:', error);
+      return { success: false, error: 'Failed to resend verification email' };
+    }
+  }, []);
+
   return useMemo(() => ({
     user,
     isLoading,
@@ -162,5 +196,6 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     signUp,
     signOut,
     updateUser,
-  }), [user, isLoading, signIn, signUp, signOut, updateUser]);
+    resendVerificationEmail,
+  }), [user, isLoading, signIn, signUp, signOut, updateUser, resendVerificationEmail]);
 });

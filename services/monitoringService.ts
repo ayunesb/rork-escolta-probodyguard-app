@@ -62,9 +62,6 @@ class MonitoringService {
     if (!this.enabled || this.logBuffer.length === 0) return;
 
     if (!auth.currentUser) {
-      if (__DEV__) {
-        console.log('[Monitoring] Skipping log flush (not authenticated)');
-      }
       this.logBuffer = [];
       return;
     }
@@ -86,9 +83,13 @@ class MonitoringService {
         await addDoc(collection(db, 'logs'), log);
       }
 
-      console.log(`[Monitoring] Flushed ${batch.length} logs`);
+      if (__DEV__) {
+        console.log(`[Monitoring] Flushed ${batch.length} logs`);
+      }
     } catch (error) {
-      console.error('[Monitoring] Failed to flush logs:', error);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to flush logs:', error);
+      }
       this.logBuffer.unshift(...logsToFlush);
     }
   }
@@ -97,9 +98,6 @@ class MonitoringService {
     const { error, context, userId, fatal = false } = report;
 
     if (!auth.currentUser) {
-      if (__DEV__) {
-        console.log('[Monitoring] Skipping error reporting (not authenticated):', error.message);
-      }
       return;
     }
 
@@ -116,9 +114,13 @@ class MonitoringService {
 
     try {
       await addDoc(collection(db, 'errors'), errorData);
-      console.log('[Monitoring] Error reported:', error.message);
+      if (__DEV__) {
+        console.log('[Monitoring] Error reported:', error.message);
+      }
     } catch (err) {
-      console.error('[Monitoring] Failed to report error:', err);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to report error:', err);
+      }
     }
 
     await this.log(fatal ? 'critical' : 'error', error.message, {
@@ -129,9 +131,6 @@ class MonitoringService {
 
   async trackEvent(eventName: string, properties?: Record<string, any>, userId?: string): Promise<void> {
     if (!auth.currentUser) {
-      if (__DEV__) {
-        console.log('[Monitoring] Skipping event tracking (not authenticated):', eventName);
-      }
       return;
     }
 
@@ -144,17 +143,18 @@ class MonitoringService {
         platform: Platform.OS,
       });
 
-      console.log('[Monitoring] Event tracked:', eventName);
+      if (__DEV__) {
+        console.log('[Monitoring] Event tracked:', eventName);
+      }
     } catch (error) {
-      console.error('[Monitoring] Failed to track event:', error);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to track event:', error);
+      }
     }
   }
 
   async trackPerformance(metric: string, value: number, context?: Record<string, any>): Promise<void> {
     if (!auth.currentUser) {
-      if (__DEV__) {
-        console.log('[Monitoring] Skipping performance tracking (not authenticated):', metric);
-      }
       return;
     }
 
@@ -167,9 +167,13 @@ class MonitoringService {
         platform: Platform.OS,
       });
 
-      console.log(`[Monitoring] Performance tracked: ${metric} = ${value}`);
+      if (__DEV__) {
+        console.log(`[Monitoring] Performance tracked: ${metric} = ${value}`);
+      }
     } catch (error) {
-      console.error('[Monitoring] Failed to track performance:', error);
+      if (__DEV__) {
+        console.error('[Monitoring] Failed to track performance:', error);
+      }
     }
   }
 

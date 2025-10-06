@@ -36,11 +36,40 @@ class MonitoringService {
     }, 30000);
   }
 
+  private sanitizePII(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const sensitiveKeys = [
+      'password', 'token', 'apiKey', 'secret', 'creditCard', 'cardNumber',
+      'cvv', 'ssn', 'taxId', 'email', 'phone', 'address', 'location',
+      'latitude', 'longitude', 'lat', 'lng', 'coordinates'
+    ];
+
+    const sanitized: any = Array.isArray(data) ? [] : {};
+
+    for (const key in data) {
+      const lowerKey = key.toLowerCase();
+      const isSensitive = sensitiveKeys.some(sk => lowerKey.includes(sk));
+
+      if (isSensitive) {
+        sanitized[key] = '[REDACTED]';
+      } else if (typeof data[key] === 'object' && data[key] !== null) {
+        sanitized[key] = this.sanitizePII(data[key]);
+      } else {
+        sanitized[key] = data[key];
+      }
+    }
+
+    return sanitized;
+  }
+
   async log(level: LogLevel, message: string, context?: Record<string, any>, userId?: string): Promise<void> {
+    const sanitizedContext = context ? this.sanitizePII(context) : undefined;
+
     const entry: LogEntry = {
       level,
       message,
-      context,
+      context: sanitizedContext,
       userId,
       timestamp: new Date(),
       platform: Platform.OS,
@@ -54,7 +83,7 @@ class MonitoringService {
 
     if (__DEV__) {
       const logFn = level === 'error' || level === 'critical' ? console.error : console.log;
-      logFn(`[${level.toUpperCase()}] ${message}`, context || '');
+      logFn(`[${level.toUpperCase()}] ${message}`, sanitizedContext || '');
     }
   }
 
@@ -101,11 +130,13 @@ class MonitoringService {
       return;
     }
 
+    const sanitizedContext = context ? this.sanitizePII(context) : {};
+
     const errorData = {
       name: error.name,
       message: error.message,
       stack: error.stack || '',
-      context: context || {},
+      context: sanitizedContext,
       userId: userId || auth.currentUser.uid,
       fatal,
       timestamp: Timestamp.now(),
@@ -124,7 +155,7 @@ class MonitoringService {
     }
 
     await this.log(fatal ? 'critical' : 'error', error.message, {
-      ...context,
+      ...sanitizedContext,
       stack: error.stack,
     }, userId || auth.currentUser.uid);
   }
@@ -134,10 +165,12 @@ class MonitoringService {
       return;
     }
 
+    const sanitizedProperties = properties ? this.sanitizePII(properties) : {};
+
     try {
       await addDoc(collection(db, 'analytics'), {
         eventName,
-        properties: properties || {},
+        properties: sanitizedProperties,
         userId: userId || auth.currentUser.uid,
         timestamp: Timestamp.now(),
         platform: Platform.OS,

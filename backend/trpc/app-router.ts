@@ -5,6 +5,7 @@ import signUpRoute from "./routes/auth/sign-up/route";
 import getUserRoute from "./routes/auth/get-user/route";
 import createBookingRoute from "./routes/bookings/create/route";
 import listBookingsRoute from "./routes/bookings/list/route";
+import verifyStartCodeRoute from "./routes/bookings/verify-start-code/route";
 import { braintreeClientTokenProcedure } from "./routes/payments/braintree/client-token/route";
 import { braintreeCheckoutProcedure } from "./routes/payments/braintree/checkout/route";
 import { braintreeRefundProcedure } from "./routes/payments/braintree/refund/route";
@@ -23,6 +24,7 @@ export const appRouter = createTRPCRouter({
   bookings: createTRPCRouter({
     create: createBookingRoute,
     list: listBookingsRoute,
+    verifyStartCode: verifyStartCodeRoute,
   }),
   payments: createTRPCRouter({
     braintree: createTRPCRouter({

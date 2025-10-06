@@ -1,13 +1,64 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Booking, BookingStatus } from '@/types';
+import { ref, set, onValue, off, update } from 'firebase/database';
+import { realtimeDb } from '@/config/firebase';
+import { notificationService } from './notificationService';
 
 const BOOKINGS_KEY = '@escolta_bookings';
+
+type BookingListener = (bookings: Booking[]) => void;
 
 function generateStartCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 export const bookingService = {
+  subscribeToBookings(callback: BookingListener): () => void {
+    const bookingsRef = ref(realtimeDb, 'bookings');
+    
+    const listener = onValue(bookingsRef, async (snapshot) => {
+      try {
+        const data = snapshot.val();
+        const bookings: Booking[] = data ? Object.values(data) : [];
+        
+        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+        console.log('[Booking] Real-time update received:', bookings.length, 'bookings');
+        callback(bookings);
+      } catch (error) {
+        console.error('[Booking] Error processing real-time update:', error);
+      }
+    });
+
+    return () => {
+      off(bookingsRef);
+      console.log('[Booking] Unsubscribed from real-time updates');
+    };
+  },
+
+  subscribeToGuardBookings(guardId: string, callback: BookingListener): () => void {
+    const bookingsRef = ref(realtimeDb, 'bookings');
+    
+    const listener = onValue(bookingsRef, async (snapshot) => {
+      try {
+        const data = snapshot.val();
+        const allBookings: Booking[] = data ? Object.values(data) : [];
+        const guardBookings = allBookings.filter(b => 
+          (b.status === 'pending' && (!b.guardId || b.guardId === guardId)) ||
+          (b.guardId === guardId)
+        );
+        
+        console.log('[Booking] Guard real-time update:', guardBookings.length, 'bookings for guard', guardId);
+        callback(guardBookings);
+      } catch (error) {
+        console.error('[Booking] Error processing guard real-time update:', error);
+      }
+    });
+
+    return () => {
+      off(bookingsRef);
+      console.log('[Booking] Unsubscribed from guard real-time updates');
+    };
+  },
   async createBooking(bookingData: Omit<Booking, 'id' | 'createdAt' | 'startCode' | 'status'>): Promise<Booking> {
     try {
       const booking: Booking = {
@@ -21,6 +72,22 @@ export const bookingService = {
       const bookings = await this.getAllBookings();
       bookings.push(booking);
       await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+
+      try {
+        const bookingsRef = ref(realtimeDb, 'bookings');
+        const bookingsData = bookings.reduce((acc, b) => ({ ...acc, [b.id]: b }), {});
+        await set(bookingsRef, bookingsData);
+        console.log('[Booking] Synced to Firebase Realtime Database');
+
+        if (booking.guardId) {
+          await notificationService.notifyNewBookingRequest(
+            'Client',
+            booking.id
+          );
+        }
+      } catch (firebaseError) {
+        console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+      }
 
       console.log('[Booking] Created booking:', booking.id, 'guardId:', booking.guardId, 'Start code:', booking.startCode);
       return booking;
@@ -86,6 +153,22 @@ export const bookingService = {
         }
         
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+
+        try {
+          const bookingRef = ref(realtimeDb, `bookings/${id}`);
+          await update(bookingRef, bookings[index]);
+          console.log('[Booking] Synced status update to Firebase');
+
+          await notificationService.notifyBookingStatusChange(
+            id,
+            status,
+            undefined,
+            rejectionReason
+          );
+        } catch (firebaseError) {
+          console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+        }
+        
         console.log('[Booking] Updated booking status:', id, status);
       }
     } catch (error) {
@@ -187,6 +270,21 @@ export const bookingService = {
         bookings[index].acceptedAt = new Date().toISOString();
         
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+
+        try {
+          const bookingRef = ref(realtimeDb, `bookings/${bookingId}`);
+          await update(bookingRef, bookings[index]);
+          console.log('[Booking] Synced acceptance to Firebase');
+
+          await notificationService.notifyBookingStatusChange(
+            bookingId,
+            'accepted',
+            'Guard'
+          );
+        } catch (firebaseError) {
+          console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+        }
+        
         console.log('[Booking] Guard accepted booking:', bookingId);
       }
     } catch (error) {
@@ -207,6 +305,22 @@ export const bookingService = {
         bookings[index].guardId = undefined;
         
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+
+        try {
+          const bookingRef = ref(realtimeDb, `bookings/${bookingId}`);
+          await update(bookingRef, bookings[index]);
+          console.log('[Booking] Synced rejection to Firebase');
+
+          await notificationService.notifyBookingStatusChange(
+            bookingId,
+            'rejected',
+            'Guard',
+            reason
+          );
+        } catch (firebaseError) {
+          console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+        }
+        
         console.log('[Booking] Guard rejected booking:', bookingId, reason);
       }
     } catch (error) {

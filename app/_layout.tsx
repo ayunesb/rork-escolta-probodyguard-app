@@ -1,24 +1,52 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
+import { notificationService } from "@/services/notificationService";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { isLoading } = useAuth();
+  const { isLoading, user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
       SplashScreen.hideAsync();
     }
   }, [isLoading]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('[App] Initializing notifications for user:', user.id);
+    notificationService.requestPermissions();
+    notificationService.registerForPushNotifications(user.id);
+
+    const cleanup = notificationService.setupNotificationListeners(
+      (notification) => {
+        console.log('[App] Notification received:', notification);
+      },
+      (response) => {
+        console.log('[App] Notification tapped:', response);
+        const data = response.notification.request.content.data;
+        
+        if (data.type === 'booking_request' && data.bookingId) {
+          router.push(`/booking/${data.bookingId}` as any);
+        } else if (data.bookingId) {
+          router.push(`/booking/${data.bookingId}` as any);
+        }
+      }
+    );
+
+    return cleanup;
+  }, [user, router]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>

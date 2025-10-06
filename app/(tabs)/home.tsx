@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,28 +32,24 @@ export default function HomeScreen() {
 
   const availableGuards = mockGuards.filter(g => g.availability);
 
-  const loadPendingJobs = useCallback(async () => {
-    if (!user || user.role !== 'guard') return;
-    
-    try {
-      setIsLoadingJobs(true);
-      console.log('[Home] Loading pending jobs for guard:', user.id);
-      const jobs = await bookingService.getPendingBookingsForGuard(user.id);
-      console.log('[Home] Found pending jobs:', jobs.length);
-      setPendingBookings(jobs);
-    } catch (error) {
-      console.error('[Home] Error loading pending jobs:', error);
-      setPendingBookings([]);
-    } finally {
-      setIsLoadingJobs(false);
-    }
-  }, [user]);
-
   useEffect(() => {
-    if (user?.role === 'guard') {
-      loadPendingJobs();
-    }
-  }, [user, loadPendingJobs]);
+    if (!user || user.role !== 'guard') return;
+
+    console.log('[Home] Setting up real-time listener for guard:', user.id);
+    setIsLoadingJobs(true);
+
+    const unsubscribe = bookingService.subscribeToGuardBookings(user.id, (bookings) => {
+      const pending = bookings.filter(b => b.status === 'pending');
+      console.log('[Home] Real-time update - pending jobs:', pending.length);
+      setPendingBookings(pending);
+      setIsLoadingJobs(false);
+    });
+
+    return () => {
+      console.log('[Home] Cleaning up real-time listener');
+      unsubscribe();
+    };
+  }, [user]);
   
   const centerLocation = {
     latitude: 40.7580,

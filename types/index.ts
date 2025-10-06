@@ -145,9 +145,58 @@ export interface Payment {
   processingFee: number;
   platformCut: number;
   guardPayout: number;
-  status: 'pending' | 'completed' | 'refunded';
+  status: 'pending' | 'completed' | 'refunded' | 'failed';
   braintreeTransactionId: string;
+  refundId?: string;
+  refundedAt?: string;
   createdAt: string;
+}
+
+export interface Payout {
+  id: string;
+  guardId: string;
+  amount: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  bookingIds: string[];
+  braintreePayoutId?: string;
+  failureReason?: string;
+  createdAt: string;
+  processedAt?: string;
+}
+
+export interface LedgerEntry {
+  id: string;
+  guardId: string;
+  bookingId: string;
+  type: 'earning' | 'payout' | 'adjustment';
+  amount: number;
+  description: string;
+  createdAt: string;
+}
+
+export interface GuardBalance {
+  guardId: string;
+  availableBalance: number;
+  pendingBalance: number;
+  totalEarnings: number;
+  totalPayouts: number;
+  lastPayoutAt?: string;
+}
+
+export interface Transaction {
+  id: string;
+  type: 'payment' | 'refund' | 'payout';
+  amount: number;
+  currency: 'MXN';
+  status: 'pending' | 'completed' | 'failed';
+  userId: string;
+  bookingId?: string;
+  paymentId?: string;
+  payoutId?: string;
+  braintreeId: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  completedAt?: string;
 }
 
 export interface Document {

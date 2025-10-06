@@ -26,6 +26,8 @@ import {
   X,
   User,
   AlertCircle,
+  Plus,
+  Eye,
 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import Colors from '@/constants/colors';
@@ -44,6 +46,7 @@ export default function BookingDetailScreen() {
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -165,6 +168,37 @@ export default function BookingDetailScreen() {
         },
       ],
       'plain-text'
+    );
+  };
+
+  const handleExtendBooking = async (hours: number) => {
+    if (!booking || !user) return;
+
+    const newDuration = booking.duration + hours;
+    if (newDuration > 8) {
+      Alert.alert('Maximum Duration', 'Bookings cannot exceed 8 hours total.');
+      return;
+    }
+
+    Alert.alert(
+      'Extend Booking',
+      `Extend by ${hours === 0.5 ? '30 minutes' : `${hours} hour${hours > 1 ? 's' : ''}`}? Additional charge will apply.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            try {
+              await bookingService.extendBooking(booking.id, hours);
+              Alert.alert('Success', 'Booking extended successfully');
+              const updatedBooking = await bookingService.getBookingById(booking.id);
+              setBooking(updatedBooking);
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to extend booking');
+            }
+          },
+        },
+      ]
     );
   };
 
@@ -376,6 +410,36 @@ export default function BookingDetailScreen() {
             </TouchableOpacity>
           )}
 
+          {booking.status === 'active' && isClientView && (
+            <View style={styles.extendCard}>
+              <View style={styles.extendHeader}>
+                <Clock size={20} color={Colors.gold} />
+                <Text style={styles.extendTitle}>Extend Booking</Text>
+              </View>
+              <Text style={styles.extendSubtext}>
+                Current duration: {booking.duration}h (Max 8h total)
+              </Text>
+              <View style={styles.extendButtons}>
+                <TouchableOpacity
+                  style={styles.extendButton}
+                  onPress={() => handleExtendBooking(0.5)}
+                  disabled={booking.duration >= 8}
+                >
+                  <Plus size={16} color={booking.duration >= 8 ? Colors.textTertiary : Colors.gold} />
+                  <Text style={[styles.extendButtonText, booking.duration >= 8 && styles.extendButtonTextDisabled]}>+30 min</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.extendButton}
+                  onPress={() => handleExtendBooking(1)}
+                  disabled={booking.duration >= 8}
+                >
+                  <Plus size={16} color={booking.duration >= 8 ? Colors.textTertiary : Colors.gold} />
+                  <Text style={[styles.extendButtonText, booking.duration >= 8 && styles.extendButtonTextDisabled]}>+1 hour</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {(booking.status === 'pending' || booking.status === 'accepted') && (
             <TouchableOpacity style={styles.cancelBookingButton} onPress={handleCancelBooking}>
               <X size={20} color={Colors.error} />
@@ -416,7 +480,9 @@ export default function BookingDetailScreen() {
               ) : (
                 messages.map((msg) => {
                   const isOwnMessage = msg.senderId === user?.id;
-                  const displayText = msg.translatedText || msg.text;
+                  const showingOriginal = showOriginal[msg.id];
+                  const displayText = showingOriginal ? msg.text : (msg.translatedText || msg.text);
+                  const hasTranslation = !!msg.translatedText;
                   
                   return (
                     <View
@@ -434,15 +500,21 @@ export default function BookingDetailScreen() {
                       >
                         {displayText}
                       </Text>
-                      {msg.translatedText && (
-                        <Text
-                          style={[
-                            styles.originalText,
-                            isOwnMessage ? styles.messageTimeClient : styles.messageTimeGuard,
-                          ]}
+                      {hasTranslation && (
+                        <TouchableOpacity
+                          style={styles.viewOriginalButton}
+                          onPress={() => setShowOriginal(prev => ({ ...prev, [msg.id]: !prev[msg.id] }))}
                         >
-                          Original: {msg.text}
-                        </Text>
+                          <Eye size={12} color={isOwnMessage ? Colors.background : Colors.gold} />
+                          <Text
+                            style={[
+                              styles.viewOriginalText,
+                              isOwnMessage ? styles.messageTimeClient : { color: Colors.gold },
+                            ]}
+                          >
+                            {showingOriginal ? `Translated from ${msg.originalLanguage.toUpperCase()}` : 'View Original'}
+                          </Text>
+                        </TouchableOpacity>
                       )}
                       <Text
                         style={[
@@ -734,10 +806,16 @@ const styles = StyleSheet.create({
   messageTimeGuard: {
     color: Colors.textSecondary,
   },
-  originalText: {
+  viewOriginalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+    marginBottom: 2,
+  },
+  viewOriginalText: {
     fontSize: 11,
-    fontStyle: 'italic' as const,
-    marginTop: 4,
+    fontWeight: '600' as const,
   },
   bottomPadding: {
     height: 20,
@@ -899,5 +977,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700' as const,
     color: Colors.error,
+  },
+  extendCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: Colors.gold,
+  },
+  extendHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  extendTitle: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+  },
+  extendSubtext: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 16,
+  },
+  extendButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  extendButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.gold + '20',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+  },
+  extendButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.gold,
+  },
+  extendButtonTextDisabled: {
+    color: Colors.textTertiary,
   },
 });

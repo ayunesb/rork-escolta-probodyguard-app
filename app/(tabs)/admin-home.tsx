@@ -5,10 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useFocusEffect } from 'expo-router';
-import { Shield, Users, Calendar, DollarSign, AlertCircle, CheckCircle } from 'lucide-react-native';
+import { Shield, Users, Calendar, DollarSign, AlertCircle, CheckCircle, Download } from 'lucide-react-native';
 import { bookingService } from '@/services/bookingService';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
@@ -18,6 +20,7 @@ export default function AdminHomeScreen() {
   const insets = useSafeAreaInsets();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,14 +50,80 @@ export default function AdminHomeScreen() {
 
   const pendingKYC = mockGuards.filter(g => g.kycStatus === 'pending').length;
 
+  const handleExportLedger = async () => {
+    setIsExporting(true);
+    try {
+      const csvData = generateLedgerCSV();
+      Alert.alert(
+        'Export Complete',
+        `Financial ledger exported with ${bookings.length} records. In production, this would download as CSV file.`,
+        [{ text: 'OK' }]
+      );
+      console.log('[AdminHome] CSV Export:', csvData);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to export ledger');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const generateLedgerCSV = (): string => {
+    const headers = [
+      'Booking ID',
+      'Date',
+      'Client ID',
+      'Guard ID',
+      'Status',
+      'Duration (h)',
+      'Total Amount (MXN)',
+      'Platform Cut (MXN)',
+      'Guard Payout (MXN)',
+      'Payment Status',
+    ];
+
+    const rows = bookings.map(booking => [
+      booking.id,
+      booking.scheduledDate,
+      booking.clientId,
+      booking.guardId,
+      booking.status,
+      booking.duration.toString(),
+      booking.totalAmount.toFixed(2),
+      booking.platformCut.toFixed(2),
+      (booking.totalAmount - booking.platformCut).toFixed(2),
+      booking.status === 'completed' ? 'Paid' : 'Pending',
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(',')),
+    ].join('\n');
+
+    return csvContent;
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       
       <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
-        <View>
-          <Text style={styles.title}>Admin Dashboard</Text>
-          <Text style={styles.subtitle}>System overview and management</Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.title}>Admin Dashboard</Text>
+            <Text style={styles.subtitle}>System overview and management</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.exportButton}
+            onPress={handleExportLedger}
+            disabled={isExporting || bookings.length === 0}
+          >
+            {isExporting ? (
+              <ActivityIndicator size="small" color={Colors.gold} />
+            ) : (
+              <Download size={20} color={Colors.gold} />
+            )}
+            <Text style={styles.exportButtonText}>Export CSV</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -225,6 +294,27 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+  },
+  exportButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.gold,
   },
   title: {
     fontSize: 32,

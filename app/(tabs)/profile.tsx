@@ -1,14 +1,74 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { User, Mail, Phone, Globe, Shield, LogOut, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { User, Mail, Phone, Globe, Shield, LogOut, CheckCircle, AlertCircle, Trash2, Download } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { gdprService } from '@/services/gdprService';
 import Colors from '@/constants/colors';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete all your data. This action cannot be undone. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (!user) return;
+            setIsDeleting(true);
+            try {
+              await gdprService.requestDataDeletion(user.id, 'User requested account deletion');
+              Alert.alert(
+                'Request Submitted',
+                'Your account deletion request has been submitted. You will be signed out and your data will be deleted within 30 days.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: async () => {
+                      await signOut();
+                      router.replace('/auth/sign-in' as any);
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              Alert.alert('Error', 'Failed to submit deletion request. Please try again.');
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleExportData = async () => {
+    if (!user) return;
+    setIsExporting(true);
+    try {
+      const data = await gdprService.exportUserData(user.id);
+      Alert.alert(
+        'Data Export',
+        `Your data has been exported. Total records: ${Object.keys(data).length}. In a production app, this would be downloaded as a JSON file.`,
+        [{ text: 'OK' }]
+      );
+      console.log('[Profile] Exported data:', data);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to export data. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleSignOut = () => {
     Alert.alert(
@@ -123,6 +183,36 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             )}
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Data & Privacy</Text>
+          
+          <TouchableOpacity 
+            style={styles.actionButton} 
+            onPress={handleExportData}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <ActivityIndicator size="small" color={Colors.gold} />
+            ) : (
+              <Download size={20} color={Colors.gold} />
+            )}
+            <Text style={styles.actionButtonText}>Export My Data</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.deleteButton]} 
+            onPress={handleDeleteAccount}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <ActivityIndicator size="small" color={Colors.error} />
+            ) : (
+              <Trash2 size={20} color={Colors.error} />
+            )}
+            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>Delete Account</Text>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
@@ -293,5 +383,28 @@ const styles = StyleSheet.create({
     textAlign: 'center' as const,
     marginTop: 24,
     marginBottom: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+    marginBottom: 12,
+  },
+  actionButtonText: {
+    color: Colors.gold,
+    fontSize: 16,
+    fontWeight: '700' as const,
+  },
+  deleteButton: {
+    borderColor: Colors.error,
+  },
+  deleteButtonText: {
+    color: Colors.error,
   },
 });

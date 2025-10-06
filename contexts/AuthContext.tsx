@@ -19,7 +19,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('[Auth] State changed:', firebaseUser?.uid);
       
-      if (firebaseUser) {
+      if (firebaseUser && !user) {
         try {
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
@@ -37,7 +37,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           console.error('[Auth] Error loading user data:', error);
           setUser(null);
         }
-      } else {
+      } else if (!firebaseUser) {
         setUser(null);
       }
       
@@ -45,20 +45,32 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       console.log('[Auth] Signing in:', email);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('[Auth] Sign in successful:', userCredential.user.uid);
+      
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as Omit<User, 'id'>;
+        setUser({ id: userCredential.user.uid, ...userData });
+        console.log('[Auth] User data loaded:', userData.role);
+        
+        notificationService.registerForPushNotifications(userCredential.user.uid).catch(err => {
+          console.error('[Auth] Notification registration failed:', err);
+        });
+      }
+      
       return { success: true };
     } catch (error: any) {
       console.error('[Auth] Sign in error:', error);
       let errorMessage = 'Failed to sign in';
       
-      if (error.code === 'auth/user-not-found') {
-        errorMessage = 'No account found with this email';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password';
       } else if (error.code === 'auth/wrong-password') {
         errorMessage = 'Incorrect password';
       } else if (error.code === 'auth/invalid-email') {

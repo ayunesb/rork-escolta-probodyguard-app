@@ -10,6 +10,7 @@ import {
 import { db } from '@/config/firebase';
 import { ChatMessage, Language } from '@/types';
 import { translationService } from './translationService';
+import { rateLimitService } from './rateLimitService';
 
 export const chatService = {
   async sendMessage(
@@ -20,6 +21,13 @@ export const chatService = {
     originalLanguage: Language
   ): Promise<void> {
     try {
+      const rateLimitCheck = await rateLimitService.checkRateLimit('chat', `${bookingId}_${senderId}`);
+      if (!rateLimitCheck.allowed) {
+        const errorMessage = rateLimitService.getRateLimitError('chat', rateLimitCheck.blockedUntil!);
+        console.log('[Chat] Rate limit exceeded for user:', senderId);
+        throw new Error(errorMessage);
+      }
+      
       const messageData = {
         bookingId,
         senderId,

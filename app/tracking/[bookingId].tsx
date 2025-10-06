@@ -20,6 +20,7 @@ import {
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
+import { bookingService } from '@/services/bookingService';
 import Colors from '@/constants/colors';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
 import PanicButton from '@/components/PanicButton';
@@ -95,6 +96,34 @@ export default function TrackingScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Open Chat', onPress: () => console.log('Opening chat...') },
     ]);
+  };
+
+  const handleStartService = async () => {
+    Alert.prompt(
+      'Enter Start Code',
+      'Enter the 6-digit code provided by your guard',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Verify',
+          onPress: async (code) => {
+            if (!code || !user) return;
+            try {
+              const isValid = await bookingService.verifyStartCode(bookingId, code, user.id);
+              if (isValid) {
+                await bookingService.updateBookingStatus(bookingId, 'active');
+                Alert.alert('Success', 'Service started successfully');
+              } else {
+                Alert.alert('Invalid Code', 'The code you entered is incorrect');
+              }
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to verify code');
+            }
+          },
+        },
+      ],
+      'plain-text'
+    );
   };
 
   return (

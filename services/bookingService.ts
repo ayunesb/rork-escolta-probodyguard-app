@@ -3,6 +3,7 @@ import { Booking, BookingStatus } from '@/types';
 import { ref, set, onValue, off, update } from 'firebase/database';
 import { realtimeDb } from '@/config/firebase';
 import { notificationService } from './notificationService';
+import { rateLimitService } from './rateLimitService';
 
 const BOOKINGS_KEY = '@escolta_bookings';
 
@@ -61,6 +62,13 @@ export const bookingService = {
   },
   async createBooking(bookingData: Omit<Booking, 'id' | 'createdAt' | 'startCode' | 'status'>): Promise<Booking> {
     try {
+      const rateLimitCheck = await rateLimitService.checkRateLimit('booking', bookingData.clientId);
+      if (!rateLimitCheck.allowed) {
+        const errorMessage = rateLimitService.getRateLimitError('booking', rateLimitCheck.blockedUntil!);
+        console.log('[Booking] Rate limit exceeded for client:', bookingData.clientId);
+        throw new Error(errorMessage);
+      }
+      
       const booking: Booking = {
         ...bookingData,
         id: 'booking_' + Date.now(),
@@ -177,17 +185,28 @@ export const bookingService = {
     }
   },
 
-  async verifyStartCode(bookingId: string, code: string): Promise<boolean> {
+  async verifyStartCode(bookingId: string, code: string, userId: string): Promise<boolean> {
     try {
+      const rateLimitCheck = await rateLimitService.checkRateLimit('startCode', `${bookingId}_${userId}`);
+      if (!rateLimitCheck.allowed) {
+        console.log('[Booking] Start code rate limit exceeded for booking:', bookingId);
+        throw new Error(rateLimitService.getRateLimitError('startCode', rateLimitCheck.blockedUntil!));
+      }
+      
       const booking = await this.getBookingById(bookingId);
       if (!booking) return false;
       
       const isValid = booking.startCode === code;
       console.log('[Booking] Start code verification:', isValid);
+      
+      if (isValid) {
+        await rateLimitService.resetRateLimit('startCode', `${bookingId}_${userId}`);
+      }
+      
       return isValid;
     } catch (error) {
       console.error('[Booking] Error verifying start code:', error);
-      return false;
+      throw error;
     }
   },
 

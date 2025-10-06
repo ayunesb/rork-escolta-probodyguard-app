@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { notificationService } from '@/services/notificationService';
+import { rateLimitService } from '@/services/rateLimitService';
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
@@ -50,8 +51,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       console.log('[Auth] Signing in:', email);
+      
+      const rateLimitCheck = await rateLimitService.checkRateLimit('login', email);
+      if (!rateLimitCheck.allowed) {
+        const errorMessage = rateLimitService.getRateLimitError('login', rateLimitCheck.blockedUntil!);
+        console.log('[Auth] Rate limit exceeded for:', email);
+        return { success: false, error: errorMessage };
+      }
+      
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('[Auth] Sign in successful:', userCredential.user.uid);
+      
+      await rateLimitService.resetRateLimit('login', email);
       
       return { success: true };
     } catch (error: any) {

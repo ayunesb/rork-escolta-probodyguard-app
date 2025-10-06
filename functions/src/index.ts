@@ -154,7 +154,7 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (context) => {
+export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (context: functions.EventContext) => {
   console.log('[ProcessPayouts] Starting weekly payout processing');
   
   try {
@@ -206,7 +206,7 @@ export const processPayouts = functions.pubsub.schedule('every monday 09:00').on
   }
 });
 
-export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context) => {
+export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
@@ -254,7 +254,7 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (context) => {
+export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (context: functions.EventContext) => {
   console.log('[RecordUsageMetrics] Recording daily usage metrics');
   
   try {

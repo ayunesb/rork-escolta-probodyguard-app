@@ -12,9 +12,9 @@ app.use(express.json());
 
 const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
-  merchantId: functions.config().braintree?.merchant_id || '',
-  publicKey: functions.config().braintree?.public_key || '',
-  privateKey: functions.config().braintree?.private_key || '',
+  merchantId: process.env.BRAINTREE_MERCHANT_ID || '8jbcpm9yj7df7w4h',
+  publicKey: process.env.BRAINTREE_PUBLIC_KEY || 'fnig6rkd6vbkmxt',
+  privateKey: process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed66339',
 });
 
 app.post('/client-token', async (req: Request, res: Response) => {
@@ -128,7 +128,7 @@ app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
   }
 });
 
-export const payments = functions.https.onRequest(app);
+export const api = functions.https.onRequest(app);
 
 export const handlePaymentWebhook = functions.https.onRequest(async (req: Request, res: Response) => {
   try {

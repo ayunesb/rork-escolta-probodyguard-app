@@ -24,7 +24,7 @@ export const paymentService = {
     console.log('[Payment] Requesting client token for user:', userId);
     
     try {
-      const response = await fetch(`${ENV.API_URL}/api/payments/client-token`, {
+      const response = await fetch(`${ENV.API_URL}/payments/client-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
@@ -53,7 +53,7 @@ export const paymentService = {
     console.log('[Payment] Processing payment:', { amount, bookingId, userId, saveCard });
     
     try {
-      const response = await fetch(`${ENV.API_URL}/api/payments/process`, {
+      const response = await fetch(`${ENV.API_URL}/payments/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -135,7 +135,7 @@ export const paymentService = {
 
   async getSavedPaymentMethods(userId: string): Promise<SavedPaymentMethod[]> {
     try {
-      const response = await fetch(`${ENV.API_URL}/api/payments/methods/${userId}`);
+      const response = await fetch(`${ENV.API_URL}/payments/methods/${userId}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch payment methods');
@@ -151,7 +151,7 @@ export const paymentService = {
 
   async removePaymentMethod(userId: string, token: string): Promise<void> {
     try {
-      const response = await fetch(`${ENV.API_URL}/api/payments/methods/${userId}/${token}`, {
+      const response = await fetch(`${ENV.API_URL}/payments/methods/${userId}/${token}`, {
         method: 'DELETE',
       });
 
@@ -170,7 +170,7 @@ export const paymentService = {
     console.log('[Payment] Processing refund:', { transactionId, bookingId, amount });
     
     try {
-      const response = await fetch(`${ENV.API_URL}/api/payments/refund`, {
+      const response = await fetch(`${ENV.API_URL}/payments/refund`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

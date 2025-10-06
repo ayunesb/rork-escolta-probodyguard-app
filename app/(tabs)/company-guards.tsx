@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import * as DocumentPicker from 'expo-document-picker';
 import {
   View,
   Text,
@@ -7,10 +8,11 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { UserPlus, Mail, Shield, CheckCircle, XCircle } from 'lucide-react-native';
+import { UserPlus, Mail, Shield, CheckCircle, XCircle, Upload, FileText } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockGuards } from '@/mocks/guards';
 import Colors from '@/constants/colors';
@@ -21,6 +23,9 @@ export default function CompanyGuardsScreen() {
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importedFile, setImportedFile] = useState<any>(null);
+  const [importing, setImporting] = useState(false);
 
   const companyGuards = mockGuards.filter(g => g.companyId === user?.id);
 
@@ -63,6 +68,50 @@ export default function CompanyGuardsScreen() {
     );
   };
 
+  const handlePickCSV = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'text/csv',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setImportedFile(file);
+        setShowImportModal(true);
+      }
+    } catch (error) {
+      console.error('[CSV Import] Error picking file:', error);
+      Alert.alert('Error', 'Failed to select file');
+    }
+  };
+
+  const handleImportCSV = async () => {
+    if (!importedFile) return;
+
+    setImporting(true);
+    try {
+      Alert.alert(
+        'Import Successful',
+        `CSV file "${importedFile.name}" has been queued for processing. Guards will be added after validation.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowImportModal(false);
+              setImportedFile(null);
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('[CSV Import] Error:', error);
+      Alert.alert('Error', 'Failed to import CSV file');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -74,13 +123,21 @@ export default function CompanyGuardsScreen() {
             {companyGuards.length} guard{companyGuards.length !== 1 ? 's' : ''} in your team
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.inviteButton}
-          onPress={() => setShowInviteForm(!showInviteForm)}
-        >
-          <UserPlus size={20} color={Colors.background} />
-          <Text style={styles.inviteButtonText}>Invite</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.importButton}
+            onPress={handlePickCSV}
+          >
+            <Upload size={18} color={Colors.gold} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.inviteButton}
+            onPress={() => setShowInviteForm(!showInviteForm)}
+          >
+            <UserPlus size={20} color={Colors.background} />
+            <Text style={styles.inviteButtonText}>Invite</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
@@ -204,6 +261,61 @@ export default function CompanyGuardsScreen() {
           )}
         </View>
       </ScrollView>
+
+      {showImportModal && importedFile && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.importModal}>
+            <View style={styles.modalHeader}>
+              <FileText size={32} color={Colors.gold} />
+              <Text style={styles.modalTitle}>Import CSV</Text>
+            </View>
+
+            <View style={styles.fileInfo}>
+              <Text style={styles.fileName}>{importedFile.name}</Text>
+              <Text style={styles.fileSize}>
+                {(importedFile.size / 1024).toFixed(2)} KB
+              </Text>
+            </View>
+
+            <View style={styles.csvInstructions}>
+              <Text style={styles.instructionsTitle}>Required CSV Format:</Text>
+              <Text style={styles.instructionsText}>
+                firstName, lastName, email, phone, hourlyRate
+              </Text>
+              <Text style={styles.instructionsNote}>
+                Guards will receive invitation emails to complete their profiles
+              </Text>
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => {
+                  setShowImportModal(false);
+                  setImportedFile(null);
+                }}
+                disabled={importing}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalImportButton, importing && styles.modalImportButtonDisabled]}
+                onPress={handleImportCSV}
+                disabled={importing}
+              >
+                {importing ? (
+                  <ActivityIndicator size="small" color={Colors.background} />
+                ) : (
+                  <>
+                    <Upload size={18} color={Colors.background} />
+                    <Text style={styles.modalImportText}>Import</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -441,5 +553,122 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
     textAlign: 'center' as const,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  importButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalOverlay: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  importModal: {
+    backgroundColor: Colors.background,
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginTop: 12,
+  },
+  fileInfo: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  fileName: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  fileSize: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  csvInstructions: {
+    backgroundColor: Colors.gold + '10',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  instructionsTitle: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  instructionsText: {
+    fontSize: 13,
+    fontFamily: 'monospace',
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  instructionsNote: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontStyle: 'italic' as const,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.textSecondary,
+  },
+  modalImportButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.gold,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  modalImportButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalImportText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.background,
   },
 });

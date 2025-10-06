@@ -6,7 +6,7 @@ export const ENV = {
   BRAINTREE_PUBLIC_KEY: Constants.expoConfig?.extra?.braintreePublicKey || '',
   BRAINTREE_PRIVATE_KEY: Constants.expoConfig?.extra?.braintreePrivateKey || '',
   PAYMENTS_CURRENCY: 'MXN' as const,
-  API_URL: Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000',
+  API_URL: Constants.expoConfig?.extra?.apiUrl || 'https://us-central1-escolta-pro.cloudfunctions.net',
 };
 
 export const PAYMENT_CONFIG = {

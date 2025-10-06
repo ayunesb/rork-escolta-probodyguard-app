@@ -24,6 +24,7 @@ import { bookingService } from '@/services/bookingService';
 import Colors from '@/constants/colors';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
 import PanicButton from '@/components/PanicButton';
+import StartCodeInput from '@/components/StartCodeInput';
 
 const { width, height } = Dimensions.get('window');
 
@@ -44,6 +45,7 @@ export default function TrackingScreen() {
 
   const [booking, setBooking] = useState<any>(null);
   const [guardId] = useState<string>('guard-1');
+  const [showStartCodeModal, setShowStartCodeModal] = useState(false);
   const guard = mockGuards.find((g) => g.id === guardId);
   const guardLocation = getGuardLocation(guardId);
 
@@ -126,32 +128,21 @@ export default function TrackingScreen() {
     ]);
   };
 
-  const handleStartService = async (): Promise<void> => {
-    Alert.prompt(
-      'Enter Start Code',
-      'Enter the 6-digit code provided by your guard',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Verify',
-          onPress: async (code) => {
-            if (!code || !user) return;
-            try {
-              const isValid = await bookingService.verifyStartCode(bookingId, code, user.id);
-              if (isValid) {
-                await bookingService.updateBookingStatus(bookingId, 'active');
-                Alert.alert('Success', 'Service started successfully');
-              } else {
-                Alert.alert('Invalid Code', 'The code you entered is incorrect');
-              }
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to verify code');
-            }
-          },
-        },
-      ],
-      'plain-text'
-    );
+  const handleStartService = async (code: string): Promise<void> => {
+    if (!user) return;
+    try {
+      const isValid = await bookingService.verifyStartCode(bookingId, code, user.id);
+      if (isValid) {
+        await bookingService.updateBookingStatus(bookingId, 'active');
+        setShowStartCodeModal(false);
+        Alert.alert('Success', 'Service started successfully');
+      } else {
+        Alert.alert('Invalid Code', 'The code you entered is incorrect');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to verify code');
+      throw error;
+    }
   };
 
   return (
@@ -263,6 +254,15 @@ export default function TrackingScreen() {
           </View>
         )}
 
+        {booking?.status === 'accepted' && (
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => setShowStartCodeModal(true)}
+          >
+            <Text style={styles.startButtonText}>Enter Start Code</Text>
+          </TouchableOpacity>
+        )}
+
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
             <Phone size={20} color={Colors.gold} />
@@ -274,6 +274,12 @@ export default function TrackingScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <StartCodeInput
+        visible={showStartCodeModal}
+        onSubmit={handleStartService}
+        onCancel={() => setShowStartCodeModal(false)}
+      />
     </View>
   );
 }
@@ -426,5 +432,17 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.gold,
     lineHeight: 20,
+  },
+  startButton: {
+    backgroundColor: Colors.gold,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  startButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.background,
   },
 });

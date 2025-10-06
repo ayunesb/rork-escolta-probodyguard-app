@@ -104,9 +104,8 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
-      ],
       ]
-    ],
+    ,
     "experiments": {
       "typedRoutes": true
     }

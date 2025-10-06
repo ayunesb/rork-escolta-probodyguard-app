@@ -1,4 +1,4 @@
-import { db } from '@/lib/firebase';
+import { db } from '@/config/firebase';
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, query, getDocs } from 'firebase/firestore';
 
 export interface ConsentRecord {
@@ -31,7 +31,7 @@ class ConsentService {
     metadata?: { ipAddress?: string; userAgent?: string }
   ): Promise<void> {
     try {
-      const dbInstance = db();
+      const dbInstance = db;
       const consentRef = doc(dbInstance, this.COLLECTION, userId);
 
       const consentRecord: any = {
@@ -52,7 +52,7 @@ class ConsentService {
 
   async getConsent(userId: string): Promise<ConsentRecord | null> {
     try {
-      const dbInstance = db();
+      const dbInstance = db;
       const consentRef = doc(dbInstance, this.COLLECTION, userId);
       const consentDoc = await getDoc(consentRef);
 
@@ -82,7 +82,7 @@ class ConsentService {
 
   async updateConsent(userId: string, updates: ConsentUpdate): Promise<void> {
     try {
-      const dbInstance = db();
+      const dbInstance = db;
       const consentRef = doc(dbInstance, this.COLLECTION, userId);
 
       const updateData: any = {
@@ -119,7 +119,7 @@ class ConsentService {
 
   async getConsentHistory(userId: string): Promise<ConsentRecord[]> {
     try {
-      const dbInstance = db();
+      const dbInstance = db;
       const historyRef = collection(dbInstance, `${this.COLLECTION}/${userId}/history`);
       const historyQuery = query(historyRef);
       const historyDocs = await getDocs(historyQuery);
@@ -164,7 +164,7 @@ class ConsentService {
         return;
       }
 
-      const dbInstance = db();
+      const dbInstance = db;
       const historyRef = doc(
         dbInstance,
         `${this.COLLECTION}/${userId}/history`,

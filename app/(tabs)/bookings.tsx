@@ -15,31 +15,37 @@ export default function BookingsScreen() {
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadBookings = useCallback(async () => {
-    if (!user) {
-      setUserBookings([]);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      console.log('[Bookings] Loading bookings for user:', user.id, 'role:', user.role);
-      const bookings = await bookingService.getBookingsByUser(user.id, user.role);
-      console.log('[Bookings] Loaded bookings:', bookings.length);
-      setUserBookings(bookings);
-    } catch (error) {
-      console.error('[Bookings] Error loading bookings:', error);
-      setUserBookings([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
-
   useFocusEffect(
     useCallback(() => {
-      console.log('[Bookings] Screen focused, reloading bookings');
-      loadBookings();
-    }, [loadBookings])
+      if (!user) {
+        setUserBookings([]);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('[Bookings] Setting up real-time listener for user:', user.id, 'role:', user.role);
+      setIsLoading(true);
+
+      const unsubscribe = bookingService.subscribeToBookings((allBookings) => {
+        const filteredBookings = allBookings.filter(b => {
+          if (user.role === 'client' || user.role === 'company') {
+            return b.clientId === user.id;
+          } else if (user.role === 'guard') {
+            return b.guardId === user.id;
+          } else {
+            return true;
+          }
+        });
+        console.log('[Bookings] Real-time update - user bookings:', filteredBookings.length);
+        setUserBookings(filteredBookings);
+        setIsLoading(false);
+      });
+
+      return () => {
+        console.log('[Bookings] Cleaning up real-time listener');
+        unsubscribe();
+      };
+    }, [user])
   );
 
   const getStatusColor = (status: string) => {

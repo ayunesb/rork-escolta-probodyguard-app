@@ -22,29 +22,29 @@ export default function CompanyHomeScreen() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    if (!user) return;
-    
-    try {
-      setIsLoading(true);
-      const allBookings = await bookingService.getAllBookings();
-      const companyGuards = mockGuards.filter(g => g.companyId === user.id);
-      const guardIds = companyGuards.map(g => g.id);
-      const companyBookings = allBookings.filter(b => 
-        b.guardId && guardIds.includes(b.guardId)
-      );
-      setBookings(companyBookings);
-    } catch (error) {
-      console.error('[CompanyHome] Error loading data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
-
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [loadData])
+      if (!user) return;
+
+      console.log('[CompanyHome] Setting up real-time listener for company:', user.id);
+      setIsLoading(true);
+
+      const unsubscribe = bookingService.subscribeToBookings((allBookings) => {
+        const companyGuards = mockGuards.filter(g => g.companyId === user.id);
+        const guardIds = companyGuards.map(g => g.id);
+        const companyBookings = allBookings.filter(b => 
+          b.guardId && guardIds.includes(b.guardId)
+        );
+        console.log('[CompanyHome] Real-time update - company bookings:', companyBookings.length);
+        setBookings(companyBookings);
+        setIsLoading(false);
+      });
+
+      return () => {
+        console.log('[CompanyHome] Cleaning up real-time listener');
+        unsubscribe();
+      };
+    }, [user])
   );
 
   const companyGuards = mockGuards.filter(g => g.companyId === user?.id);

@@ -19,22 +19,22 @@ export default function AdminHomeScreen() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const allBookings = await bookingService.getAllBookings();
-      setBookings(allBookings);
-    } catch (error) {
-      console.error('[AdminHome] Error loading data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [loadData])
+      console.log('[AdminHome] Setting up real-time listener for all bookings');
+      setIsLoading(true);
+
+      const unsubscribe = bookingService.subscribeToBookings((allBookings) => {
+        console.log('[AdminHome] Real-time update - all bookings:', allBookings.length);
+        setBookings(allBookings);
+        setIsLoading(false);
+      });
+
+      return () => {
+        console.log('[AdminHome] Cleaning up real-time listener');
+        unsubscribe();
+      };
+    }, [])
   );
 
   const totalGuards = mockGuards.length;

@@ -34,8 +34,16 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           kycStatus: 'pending',
           createdAt: new Date().toISOString(),
         } as Omit<User, 'id'>;
-        await setDoc(userRef, minimal);
-        console.log('[Auth] Created minimal user document');
+        try {
+          await setDoc(userRef, minimal);
+          console.log('[Auth] Created minimal user document');
+        } catch (setDocError: any) {
+          console.error('[Auth] Failed to create user document:', setDocError?.message ?? setDocError);
+          if (setDocError?.code === 'permission-denied') {
+            console.error('[Auth] Permission denied - check Firestore rules');
+          }
+          throw setDocError;
+        }
         return minimal;
       }
       return snap.data() as Omit<User, 'id'>;
@@ -51,20 +59,37 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       if (firebaseUser) {
         try {
           let userData: Omit<User, 'id'> | null = null;
-          try {
-            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-            if (userDoc.exists()) {
-              userData = userDoc.data() as Omit<User, 'id'>;
-            } else {
-              console.warn('[Auth] User document not found. Creating...');
-              userData = await ensureUserDocument({ uid: firebaseUser.uid, email: firebaseUser.email });
-            }
-          } catch (err: any) {
-            if (err?.code === 'permission-denied') {
-              console.warn('[Auth] Permission denied on getDoc. Attempting self-create...');
-              userData = await ensureUserDocument({ uid: firebaseUser.uid, email: firebaseUser.email });
-            } else {
-              throw err;
+          let retryCount = 0;
+          const maxRetries = 3;
+          
+          while (retryCount < maxRetries && !userData) {
+            try {
+              const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+              if (userDoc.exists()) {
+                userData = userDoc.data() as Omit<User, 'id'>;
+                console.log('[Auth] User document loaded successfully');
+              } else {
+                console.warn('[Auth] User document not found. Creating...');
+                userData = await ensureUserDocument({ uid: firebaseUser.uid, email: firebaseUser.email });
+              }
+            } catch (err: any) {
+              if (err?.code === 'permission-denied') {
+                console.warn('[Auth] Permission denied on getDoc. Attempting self-create...');
+                try {
+                  userData = await ensureUserDocument({ uid: firebaseUser.uid, email: firebaseUser.email });
+                } catch (createErr: any) {
+                  console.error('[Auth] Failed to create user document:', createErr?.message);
+                  retryCount++;
+                  if (retryCount < maxRetries) {
+                    console.log(`[Auth] Retrying... (${retryCount}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+                  } else {
+                    throw createErr;
+                  }
+                }
+              } else {
+                throw err;
+              }
             }
           }
 
@@ -76,10 +101,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
               });
             }, 100);
           } else {
+            console.error('[Auth] Failed to load or create user data after retries');
             setUser(null);
           }
-        } catch (error) {
-          console.error('[Auth] Error loading user data:', error);
+        } catch (error: any) {
+          console.error('[Auth] Error loading user data:', error?.message ?? error);
           setUser(null);
         }
       } else {

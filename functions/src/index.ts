@@ -1,6 +1,6 @@
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onCall, HttpsError, CallableRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -129,9 +129,9 @@ app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
   }
 });
 
-export const api = functions.https.onRequest(app);
+export const api = onRequest(app);
 
-export const handlePaymentWebhook = functions.https.onRequest(async (req: Request, res: Response) => {
+export const handlePaymentWebhook = onRequest(async (req: Request, res: Response) => {
   try {
     const { bt_signature, bt_payload } = req.body;
     
@@ -207,7 +207,7 @@ export const processPayouts = onSchedule('every monday 09:00', async () => {
   }
 });
 
-export const generateInvoice = onCall<{ bookingId: string }>(async (request) => {
+export const generateInvoice = onCall<{ bookingId: string }>(async (request: CallableRequest<{ bookingId: string }>) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'User must be authenticated');
   }

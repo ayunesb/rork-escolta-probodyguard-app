@@ -1,4 +1,5 @@
 import * as functions from 'firebase-functions';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -153,7 +154,7 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (_context) => {
+export const processPayouts = onSchedule('every monday 09:00', async (_context) => {
   console.log('[ProcessPayouts] Starting weekly payout processing');
   
   try {
@@ -253,7 +254,7 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (_context) => {
+export const recordUsageMetrics = onSchedule('every day 00:00', async (_context) => {
   console.log('[RecordUsageMetrics] Recording daily usage metrics');
   
   try {

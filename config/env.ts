@@ -1,13 +1,21 @@
 import Constants from 'expo-constants';
 
 export const ENV = {
-  BRAINTREE_ENV: Constants.expoConfig?.extra?.braintreeEnv || 'sandbox',
-  BRAINTREE_MERCHANT_ID: Constants.expoConfig?.extra?.braintreeMerchantId || '8jbcpm9yj7df7w4h',
-  BRAINTREE_PUBLIC_KEY: Constants.expoConfig?.extra?.braintreePublicKey || 'fnig6rkd6vbkmxt',
-  BRAINTREE_PRIVATE_KEY: Constants.expoConfig?.extra?.braintreePrivateKey || 'c96f93d2d472395ed66339',
+  BRAINTREE_ENV: Constants.expoConfig?.extra?.braintreeEnv ?? 'sandbox',
+  BRAINTREE_MERCHANT_ID: Constants.expoConfig?.extra?.braintreeMerchantId ?? '',
+  BRAINTREE_PUBLIC_KEY: Constants.expoConfig?.extra?.braintreePublicKey ?? '',
+  BRAINTREE_PRIVATE_KEY: Constants.expoConfig?.extra?.braintreePrivateKey ?? '',
   PAYMENTS_CURRENCY: 'MXN' as const,
-  API_URL: Constants.expoConfig?.extra?.apiUrl || 'https://us-central1-escolta-pro-fe90e.cloudfunctions.net/api',
+  API_URL: Constants.expoConfig?.extra?.apiUrl ?? '',
 };
+
+if (!ENV.BRAINTREE_MERCHANT_ID || !ENV.BRAINTREE_PUBLIC_KEY || !ENV.BRAINTREE_PRIVATE_KEY) {
+  console.warn('[ENV] Missing Braintree credentials in app.json -> expo.extra');
+}
+
+if (!ENV.API_URL) {
+  console.warn('[ENV] Missing API_URL in app.json -> expo.extra.apiUrl');
+}
 
 export const PAYMENT_CONFIG = {
   PROCESSING_FEE_PERCENT: 0.029,
@@ -15,10 +23,10 @@ export const PAYMENT_CONFIG = {
   PLATFORM_CUT_PERCENT: 0.15,
   MAX_BOOKING_DURATION: 8,
   MIN_BOOKING_DURATION: 1,
-};
+} as const;
 
 export const LOCATION_CONFIG = {
   TRACKING_START_MINUTES: 10,
   UPDATE_INTERVAL_MS: 5000,
   DISTANCE_FILTER_METERS: 10,
-};
+} as const;

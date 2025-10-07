@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, Button } from "react-native";
 
-export class RorkErrorBoundary extends React.Component<
+class AppErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error: Error | null }
 > {
-  constructor(props) {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -55,3 +55,5 @@ export class RorkErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
+
+export { AppErrorBoundary as RorkErrorBoundary };

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { Calendar, MapPin, Clock, DollarSign, Navigation, AlertCircle } from 'lucide-react-native';
@@ -68,24 +68,28 @@ export default function BookingsScreen() {
         </Text>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.gold} />
-            <Text style={styles.loadingText}>Loading bookings...</Text>
-          </View>
-        ) : userBookings.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Calendar size={64} color={Colors.textTertiary} />
-            <Text style={styles.emptyText}>No bookings yet</Text>
-            <Text style={styles.emptySubtext}>
-              {user?.role === 'client' 
-                ? 'Book your first protector to get started' 
-                : 'Accept jobs to see them here'}
-            </Text>
-          </View>
-        ) : (
-          userBookings.map((booking) => (
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.gold} />
+          <Text style={styles.loadingText}>Loading bookings...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={userBookings}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.scrollContent}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Calendar size={64} color={Colors.textTertiary} />
+              <Text style={styles.emptyText}>No bookings yet</Text>
+              <Text style={styles.emptySubtext}>
+                {user?.role === 'client' 
+                  ? 'Book your first protector to get started' 
+                  : 'Accept jobs to see them here'}
+              </Text>
+            </View>
+          }
+          renderItem={({ item: booking }) => (
             <TouchableOpacity 
               key={booking.id} 
               style={styles.bookingCard}
@@ -153,9 +157,9 @@ export default function BookingsScreen() {
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
+          )}
+        />
+      )}
     </View>
   );
 }

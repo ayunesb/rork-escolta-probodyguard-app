@@ -8,13 +8,15 @@
     "scheme": "escoltapromobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-
     "ios": {
       "bundleIdentifier": "app.rork.escolta-pro-on-demand-security-bodyguard-app",
       "supportsTablet": true,
@@ -23,16 +25,22 @@
         "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location to enable guard tracking and pickups.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to access your location in the background for active bookings.",
         "NSLocationAlwaysUsageDescription": "Allow $(PRODUCT_NAME) to access your location in the background for active bookings.",
-        "UIBackgroundModes": ["location"],
+        "UIBackgroundModes": [
+          "location"
+        ],
         "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID for biometric login.",
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload KYC and profile images.",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera for KYC and profile images.",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for in-app calling.",
         "CFBundleAllowMixedLocalizations": true,
-        "CFBundleLocalizations": ["en", "es", "fr", "de"]
+        "CFBundleLocalizations": [
+          "en",
+          "es",
+          "fr",
+          "de"
+        ]
       }
     },
-
     "android": {
       "package": "app.rork.escolta-pro-on-demand-security-bodyguard-app",
       "adaptiveIcon": {
@@ -50,14 +58,25 @@
         "android.permission.SCHEDULE_EXACT_ALARM",
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
       ]
     },
-
     "plugins": [
       [
         "expo-router",
-        { "origin": "https://rork.com/" }
+        {
+          "origin": "https://rork.com/"
+        }
       ],
       [
         "expo-location",
@@ -74,7 +93,9 @@
           "icon": "./assets/images/notification_icon.png",
           "color": "#ffffff",
           "defaultChannel": "default",
-          "sounds": ["./assets/sounds/notification_sound.wav"],
+          "sounds": [
+            "./assets/sounds/notification_sound.wav"
+          ],
           "enableBackgroundRemoteNotifications": false
         }
       ],
@@ -95,9 +116,15 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "string | string[]",
+          "enableGooglePay": "boolean"
+        }
       ]
     ],
-
     "experiments": {
       "typedRoutes": true
     }

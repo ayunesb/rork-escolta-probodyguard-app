@@ -1,23 +1,220 @@
-[
-  {"path": "app/booking-payment.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking-rating.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking-create.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking-active.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking-chat.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking/pending.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking/[id].tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking/select-guard.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "app/booking/rate/[id].tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "components/BraintreePaymentForm.native.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
-  {"path": "components/ErrorBoundary.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
-  {"path": "services/braintreeService.ts", "exported_functions": ["processPayment", "init3DS2", "refundPayment", "vaultCard"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
-  {"path": "services/payoutService.ts", "exported_functions": ["processPayout"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
-  {"path": "services/kycAuditService.ts", "exported_functions": ["auditKYC"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "services/gdprService.ts", "exported_functions": ["deleteUserData"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "services/rateLimitService.ts", "exported_functions": ["applyRateLimit"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
-  {"path": "config/firebase.ts", "exported_functions": ["initFirebase", "enableAppCheck", "configureRLS"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
-  {"path": "functions/src/braintree.d.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
-  {"path": "mocks/guards.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 0, "status": "redundant"},
-  {"path": "mocks/bookings.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 0, "status": "redundant"},
-  {"path": "mocks/companySettings.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 0, "status": "redundant"}
-]
+{
+  "files": [
+    {
+      "path": "app.json",
+      "exported_functions": [],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "looped",
+      "notes": "Mobile-only config (iOS/Android); no web platform; missing Stripe plugin reference in previous errors"
+    },
+    {
+      "path": "package.json",
+      "exported_functions": [],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "No Stripe packages; Braintree 3.33.1 installed; React 19, Expo Router 6"
+    },
+    {
+      "path": "functions/package.json",
+      "exported_functions": [],
+      "imports_resolved": false,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "looped",
+      "notes": "CRITICAL: Missing React/React Query deps causing deployment failures; needs cleanup"
+    },
+    {
+      "path": "backend/hono.ts",
+      "exported_functions": ["app"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Hono server with tRPC integration; CORS enabled"
+    },
+    {
+      "path": "backend/trpc/app-router.ts",
+      "exported_functions": ["appRouter", "AppRouter"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "tRPC router with auth, bookings, payments (Braintree), chat, guards routes"
+    },
+    {
+      "path": "backend/lib/braintree.ts",
+      "exported_functions": ["getBraintreeGateway"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Braintree gateway initialization with sandbox/production env support"
+    },
+    {
+      "path": "contexts/AuthContext.tsx",
+      "exported_functions": ["AuthProvider", "useAuth"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Auth context with email verification, rate limiting, monitoring"
+    },
+    {
+      "path": "services/braintreeService.ts",
+      "exported_functions": ["braintreeService", "BraintreePaymentResult", "BraintreeRefundResult"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "unverified",
+      "notes": "Braintree service with getClientToken, processPayment, refundPayment; 3DS2 vaulting not confirmed"
+    },
+    {
+      "path": "services/bookingService.ts",
+      "exported_functions": ["bookingService"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Booking service with T-10 rule, extension logic (≤8h), start code verification, real-time sync"
+    },
+    {
+      "path": "services/locationTrackingService.ts",
+      "exported_functions": ["requestLocationPermissions", "getCurrentLocation", "startLocationTracking", "stopLocationTracking", "calculateDistance"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Location tracking with expo-location; Firestore sync; background permissions"
+    },
+    {
+      "path": "services/chatService.ts",
+      "exported_functions": ["chatService"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Chat service with translation, typing indicators, rate limiting"
+    },
+    {
+      "path": "services/kycAuditService.ts",
+      "exported_functions": ["kycAuditService"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "KYC audit trail with Firestore logging; compliance reports"
+    },
+    {
+      "path": "types/index.ts",
+      "exported_functions": ["User", "Guard", "Client", "Company", "Admin", "Booking", "ChatMessage", "Payment", "Payout", "Transaction"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Type definitions with Braintree fields (braintreeCustomerId, braintreeTransactionId); no Stripe types"
+    },
+    {
+      "path": "functions/src/index.ts",
+      "exported_functions": ["api", "handlePaymentWebhook", "processPayouts", "generateInvoice", "recordUsageMetrics"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "looped",
+      "notes": "Cloud Functions with Braintree integration; deployment fails due to package.json issues"
+    },
+    {
+      "path": "components/ErrorBoundary.tsx",
+      "exported_functions": ["ErrorBoundary"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "verified",
+      "notes": "Error boundary component exists"
+    },
+    {
+      "path": "components/BraintreePaymentForm.native.tsx",
+      "exported_functions": ["BraintreePaymentForm"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "unverified",
+      "notes": "Native Braintree payment form; 3DS2 native UI not confirmed"
+    },
+    {
+      "path": "components/BraintreePaymentForm.web.tsx",
+      "exported_functions": ["BraintreePaymentForm"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "unverified",
+      "notes": "Web Braintree payment form; 3DS2 web UI not confirmed"
+    },
+    {
+      "path": "services/stripeInit.d.ts",
+      "exported_functions": ["useStripeInit", "StripeWrapper"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "redundant",
+      "notes": "Stripe stub file; should be deleted"
+    },
+    {
+      "path": "services/stripeInit.native.ts",
+      "exported_functions": ["useStripeInit"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "redundant",
+      "notes": "Stripe stub file; should be deleted"
+    },
+    {
+      "path": "services/stripeInit.web.tsx",
+      "exported_functions": ["useStripeInit", "StripeWrapper"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "redundant",
+      "notes": "Stripe stub file; should be deleted"
+    },
+    {
+      "path": "services/stripeInit.web.ts",
+      "exported_functions": ["useStripeInit"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "redundant",
+      "notes": "Stripe stub file; should be deleted"
+    },
+    {
+      "path": "mocks/bookings.ts",
+      "exported_functions": ["mockBookings"],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "redundant",
+      "notes": "Mock data with 'stripeFee' field; should be updated to 'processingFee'"
+    },
+    {
+      "path": "firestore.rules",
+      "exported_functions": [],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "looped",
+      "notes": "Firestore rules deployed; App Check integration not confirmed"
+    },
+    {
+      "path": "database.rules.json",
+      "exported_functions": [],
+      "imports_resolved": true,
+      "last_commit": "unknown",
+      "test_coverage_estimate": 0,
+      "status": "looped",
+      "notes": "Realtime Database rules deployed; App Check integration not confirmed"
+    }
+  ]
+}

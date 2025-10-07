@@ -1,21 +1,228 @@
 {
+  "project": "Escolta Pro - On-Demand Security & Bodyguard App",
+  "platform": "iOS/Android (mobile-only)",
+  "sdk": "Expo SDK 53",
+  "audit_date": "2025-10-07",
   "features": [
-    {"feature": "Bookings", "files": ["app/booking-payment.tsx", "app/booking-rating.tsx", "app/booking-create.tsx", "app/booking-active.tsx", "app/booking-chat.tsx", "app/booking/pending.tsx", "app/booking/[id].tsx", "app/booking/select-guard.tsx", "app/booking/rate/[id].tsx"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Booking flows implemented and tested."},
-    {"feature": "Chat", "files": ["app/booking-chat.tsx", "contexts/NotificationContext.tsx"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Chat and notification context present."},
-    {"feature": "Translation Labels", "files": ["constants/translations.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Translation constants present."},
-    {"feature": "KYC", "files": ["components/KYCDocumentUpload.tsx", "services/kycAuditService.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "KYC upload and audit service implemented."},
-    {"feature": "GDPR", "files": ["services/gdprService.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "GDPR delete service present."},
-    {"feature": "Panic Button", "files": ["components/PanicButton.tsx"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Panic button implemented."},
-    {"feature": "CSV Import", "files": ["services/bookingService.ts", "services/rosterService.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "CSV import logic present."},
-    {"feature": "Braintree 3DS2 + Payouts", "files": ["services/braintreeService.ts", "services/payoutService.ts", "components/BraintreePaymentForm.native.tsx", "components/BraintreePaymentForm.tsx", "functions/src/braintree.d.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Braintree 3DS2 and payouts implemented."},
-    {"feature": "T-10 Rule", "files": ["app/booking-create.tsx"], "last_commit": "main", "current_status": "verified", "last_fix_note": "T-10 rule logic present."},
-    {"feature": "Extension Logic", "files": ["app/booking-create.tsx"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Extension logic present."},
-    {"feature": "Roster Isolation", "files": ["services/rosterService.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Roster isolation logic present."},
-    {"feature": "Error Boundaries", "files": ["components/ErrorBoundary.tsx"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Error boundary implemented."},
-    {"feature": "Virtualization", "files": ["components/GuardMap.native.tsx", "components/MapView.native.tsx"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Virtualized lists implemented."},
-    {"feature": "Polling Optimization", "files": ["services/bookingService.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Polling logic present."},
-    {"feature": "App Check", "files": ["config/firebase.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "App Check configured."},
-    {"feature": "Rate Limiting", "files": ["services/rateLimitService.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Rate limiting service present."},
-    {"feature": "Firestore RLS", "files": ["config/firebase.ts"], "last_commit": "main", "current_status": "verified", "last_fix_note": "Firestore RLS configured."}
+    {
+      "feature": "Authentication & User Management",
+      "files": [
+        "contexts/AuthContext.tsx",
+        "backend/trpc/routes/auth/sign-in/route.ts",
+        "backend/trpc/routes/auth/sign-up/route.ts",
+        "backend/trpc/routes/auth/get-user/route.ts",
+        "app/auth/sign-in.tsx",
+        "app/auth/sign-up.tsx"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "Email verification, rate limiting, monitoring integrated"
+    },
+    {
+      "feature": "Braintree Payment Integration (3DS2 + Payouts)",
+      "files": [
+        "services/braintreeService.ts",
+        "backend/lib/braintree.ts",
+        "backend/trpc/routes/payments/braintree/client-token/route.ts",
+        "backend/trpc/routes/payments/braintree/checkout/route.ts",
+        "backend/trpc/routes/payments/braintree/refund/route.ts",
+        "components/BraintreePaymentForm.native.tsx",
+        "components/BraintreePaymentForm.web.tsx",
+        "functions/src/index.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "unverified",
+      "last_fix_note": "Braintree integrated but 3DS2 vaulting, payouts ledger, and native UI not confirmed"
+    },
+    {
+      "feature": "Booking Management & T-10 Rule",
+      "files": [
+        "services/bookingService.ts",
+        "backend/trpc/routes/bookings/create/route.ts",
+        "backend/trpc/routes/bookings/list/route.ts",
+        "backend/trpc/routes/bookings/verify-start-code/route.ts",
+        "app/booking/create.tsx",
+        "app/booking/[id].tsx",
+        "app/(tabs)/bookings.tsx"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "T-10 rule implemented for scheduled/cross-city bookings; instant bookings hide guard location until start code"
+    },
+    {
+      "feature": "Booking Extension Logic",
+      "files": [
+        "services/bookingService.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "Extension logic with ≤8h cap implemented in bookingService.extendBooking"
+    },
+    {
+      "feature": "Real-time Location Tracking",
+      "files": [
+        "services/locationTrackingService.ts",
+        "contexts/LocationTrackingContext.tsx",
+        "app/tracking/[bookingId].tsx"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "Location tracking with Firebase Realtime Database sync"
+    },
+    {
+      "feature": "Chat with Translation Labels",
+      "files": [
+        "services/chatService.ts",
+        "services/translationService.ts",
+        "app/booking-chat.tsx"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "Chat with auto-translation and 'view original' support"
+    },
+    {
+      "feature": "KYC & Document Management",
+      "files": [
+        "services/kycAuditService.ts",
+        "components/KYCDocumentUpload.tsx",
+        "app/(tabs)/admin-kyc.tsx",
+        "app/admin/kyc-audit.tsx"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "KYC audit trail with Firestore logging"
+    },
+    {
+      "feature": "Company Roster Isolation",
+      "files": [
+        "app/(tabs)/company-guards.tsx",
+        "backend/trpc/routes/guards/list/route.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "unverified",
+      "last_fix_note": "Company guards list exists but roster isolation logic not confirmed"
+    },
+    {
+      "feature": "CSV Roster Import",
+      "files": [],
+      "last_commit": "unknown",
+      "current_status": "unverified",
+      "last_fix_note": "No CSV import implementation found"
+    },
+    {
+      "feature": "Quote Builder (Vehicle/Protection/Dress/Multi-Stop)",
+      "files": [
+        "app/booking/create.tsx",
+        "types/index.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "Quote builder types defined (VehicleType, ProtectionType, DressCode, RouteStop)"
+    },
+    {
+      "feature": "Dynamic MXN Pricing",
+      "files": [
+        "services/braintreeService.ts",
+        "backend/trpc/routes/payments/braintree/checkout/route.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "MXN currency enforced in Braintree service"
+    },
+    {
+      "feature": "Firestore RLS & Security Rules",
+      "files": [
+        "firestore.rules",
+        "database.rules.json"
+      ],
+      "last_commit": "unknown",
+      "current_status": "looped",
+      "last_fix_note": "Rules deployed but App Check integration not confirmed"
+    },
+    {
+      "feature": "App Check & Rate Limiting",
+      "files": [
+        "services/rateLimitService.ts",
+        "backend/middleware/rateLimitMiddleware.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "unverified",
+      "last_fix_note": "Rate limiting service exists but App Check hooks not found"
+    },
+    {
+      "feature": "Error Boundaries",
+      "files": [
+        "components/ErrorBoundary.tsx"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "ErrorBoundary component exists"
+    },
+    {
+      "feature": "FlatList Virtualization",
+      "files": [
+        "app/(tabs)/bookings.tsx",
+        "app/(tabs)/company-guards.tsx"
+      ],
+      "last_commit": "unknown",
+      "current_status": "unverified",
+      "last_fix_note": "FlatList usage not confirmed in booking/guard lists"
+    },
+    {
+      "feature": "Polling Optimization (30s idle / 10s active)",
+      "files": [],
+      "last_commit": "unknown",
+      "current_status": "unverified",
+      "last_fix_note": "No polling optimization logic found"
+    },
+    {
+      "feature": "Accessibility Labels & Hints",
+      "files": [],
+      "last_commit": "unknown",
+      "current_status": "unverified",
+      "last_fix_note": "No accessibility props found in components"
+    },
+    {
+      "feature": "Cloud Functions (Webhooks, Payouts, Monitoring)",
+      "files": [
+        "functions/src/index.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "looped",
+      "last_fix_note": "Functions exist but deployment fails due to package.json mismatch"
+    },
+    {
+      "feature": "GDPR Compliance & Data Deletion",
+      "files": [
+        "services/gdprService.ts",
+        "services/consentService.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "GDPR and consent services implemented"
+    },
+    {
+      "feature": "Panic Button & Emergency Services",
+      "files": [
+        "components/PanicButton.tsx",
+        "services/emergencyService.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "verified",
+      "last_fix_note": "Panic button and emergency service exist"
+    },
+    {
+      "feature": "Stripe Removal",
+      "files": [
+        "services/stripeInit.d.ts",
+        "services/stripeInit.native.ts",
+        "services/stripeInit.web.tsx",
+        "services/stripeInit.web.ts",
+        "mocks/bookings.ts"
+      ],
+      "last_commit": "unknown",
+      "current_status": "redundant",
+      "last_fix_note": "Stripe code removed from active files but stub files remain; 89 .md files contain Stripe references"
+    }
   ]
 }

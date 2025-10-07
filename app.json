@@ -70,7 +70,8 @@
         "WRITE_EXTERNAL_STORAGE",
         "USE_BIOMETRIC",
         "USE_FINGERPRINT"
-        "web": {
+      ]
+      "web": {
 				"favicon": "./assets/images/favicon.png",
 				"bundler": "metro"
 		},

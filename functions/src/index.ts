@@ -131,25 +131,59 @@ export const api = functions.https.onRequest(app);
 
 export const handlePaymentWebhook = functions.https.onRequest(async (req: Request, res: Response) => {
   try {
-    const { bt_signature, bt_payload } = req.body;
+    console.log('[Webhook] Received request');
+    console.log('[Webhook] Headers:', req.headers);
+    console.log('[Webhook] Body:', req.body);
+    console.log('[Webhook] Query:', req.query);
+    
+    const bt_signature = req.body.bt_signature || req.query.bt_signature as string;
+    const bt_payload = req.body.bt_payload || req.query.bt_payload as string;
+    
+    if (!bt_signature || !bt_payload) {
+      console.error('[Webhook] Missing signature or payload');
+      console.log('[Webhook] bt_signature:', bt_signature);
+      console.log('[Webhook] bt_payload:', bt_payload);
+      return res.status(400).json({ error: 'Missing signature or payload' });
+    }
     
     const webhookNotification = await gateway.webhookNotification.parse(
       bt_signature,
       bt_payload
     );
     
-    console.log('[Webhook] Received:', webhookNotification.kind);
+    console.log('[Webhook] Parsed notification:', webhookNotification.kind);
     
-    if (webhookNotification.kind === 'subscription_charged_successfully') {
-      console.log('[Webhook] Payment successful');
-    } else if (webhookNotification.kind === 'subscription_charged_unsuccessfully') {
-      console.log('[Webhook] Payment failed');
+    const db = admin.firestore();
+    
+    await db.collection('webhook_logs').add({
+      kind: webhookNotification.kind,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      rawData: JSON.stringify(webhookNotification),
+    });
+    
+    switch (webhookNotification.kind) {
+      case 'subscription_charged_successfully':
+        console.log('[Webhook] Payment successful');
+        break;
+        
+      case 'subscription_charged_unsuccessfully':
+        console.log('[Webhook] Payment failed');
+        break;
+        
+      case 'check':
+        console.log('[Webhook] Check notification received');
+        break;
+        
+      default:
+        console.log('[Webhook] Unhandled notification kind:', webhookNotification.kind);
     }
     
-    res.sendStatus(200);
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error('[Webhook] Error:', error);
-    res.sendStatus(500);
+    console.error('[Webhook] Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('[Webhook] Error stack:', error instanceof Error ? error.stack : 'No stack');
+    res.status(200).json({ success: true, note: 'Error logged but returning 200 to prevent retries' });
   }
 });
 

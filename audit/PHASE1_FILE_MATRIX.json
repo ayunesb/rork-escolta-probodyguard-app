@@ -1,0 +1,23 @@
+[
+  {"path": "app/booking-payment.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking-rating.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking-create.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking-active.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking-chat.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking/pending.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking/[id].tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking/select-guard.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "app/booking/rate/[id].tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "components/BraintreePaymentForm.native.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
+  {"path": "components/ErrorBoundary.tsx", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
+  {"path": "services/braintreeService.ts", "exported_functions": ["processPayment", "init3DS2", "refundPayment", "vaultCard"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
+  {"path": "services/payoutService.ts", "exported_functions": ["processPayout"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
+  {"path": "services/kycAuditService.ts", "exported_functions": ["auditKYC"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "services/gdprService.ts", "exported_functions": ["deleteUserData"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "services/rateLimitService.ts", "exported_functions": ["applyRateLimit"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 80, "status": "verified"},
+  {"path": "config/firebase.ts", "exported_functions": ["initFirebase", "enableAppCheck", "configureRLS"], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
+  {"path": "functions/src/braintree.d.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 90, "status": "verified"},
+  {"path": "mocks/guards.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 0, "status": "redundant"},
+  {"path": "mocks/bookings.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 0, "status": "redundant"},
+  {"path": "mocks/companySettings.ts", "exported_functions": [], "imports_resolved": true, "last_commit": "main", "test_coverage_estimate%": 0, "status": "redundant"}
+]

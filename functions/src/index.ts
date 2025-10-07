@@ -1,4 +1,6 @@
 import * as functions from 'firebase-functions';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -153,7 +155,7 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async (_context) => {
+export const processPayouts = onSchedule('every monday 09:00', async () => {
   console.log('[ProcessPayouts] Starting weekly payout processing');
   
   try {
@@ -205,19 +207,19 @@ export const processPayouts = functions.pubsub.schedule('every monday 09:00').on
   }
 });
 
-export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, _context) => {
-  if (!_context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+export const generateInvoice = onCall<{ bookingId: string }>(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
   }
   
-  const { bookingId } = data;
+  const { bookingId } = request.data;
   
   try {
     const db = admin.firestore();
     
     const bookingDoc = await db.collection('bookings').doc(bookingId).get();
     if (!bookingDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Booking not found');
+      throw new HttpsError('not-found', 'Booking not found');
     }
     
     const booking = bookingDoc.data();
@@ -249,11 +251,11 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
     };
   } catch (error) {
     console.error('[GenerateInvoice] Error:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to generate invoice');
+    throw new HttpsError('internal', 'Failed to generate invoice');
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async (_context) => {
+export const recordUsageMetrics = onSchedule('every day 00:00', async () => {
   console.log('[RecordUsageMetrics] Recording daily usage metrics');
   
   try {

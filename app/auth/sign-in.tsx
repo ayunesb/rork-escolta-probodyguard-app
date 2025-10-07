@@ -52,10 +52,16 @@ export default function SignInScreen() {
     setIsLoading(true);
     setError('');
 
-    const result = await signIn(trimmedEmail, trimmedPassword);
+    try {
+      const result = await signIn(trimmedEmail, trimmedPassword);
 
-    if (!result.success) {
-      setError(result.error || 'Failed to sign in');
+      if (!result.success) {
+        setError(result.error || 'Failed to sign in');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('[SignIn] Unexpected error:', error);
+      setError('An unexpected error occurred');
       setIsLoading(false);
     }
   };

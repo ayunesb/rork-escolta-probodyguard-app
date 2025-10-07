@@ -1,5 +1,4 @@
-import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
-import { onSchedule } from 'firebase-functions/v2/scheduler';
+import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -128,9 +127,9 @@ app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
   }
 });
 
-export const api = onRequest({ cors: true }, app);
+export const api = functions.https.onRequest(app);
 
-export const handlePaymentWebhook = onRequest({ cors: true }, async (req: Request, res: Response) => {
+export const handlePaymentWebhook = functions.https.onRequest(async (req: Request, res: Response) => {
   try {
     const { bt_signature, bt_payload } = req.body;
     
@@ -154,67 +153,63 @@ export const handlePaymentWebhook = onRequest({ cors: true }, async (req: Reques
   }
 });
 
-export const processPayouts = onSchedule({
-  schedule: 'every monday 09:00',
-  timeZone: 'America/Mexico_City',
-}, async () => {
-    console.log('[ProcessPayouts] Starting weekly payout processing');
+export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async () => {
+  console.log('[ProcessPayouts] Starting weekly payout processing');
+  
+  try {
+    const db = admin.firestore();
     
-    try {
-      const db = admin.firestore();
+    const pendingPayoutsSnapshot = await db
+      .collection('payouts')
+      .where('status', '==', 'pending')
+      .get();
+    
+    for (const doc of pendingPayoutsSnapshot.docs) {
+      const payout = doc.data();
       
-      const pendingPayoutsSnapshot = await db
-        .collection('payouts')
-        .where('status', '==', 'pending')
-        .get();
-      
-      for (const doc of pendingPayoutsSnapshot.docs) {
-        const payout = doc.data();
+      try {
+        await db.collection('payouts').doc(doc.id).update({
+          status: 'processing',
+        });
         
-        try {
-          await db.collection('payouts').doc(doc.id).update({
-            status: 'processing',
-          });
-          
-          console.log('[ProcessPayouts] Processing payout:', doc.id);
-          
-          await db.collection('payouts').doc(doc.id).update({
-            status: 'completed',
-            processedAt: admin.firestore.FieldValue.serverTimestamp(),
-          });
-          
-          await db.collection('ledger').add({
-            guardId: payout.guardId,
-            bookingId: payout.bookingIds[0] || 'multiple',
-            type: 'payout',
-            amount: -payout.amount,
-            description: `Payout ${doc.id}`,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          });
-          
-          console.log('[ProcessPayouts] Payout completed:', doc.id);
-        } catch (error) {
-          console.error('[ProcessPayouts] Error processing payout:', doc.id, error);
-          
-          await db.collection('payouts').doc(doc.id).update({
-            status: 'failed',
-            failureReason: error instanceof Error ? error.message : 'Unknown error',
-          });
-        }
+        console.log('[ProcessPayouts] Processing payout:', doc.id);
+        
+        await db.collection('payouts').doc(doc.id).update({
+          status: 'completed',
+          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        
+        await db.collection('ledger').add({
+          guardId: payout.guardId,
+          bookingId: payout.bookingIds[0] || 'multiple',
+          type: 'payout',
+          amount: -payout.amount,
+          description: `Payout ${doc.id}`,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        
+        console.log('[ProcessPayouts] Payout completed:', doc.id);
+      } catch (error) {
+        console.error('[ProcessPayouts] Error processing payout:', doc.id, error);
+        
+        await db.collection('payouts').doc(doc.id).update({
+          status: 'failed',
+          failureReason: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
-      
-      console.log('[ProcessPayouts] Weekly payout processing completed');
-    } catch (error) {
-      console.error('[ProcessPayouts] Error:', error);
     }
-  });
+    
+    console.log('[ProcessPayouts] Weekly payout processing completed');
+  } catch (error) {
+    console.error('[ProcessPayouts] Error:', error);
+  }
+});
 
-export const generateInvoice = onCall(async (request) => {
-  if (!request.auth) {
-    throw new HttpsError('unauthenticated', 'User must be authenticated');
+export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
   
-  const data = request.data as { bookingId: string };
   const { bookingId } = data;
   
   try {
@@ -222,7 +217,7 @@ export const generateInvoice = onCall(async (request) => {
     
     const bookingDoc = await db.collection('bookings').doc(bookingId).get();
     if (!bookingDoc.exists) {
-      throw new HttpsError('not-found', 'Booking not found');
+      throw new functions.https.HttpsError('not-found', 'Booking not found');
     }
     
     const booking = bookingDoc.data();
@@ -254,37 +249,34 @@ export const generateInvoice = onCall(async (request) => {
     };
   } catch (error) {
     console.error('[GenerateInvoice] Error:', error);
-    throw new HttpsError('internal', 'Failed to generate invoice');
+    throw new functions.https.HttpsError('internal', 'Failed to generate invoice');
   }
 });
 
-export const recordUsageMetrics = onSchedule({
-  schedule: 'every day 00:00',
-  timeZone: 'America/Mexico_City',
-}, async () => {
-    console.log('[RecordUsageMetrics] Recording daily usage metrics');
+export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async () => {
+  console.log('[RecordUsageMetrics] Recording daily usage metrics');
+  
+  try {
+    const db = admin.firestore();
     
-    try {
-      const db = admin.firestore();
-      
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const dateStr = yesterday.toISOString().split('T')[0];
-      
-      const metrics = {
-        date: dateStr,
-        reads: 0,
-        writes: 0,
-        deletes: 0,
-        storageBytes: 0,
-        bandwidthBytes: 0,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      };
-      
-      await db.collection('usage_metrics').add(metrics);
-      
-      console.log('[RecordUsageMetrics] Metrics recorded for', dateStr);
-    } catch (error) {
-      console.error('[RecordUsageMetrics] Error:', error);
-    }
-  });
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dateStr = yesterday.toISOString().split('T')[0];
+    
+    const metrics = {
+      date: dateStr,
+      reads: 0,
+      writes: 0,
+      deletes: 0,
+      storageBytes: 0,
+      bandwidthBytes: 0,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    
+    await db.collection('usage_metrics').add(metrics);
+    
+    console.log('[RecordUsageMetrics] Metrics recorded for', dateStr);
+  } catch (error) {
+    console.error('[RecordUsageMetrics] Error:', error);
+  }
+});

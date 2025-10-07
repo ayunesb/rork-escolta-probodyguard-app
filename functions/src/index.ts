@@ -153,57 +153,59 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async () => {
-  console.log('[ProcessPayouts] Starting weekly payout processing');
-  
-  try {
-    const db = admin.firestore();
+export const processPayouts = functions.pubsub.schedule('every monday 09:00')
+  .timeZone('America/Mexico_City')
+  .onRun(async (context: functions.EventContext) => {
+    console.log('[ProcessPayouts] Starting weekly payout processing');
     
-    const pendingPayoutsSnapshot = await db
-      .collection('payouts')
-      .where('status', '==', 'pending')
-      .get();
-    
-    for (const doc of pendingPayoutsSnapshot.docs) {
-      const payout = doc.data();
+    try {
+      const db = admin.firestore();
       
-      try {
-        await db.collection('payouts').doc(doc.id).update({
-          status: 'processing',
-        });
+      const pendingPayoutsSnapshot = await db
+        .collection('payouts')
+        .where('status', '==', 'pending')
+        .get();
+      
+      for (const doc of pendingPayoutsSnapshot.docs) {
+        const payout = doc.data();
         
-        console.log('[ProcessPayouts] Processing payout:', doc.id);
-        
-        await db.collection('payouts').doc(doc.id).update({
-          status: 'completed',
-          processedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        
-        await db.collection('ledger').add({
-          guardId: payout.guardId,
-          bookingId: payout.bookingIds[0] || 'multiple',
-          type: 'payout',
-          amount: -payout.amount,
-          description: `Payout ${doc.id}`,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        
-        console.log('[ProcessPayouts] Payout completed:', doc.id);
-      } catch (error) {
-        console.error('[ProcessPayouts] Error processing payout:', doc.id, error);
-        
-        await db.collection('payouts').doc(doc.id).update({
-          status: 'failed',
-          failureReason: error instanceof Error ? error.message : 'Unknown error',
-        });
+        try {
+          await db.collection('payouts').doc(doc.id).update({
+            status: 'processing',
+          });
+          
+          console.log('[ProcessPayouts] Processing payout:', doc.id);
+          
+          await db.collection('payouts').doc(doc.id).update({
+            status: 'completed',
+            processedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          
+          await db.collection('ledger').add({
+            guardId: payout.guardId,
+            bookingId: payout.bookingIds[0] || 'multiple',
+            type: 'payout',
+            amount: -payout.amount,
+            description: `Payout ${doc.id}`,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          
+          console.log('[ProcessPayouts] Payout completed:', doc.id);
+        } catch (error) {
+          console.error('[ProcessPayouts] Error processing payout:', doc.id, error);
+          
+          await db.collection('payouts').doc(doc.id).update({
+            status: 'failed',
+            failureReason: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
       }
+      
+      console.log('[ProcessPayouts] Weekly payout processing completed');
+    } catch (error) {
+      console.error('[ProcessPayouts] Error:', error);
     }
-    
-    console.log('[ProcessPayouts] Weekly payout processing completed');
-  } catch (error) {
-    console.error('[ProcessPayouts] Error:', error);
-  }
-});
+  });
 
 export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
   if (!context.auth) {
@@ -253,30 +255,32 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async () => {
-  console.log('[RecordUsageMetrics] Recording daily usage metrics');
-  
-  try {
-    const db = admin.firestore();
+export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00')
+  .timeZone('America/Mexico_City')
+  .onRun(async (context: functions.EventContext) => {
+    console.log('[RecordUsageMetrics] Recording daily usage metrics');
     
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const dateStr = yesterday.toISOString().split('T')[0];
-    
-    const metrics = {
-      date: dateStr,
-      reads: 0,
-      writes: 0,
-      deletes: 0,
-      storageBytes: 0,
-      bandwidthBytes: 0,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-    
-    await db.collection('usage_metrics').add(metrics);
-    
-    console.log('[RecordUsageMetrics] Metrics recorded for', dateStr);
-  } catch (error) {
-    console.error('[RecordUsageMetrics] Error:', error);
-  }
-});
+    try {
+      const db = admin.firestore();
+      
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const dateStr = yesterday.toISOString().split('T')[0];
+      
+      const metrics = {
+        date: dateStr,
+        reads: 0,
+        writes: 0,
+        deletes: 0,
+        storageBytes: 0,
+        bandwidthBytes: 0,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+      
+      await db.collection('usage_metrics').add(metrics);
+      
+      console.log('[RecordUsageMetrics] Metrics recorded for', dateStr);
+    } catch (error) {
+      console.error('[RecordUsageMetrics] Error:', error);
+    }
+  });

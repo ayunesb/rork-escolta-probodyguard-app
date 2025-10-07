@@ -70,9 +70,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
           if (userData) {
             setUser({ id: firebaseUser.uid, ...userData });
-            notificationService.registerForPushNotifications(firebaseUser.uid).catch(err => {
-              console.error('[Auth] Notification registration failed:', err);
-            });
+            setTimeout(() => {
+              notificationService.registerForPushNotifications(firebaseUser.uid).catch(err => {
+                console.error('[Auth] Notification registration failed:', err);
+              });
+            }, 100);
           } else {
             setUser(null);
           }

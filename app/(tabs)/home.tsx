@@ -5,10 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+import { SafeImage } from '@/components/SafeImage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Shield, Star, MapPin, Languages, Award, ChevronRight, Map as MapIcon, List, Calendar, Clock, DollarSign } from 'lucide-react-native';
@@ -252,7 +252,7 @@ export default function HomeScreen() {
                   style={styles.guardCardCompact}
                   onPress={() => router.push(`/guard/${guard.id}`)}
                 >
-                  <Image source={{ uri: guard.photos?.[0] || 'https://via.placeholder.com/100' }} style={styles.guardImageCompact} />
+                  <SafeImage source={{ uri: guard.photos?.[0] }} style={styles.guardImageCompact} fallbackSource={require('@/assets/images/icon.png')} />
                   <View style={styles.guardInfoCompact}>
                     <Text style={styles.guardNameCompact}>
                       {guard.firstName} {guard.lastName.charAt(0)}.
@@ -297,7 +297,7 @@ export default function HomeScreen() {
             accessibilityHint="Double tap to view guard profile and book protection"
             accessibilityRole="button"
           >
-            <Image source={{ uri: guard.photos?.[0] || 'https://via.placeholder.com/400' }} style={styles.guardImage} />
+            <SafeImage source={{ uri: guard.photos?.[0] }} style={styles.guardImage} fallbackSource={require('@/assets/images/icon.png')} />
             
             <View style={styles.guardInfo}>
               <View style={styles.guardHeader}>

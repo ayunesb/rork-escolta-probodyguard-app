@@ -94,6 +94,10 @@ export default function BookingsScreen() {
               key={booking.id} 
               style={styles.bookingCard}
               onPress={() => router.push(`/booking/${booking.id}` as any)}
+              accessible={true}
+              accessibilityLabel={`Booking ${booking.id.slice(0, 8)}, status ${booking.status}, scheduled for ${booking.scheduledDate} at ${booking.scheduledTime}`}
+              accessibilityHint="Double tap to view booking details"
+              accessibilityRole="button"
             >
               <View style={styles.bookingHeader}>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) + '20' }]}>
@@ -141,6 +145,10 @@ export default function BookingsScreen() {
                 <TouchableOpacity 
                   style={styles.rejectedButton}
                   onPress={() => router.push(`/booking/select-guard?bookingId=${booking.id}` as any)}
+                  accessible={true}
+                  accessibilityLabel="Select another guard"
+                  accessibilityHint="Double tap to choose a different guard for this booking"
+                  accessibilityRole="button"
                 >
                   <AlertCircle size={16} color={Colors.error} />
                   <Text style={styles.rejectedButtonText}>Select Another Guard</Text>
@@ -151,6 +159,10 @@ export default function BookingsScreen() {
                 <TouchableOpacity 
                   style={styles.trackButton}
                   onPress={() => router.push(`/tracking/${booking.id}`)}
+                  accessible={true}
+                  accessibilityLabel="Track guard location"
+                  accessibilityHint="Double tap to view guard's real-time location on map"
+                  accessibilityRole="button"
                 >
                   <Navigation size={16} color={Colors.background} />
                   <Text style={styles.trackButtonText}>Track Guard</Text>

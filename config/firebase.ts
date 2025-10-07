@@ -2,6 +2,8 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, initializeAuth, Auth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { Platform } from 'react-native';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes",
@@ -13,6 +15,20 @@ const firebaseConfig = {
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'),
+      isTokenAutoRefreshEnabled: true
+    });
+    console.log('[Firebase] App Check initialized for web');
+  } catch (error) {
+    console.warn('[Firebase] App Check initialization failed (non-critical):', error);
+  }
+} else {
+  console.log('[Firebase] App Check skipped for native (requires native config)');
+}
 
 let auth: Auth;
 try {

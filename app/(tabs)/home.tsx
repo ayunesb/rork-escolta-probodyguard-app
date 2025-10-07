@@ -88,6 +88,10 @@ export default function HomeScreen() {
                 key={booking.id}
                 style={styles.jobCard}
                 onPress={() => router.push(`/booking/${booking.id}` as any)}
+                accessible={true}
+                accessibilityLabel={`New job ${booking.id.slice(0, 8)}, ${booking.duration} hours, payout ${booking.guardPayout}`}
+                accessibilityHint="Double tap to view job details and accept or reject"
+                accessibilityRole="button"
               >
                 <View style={styles.jobHeader}>
                   <View style={styles.jobBadge}>
@@ -154,12 +158,22 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={[styles.viewToggleButton, viewMode === 'map' && styles.viewToggleButtonActive]}
               onPress={() => setViewMode('map')}
+              accessible={true}
+              accessibilityLabel="Map view"
+              accessibilityHint="Switch to map view to see guard locations"
+              accessibilityRole="button"
+              accessibilityState={{ selected: viewMode === 'map' }}
             >
               <MapIcon size={18} color={viewMode === 'map' ? Colors.background : Colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.viewToggleButton, viewMode === 'list' && styles.viewToggleButtonActive]}
               onPress={() => setViewMode('list')}
+              accessible={true}
+              accessibilityLabel="List view"
+              accessibilityHint="Switch to list view to see guard details"
+              accessibilityRole="button"
+              accessibilityState={{ selected: viewMode === 'list' }}
             >
               <List size={18} color={viewMode === 'list' ? Colors.background : Colors.textSecondary} />
             </TouchableOpacity>
@@ -278,6 +292,10 @@ export default function HomeScreen() {
             key={guard.id} 
             style={styles.guardCard}
             onPress={() => router.push(`/guard/${guard.id}`)}
+            accessible={true}
+            accessibilityLabel={`${guard.firstName} ${guard.lastName.charAt(0)}, rated ${guard.rating.toFixed(1)} stars, ${guard.hourlyRate} per hour`}
+            accessibilityHint="Double tap to view guard profile and book protection"
+            accessibilityRole="button"
           >
             <Image source={{ uri: guard.photos[0] }} style={styles.guardImage} />
             
@@ -329,6 +347,10 @@ export default function HomeScreen() {
                 <TouchableOpacity 
                   style={styles.bookButton}
                   onPress={() => router.push(`/guard/${guard.id}`)}
+                  accessible={true}
+                  accessibilityLabel="Book now"
+                  accessibilityHint="Double tap to start booking this guard"
+                  accessibilityRole="button"
                 >
                   <Text style={styles.bookButtonText}>Book Now</Text>
                   <ChevronRight size={16} color={Colors.background} />

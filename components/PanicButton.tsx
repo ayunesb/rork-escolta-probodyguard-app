@@ -72,6 +72,10 @@ export default function PanicButton({
         ]}
         onPress={handlePress}
         activeOpacity={0.8}
+        accessible={true}
+        accessibilityLabel="Emergency SOS button"
+        accessibilityHint="Double tap to trigger emergency alert and notify contacts"
+        accessibilityRole="button"
       >
         <AlertTriangle size={iconSize} color="#fff" strokeWidth={2.5} />
         <Text style={styles.panicText}>SOS</Text>
@@ -108,6 +112,11 @@ export default function PanicButton({
                 style={[styles.emergencyButton, styles.panicButtonStyle]}
                 onPress={() => handleConfirm('panic')}
                 disabled={isTriggering}
+                accessible={true}
+                accessibilityLabel="Panic - Immediate danger"
+                accessibilityHint="Sends immediate danger alert to emergency contacts"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: isTriggering }}
               >
                 {isTriggering ? (
                   <ActivityIndicator color="#fff" />
@@ -125,6 +134,11 @@ export default function PanicButton({
                 style={[styles.emergencyButton, styles.sosButtonStyle]}
                 onPress={() => handleConfirm('sos')}
                 disabled={isTriggering}
+                accessible={true}
+                accessibilityLabel="SOS - Need urgent help"
+                accessibilityHint="Sends urgent help request to emergency contacts"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: isTriggering }}
               >
                 <Text style={styles.emergencyButtonTitle}>🆘 SOS</Text>
                 <Text style={styles.emergencyButtonSubtitle}>
@@ -136,6 +150,11 @@ export default function PanicButton({
                 style={[styles.emergencyButton, styles.medicalButtonStyle]}
                 onPress={() => handleConfirm('medical')}
                 disabled={isTriggering}
+                accessible={true}
+                accessibilityLabel="Medical emergency"
+                accessibilityHint="Sends medical emergency alert to emergency contacts"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: isTriggering }}
               >
                 <Text style={styles.emergencyButtonTitle}>🏥 Medical</Text>
                 <Text style={styles.emergencyButtonSubtitle}>
@@ -147,6 +166,11 @@ export default function PanicButton({
                 style={[styles.emergencyButton, styles.securityButtonStyle]}
                 onPress={() => handleConfirm('security')}
                 disabled={isTriggering}
+                accessible={true}
+                accessibilityLabel="Security threat"
+                accessibilityHint="Sends security threat alert to emergency contacts"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: isTriggering }}
               >
                 <Text style={styles.emergencyButtonTitle}>🛡️ Security</Text>
                 <Text style={styles.emergencyButtonSubtitle}>

@@ -9,6 +9,20 @@ const BOOKINGS_KEY = '@escolta_bookings';
 
 type BookingListener = (bookings: Booking[]) => void;
 
+interface PollingConfig {
+  idleInterval: number;
+  activeInterval: number;
+  isActive: boolean;
+}
+
+const pollingConfig: PollingConfig = {
+  idleInterval: 30000,
+  activeInterval: 10000,
+  isActive: false,
+};
+
+let pollingTimer: NodeJS.Timeout | null = null;
+
 function generateStartCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -59,6 +73,15 @@ function shouldShowGuardLocationByRule(booking: Booking): boolean {
 }
 
 export const bookingService = {
+  setPollingActive(isActive: boolean): void {
+    pollingConfig.isActive = isActive;
+    console.log('[Booking] Polling mode:', isActive ? 'active (10s)' : 'idle (30s)');
+  },
+
+  getCurrentPollingInterval(): number {
+    return pollingConfig.isActive ? pollingConfig.activeInterval : pollingConfig.idleInterval;
+  },
+
   subscribeToBookings(callback: BookingListener): () => void {
     const bookingsRef = ref(realtimeDb, 'bookings');
     
@@ -78,6 +101,31 @@ export const bookingService = {
     return () => {
       off(bookingsRef);
       console.log('[Booking] Unsubscribed from real-time updates');
+    };
+  },
+
+  startPolling(callback: BookingListener): () => void {
+    const poll = async () => {
+      try {
+        const bookings = await this.getAllBookings();
+        callback(bookings);
+        
+        const interval = this.getCurrentPollingInterval();
+        pollingTimer = setTimeout(poll, interval);
+      } catch (error) {
+        console.error('[Booking] Polling error:', error);
+        pollingTimer = setTimeout(poll, pollingConfig.idleInterval);
+      }
+    };
+
+    poll();
+
+    return () => {
+      if (pollingTimer) {
+        clearTimeout(pollingTimer);
+        pollingTimer = null;
+      }
+      console.log('[Booking] Stopped polling');
     };
   },
 

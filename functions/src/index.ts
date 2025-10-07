@@ -1,4 +1,5 @@
-import * as functions from 'firebase-functions';
+import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -127,9 +128,9 @@ app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
   }
 });
 
-export const api = functions.https.onRequest(app);
+export const api = onRequest({ cors: true }, app);
 
-export const handlePaymentWebhook = functions.https.onRequest(async (req: Request, res: Response) => {
+export const handlePaymentWebhook = onRequest({ cors: true }, async (req: Request, res: Response) => {
   try {
     const { bt_signature, bt_payload } = req.body;
     
@@ -153,9 +154,10 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00')
-  .timeZone('America/Mexico_City')
-  .onRun(async (context: functions.EventContext) => {
+export const processPayouts = onSchedule({
+  schedule: 'every monday 09:00',
+  timeZone: 'America/Mexico_City',
+}, async () => {
     console.log('[ProcessPayouts] Starting weekly payout processing');
     
     try {
@@ -207,11 +209,12 @@ export const processPayouts = functions.pubsub.schedule('every monday 09:00')
     }
   });
 
-export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+export const generateInvoice = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
   }
   
+  const data = request.data as { bookingId: string };
   const { bookingId } = data;
   
   try {
@@ -219,7 +222,7 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
     
     const bookingDoc = await db.collection('bookings').doc(bookingId).get();
     if (!bookingDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Booking not found');
+      throw new HttpsError('not-found', 'Booking not found');
     }
     
     const booking = bookingDoc.data();
@@ -251,13 +254,14 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
     };
   } catch (error) {
     console.error('[GenerateInvoice] Error:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to generate invoice');
+    throw new HttpsError('internal', 'Failed to generate invoice');
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00')
-  .timeZone('America/Mexico_City')
-  .onRun(async (context: functions.EventContext) => {
+export const recordUsageMetrics = onSchedule({
+  schedule: 'every day 00:00',
+  timeZone: 'America/Mexico_City',
+}, async () => {
     console.log('[RecordUsageMetrics] Recording daily usage metrics');
     
     try {

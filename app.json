@@ -127,6 +127,9 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "https://escolta-pro-fe90e.web.app"
     }
   }
 }

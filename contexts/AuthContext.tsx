@@ -65,10 +65,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('[Auth] Sign in successful:', userCredential.user.uid);
       
-      if (!userCredential.user.emailVerified) {
+      const allowUnverified = (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? '') === '1';
+      if (!userCredential.user.emailVerified && !allowUnverified) {
         console.log('[Auth] Email not verified');
         await firebaseSignOut(auth);
         return { success: false, error: 'Please verify your email before signing in', emailNotVerified: true };
+      }
+
+      if (!userCredential.user.emailVerified && allowUnverified) {
+        console.warn('[Auth] Email not verified — allowed due to EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN=1');
       }
       
       await rateLimitService.resetRateLimit('login', email);

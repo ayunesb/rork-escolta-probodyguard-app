@@ -1,7 +1,7 @@
 import { publicProcedure } from "@/backend/trpc/create-context";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, initializeFirebaseServices } from "@/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
@@ -22,10 +22,14 @@ export default publicProcedure
     try {
       console.log('[Auth] Sign up attempt:', email, role);
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await initializeFirebaseServices();
+      const authInstance = auth();
+      const dbInstance = db();
+
+      const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
       const user = userCredential.user;
 
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(dbInstance, 'users', user.uid), {
         email,
         firstName,
         lastName,

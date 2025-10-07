@@ -1,6 +1,6 @@
 import { publicProcedure } from "@/backend/trpc/create-context";
 import { TRPCError } from "@trpc/server";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, initializeFirebaseServices } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 export default publicProcedure.query(async ({ ctx }) => {
@@ -13,12 +13,16 @@ export default publicProcedure.query(async ({ ctx }) => {
 
     console.log('[Auth] Get user request');
 
-    const currentUser = auth.currentUser;
+    await initializeFirebaseServices();
+    const authInstance = auth();
+    const dbInstance = db();
+
+    const currentUser = authInstance.currentUser;
     if (!currentUser) {
       return { user: null };
     }
 
-    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    const userDoc = await getDoc(doc(dbInstance, 'users', currentUser.uid));
     if (!userDoc.exists()) {
       return { user: null };
     }

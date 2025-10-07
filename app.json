@@ -8,11 +8,7 @@
     "scheme": "escoltapromobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
+    "platforms": ["ios", "android", "web"],
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
@@ -26,20 +22,13 @@
         "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location to enable guard tracking and pickups.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to access your location in the background for active bookings.",
         "NSLocationAlwaysUsageDescription": "Allow $(PRODUCT_NAME) to access your location in the background for active bookings.",
-        "UIBackgroundModes": [
-          "location"
-        ],
+        "UIBackgroundModes": ["location"],
         "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID for biometric login.",
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload KYC and profile images.",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera for KYC and profile images.",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for in-app calling.",
         "CFBundleAllowMixedLocalizations": true,
-        "CFBundleLocalizations": [
-          "en",
-          "es",
-          "fr",
-          "de"
-        ]
+        "CFBundleLocalizations": ["en", "es", "fr", "de"]
       }
     },
     "android": {
@@ -60,22 +49,13 @@
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
         "android.permission.CAMERA",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
-      "web": {
-				"favicon": "./assets/images/favicon.png",
-				"bundler": "metro"
-		},
-      ]
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       [
@@ -99,9 +79,7 @@
           "icon": "./assets/images/notification_icon.png",
           "color": "#ffffff",
           "defaultChannel": "default",
-          "sounds": [
-            "./assets/sounds/notification_sound.wav"
-          ],
+          "sounds": ["./assets/sounds/notification_sound.wav"],
           "enableBackgroundRemoteNotifications": false
         }
       ],

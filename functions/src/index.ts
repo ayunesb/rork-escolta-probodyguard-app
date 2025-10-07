@@ -1,4 +1,5 @@
-import * as functions from 'firebase-functions';
+import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -127,9 +128,9 @@ app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
   }
 });
 
-export const api = functions.https.onRequest(app);
+export const api = onRequest(app);
 
-export const handlePaymentWebhook = functions.https.onRequest(async (req: Request, res: Response) => {
+export const handlePaymentWebhook = onRequest(async (req: Request, res: Response) => {
   try {
     console.log('[Webhook] Received request');
     console.log('[Webhook] Headers:', req.headers);
@@ -143,7 +144,8 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
       console.error('[Webhook] Missing signature or payload');
       console.log('[Webhook] bt_signature:', bt_signature);
       console.log('[Webhook] bt_payload:', bt_payload);
-      return res.status(400).json({ error: 'Missing signature or payload' });
+      res.status(400).json({ error: 'Missing signature or payload' });
+      return;
     }
     
     const webhookNotification = await gateway.webhookNotification.parse(
@@ -187,7 +189,7 @@ export const handlePaymentWebhook = functions.https.onRequest(async (req: Reques
   }
 });
 
-export const processPayouts = functions.pubsub.schedule('every monday 09:00').onRun(async () => {
+export const processPayouts = onSchedule('every monday 09:00', async () => {
   console.log('[ProcessPayouts] Starting weekly payout processing');
   
   try {
@@ -239,19 +241,19 @@ export const processPayouts = functions.pubsub.schedule('every monday 09:00').on
   }
 });
 
-export const generateInvoice = functions.https.onCall(async (data: { bookingId: string }, context: functions.https.CallableContext) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+export const generateInvoice = onCall(async (request: any) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
   }
   
-  const { bookingId } = data;
+  const { bookingId } = request.data as { bookingId: string };
   
   try {
     const db = admin.firestore();
     
     const bookingDoc = await db.collection('bookings').doc(bookingId).get();
     if (!bookingDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Booking not found');
+      throw new HttpsError('not-found', 'Booking not found');
     }
     
     const booking = bookingDoc.data();
@@ -283,11 +285,11 @@ export const generateInvoice = functions.https.onCall(async (data: { bookingId: 
     };
   } catch (error) {
     console.error('[GenerateInvoice] Error:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to generate invoice');
+    throw new HttpsError('internal', 'Failed to generate invoice');
   }
 });
 
-export const recordUsageMetrics = functions.pubsub.schedule('every day 00:00').onRun(async () => {
+export const recordUsageMetrics = onSchedule('every day 00:00', async () => {
   console.log('[RecordUsageMetrics] Recording daily usage metrics');
   
   try {

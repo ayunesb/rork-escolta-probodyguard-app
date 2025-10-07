@@ -14,7 +14,7 @@ interface State {
   errorInfo: React.ErrorInfo | null;
 }
 
-export default class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -162,3 +162,6 @@ const styles = StyleSheet.create({
     textAlign: 'center' as const,
   },
 });
+
+export { ErrorBoundary as RorkErrorBoundary };
+export default ErrorBoundary;

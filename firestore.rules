@@ -25,26 +25,26 @@ service cloud.firestore {
     }
     
     match /users/{userId} {
-      allow read: if isAuthenticated() && (
-        request.auth.uid == userId ||
+      allow get: if isAuthenticated() && request.auth.uid == userId;
+      
+      allow list: if isAuthenticated() && (
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         exists(/databases/$(database)/documents/users/$(userId)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'company' && 
-         get(/databases/$(database)/documents/users/$(userId)).data.companyId == request.auth.uid)
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'company')
       );
-      
-      allow get: if isAuthenticated() && request.auth.uid == userId;
       
       allow create: if isAuthenticated() && request.auth.uid == userId;
       
       allow update: if isAuthenticated() && (
-        isOwner(userId) ||
-        hasRole('admin')
+        request.auth.uid == userId ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
       
-      allow delete: if hasRole('admin');
+      allow delete: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     match /bookings/{bookingId} {

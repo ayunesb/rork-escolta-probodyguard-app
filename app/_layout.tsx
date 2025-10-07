@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
-import { RorkErrorBoundary } from "@/components/ErrorBoundary";
+import { RorkErrorBoundary as RootErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   return (
-    <RorkErrorBoundary>
+    <RootErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
@@ -37,6 +37,6 @@ export default function RootLayout() {
           </SafeAreaProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
-    </RorkErrorBoundary>
+    </RootErrorBoundary>
   );
 }

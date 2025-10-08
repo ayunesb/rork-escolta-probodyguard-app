@@ -50,13 +50,13 @@ export default function APITestScreen() {
 
     try {
       const hasFirebaseKey = !!process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
-      const hasStripeKey = !!process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      const hasBraintreeKey = !!process.env.EXPO_PUBLIC_BRAINTREE_TOKENIZATION_KEY;
       
       results[results.length - 1] = {
         name: 'Environment Variables',
-        status: hasFirebaseKey && hasStripeKey ? 'success' : 'warning',
-        message: hasFirebaseKey && hasStripeKey ? 'All keys present' : 'Some keys missing',
-        details: `Firebase: ${hasFirebaseKey ? '✓' : '✗'}, Stripe: ${hasStripeKey ? '✓' : '✗'}`,
+        status: hasFirebaseKey && hasBraintreeKey ? 'success' : 'warning',
+        message: hasFirebaseKey && hasBraintreeKey ? 'All keys present' : 'Some keys missing',
+        details: `Firebase: ${hasFirebaseKey ? '✓' : '✗'}, Braintree: ${hasBraintreeKey ? '✓' : '✗'}`,
       };
     } catch (error) {
       results[results.length - 1] = {
@@ -174,25 +174,25 @@ export default function APITestScreen() {
     setTests([...results]);
 
     results.push({
-      name: 'Stripe Configuration',
+      name: 'Braintree Configuration',
       status: 'pending',
       message: 'Checking...',
     });
     setTests([...results]);
 
     try {
-      const hasPublishableKey = !!process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-      const keyPrefix = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY?.substring(0, 7);
+      const hasTokenizationKey = !!process.env.EXPO_PUBLIC_BRAINTREE_TOKENIZATION_KEY;
+      const keyPrefix = process.env.EXPO_PUBLIC_BRAINTREE_TOKENIZATION_KEY?.substring(0, 12);
       
       results[results.length - 1] = {
-        name: 'Stripe Configuration',
-        status: hasPublishableKey ? 'success' : 'warning',
-        message: hasPublishableKey ? 'Stripe configured' : 'Stripe key missing',
-        details: hasPublishableKey ? `Key: ${keyPrefix}...` : 'Add EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+        name: 'Braintree Configuration',
+        status: hasTokenizationKey ? 'success' : 'warning',
+        message: hasTokenizationKey ? 'Braintree configured' : 'Braintree key missing',
+        details: hasTokenizationKey ? `Key: ${keyPrefix}...` : 'Add EXPO_PUBLIC_BRAINTREE_TOKENIZATION_KEY',
       };
     } catch (error) {
       results[results.length - 1] = {
-        name: 'Stripe Configuration',
+        name: 'Braintree Configuration',
         status: 'error',
         message: 'Failed to check',
         details: error instanceof Error ? error.message : 'Unknown error',

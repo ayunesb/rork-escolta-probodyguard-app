@@ -1,110 +1,12 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, initializeAuth, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { Platform } from 'react-native';
+import { app, auth as authInstance, db as dbInstance, realtimeDb as realtimeDbInstance } from '@/config/firebase';
 
-const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes',
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'escolta-pro-fe90e.firebaseapp.com',
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'escolta-pro-fe90e',
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || 'escolta-pro-fe90e.firebasestorage.app',
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '919834684647',
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:919834684647:web:60dad6457ad0f92b068642',
+export const initializeFirebaseServices = async () => {
+  console.log('[Firebase] Services already initialized via config/firebase');
+  return Promise.resolve();
 };
 
-let app: FirebaseApp | undefined;
-let authInstance: Auth | undefined;
-let dbInstance: Firestore | undefined;
-let storageInstance: FirebaseStorage | undefined;
-let isInitializing = false;
-let initializationPromise: Promise<void> | null = null;
+export const auth = () => authInstance;
+export const db = () => dbInstance;
+export const realtimeDb = () => realtimeDbInstance;
 
-const initializeFirebaseServices = async (): Promise<void> => {
-  if (app && authInstance && dbInstance && storageInstance) {
-    return;
-  }
-
-  if (isInitializing && initializationPromise) {
-    return initializationPromise;
-  }
-
-  isInitializing = true;
-  initializationPromise = (async () => {
-    try {
-      console.log('[Firebase] Starting initialization');
-      const startTime = Date.now();
-      
-      app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-      console.log('[Firebase] App initialized in', Date.now() - startTime, 'ms');
-      
-      if (Platform.OS === 'web') {
-        try {
-          authInstance = initializeAuth(app, {
-            persistence: browserLocalPersistence,
-          });
-        } catch (e) {
-          authInstance = getAuth(app);
-        }
-      } else {
-        authInstance = getAuth(app);
-      }
-      console.log('[Firebase] Auth initialized in', Date.now() - startTime, 'ms');
-      
-      dbInstance = getFirestore(app);
-      console.log('[Firebase] Firestore initialized in', Date.now() - startTime, 'ms');
-      
-      if (__DEV__) {
-        (authInstance as any)._logFramework = () => {};
-      }
-      
-      storageInstance = getStorage(app);
-      
-      console.log('[Firebase] Full initialization complete in', Date.now() - startTime, 'ms');
-    } catch (error) {
-      console.error('[Firebase] Initialization error:', error);
-      isInitializing = false;
-      throw error;
-    } finally {
-      isInitializing = false;
-    }
-  })();
-
-  return initializationPromise;
-};
-
-const getFirebaseApp = (): FirebaseApp => {
-  if (!app) {
-    throw new Error('Firebase not initialized. Call initializeFirebaseServices first.');
-  }
-  return app;
-};
-
-const getFirebaseAuth = (): Auth => {
-  if (!authInstance) {
-    throw new Error('Firebase Auth not initialized. Call initializeFirebaseServices first.');
-  }
-  return authInstance;
-};
-
-const getFirebaseDb = (): Firestore => {
-  if (!dbInstance) {
-    throw new Error('Firebase Firestore not initialized. Call initializeFirebaseServices first.');
-  }
-  return dbInstance;
-};
-
-const getFirebaseStorage = (): FirebaseStorage => {
-  if (!storageInstance) {
-    throw new Error('Firebase Storage not initialized. Call initializeFirebaseServices first.');
-  }
-  return storageInstance;
-};
-
-export { 
-  initializeFirebaseServices,
-  getFirebaseApp as app,
-  getFirebaseAuth as auth,
-  getFirebaseDb as db,
-  getFirebaseStorage as storage
-};
+export { app };

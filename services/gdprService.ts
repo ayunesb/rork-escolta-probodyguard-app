@@ -1,4 +1,4 @@
-import { db, auth } from '@/config/firebase';
+import { db as getDbInstance, auth as getAuthInstance } from '@/lib/firebase';
 import { getStorage } from 'firebase/storage';
 import {
   collection,
@@ -33,7 +33,7 @@ class GDPRService {
         status: 'pending',
       };
 
-      const docRef = await addDoc(collection(db, 'deletion_requests'), {
+      const docRef = await addDoc(collection(getDbInstance(), 'deletion_requests'), {
         ...deletionRequest,
         requestedAt: Timestamp.fromDate(deletionRequest.requestedAt),
       });
@@ -84,13 +84,13 @@ class GDPRService {
     for (const collectionName of collections) {
       try {
         const q = query(
-          collection(db, collectionName),
+          collection(getDbInstance(), collectionName),
           where('userId', '==', userId)
         );
         const snapshot = await getDocs(q);
 
         for (const document of snapshot.docs) {
-          await deleteDoc(doc(db, collectionName, document.id));
+          await deleteDoc(doc(getDbInstance(), collectionName, document.id));
         }
 
         console.log(`[GDPR] Deleted ${snapshot.size} documents from ${collectionName}`);
@@ -100,12 +100,12 @@ class GDPRService {
     }
 
     const userDocQuery = query(
-      collection(db, 'users'),
+      collection(getDbInstance(), 'users'),
       where('id', '==', userId)
     );
     const userSnapshot = await getDocs(userDocQuery);
     for (const document of userSnapshot.docs) {
-      await deleteDoc(doc(db, 'users', document.id));
+      await deleteDoc(doc(getDbInstance(), 'users', document.id));
     }
   }
 
@@ -134,7 +134,7 @@ class GDPRService {
 
   private async deleteAuthAccount(userId: string): Promise<void> {
     try {
-      const currentUser = auth.currentUser;
+      const currentUser = getAuthInstance().currentUser;
       if (currentUser && currentUser.uid === userId) {
         await deleteUser(currentUser);
         console.log('[GDPR] Deleted auth account for user:', userId);
@@ -168,7 +168,7 @@ class GDPRService {
 
       for (const collectionName of collections) {
         const q = query(
-          collection(db, collectionName),
+          collection(getDbInstance(), collectionName),
           where('userId', '==', userId)
         );
         const snapshot = await getDocs(q);
@@ -193,7 +193,7 @@ class GDPRService {
   async getDeletionStatus(requestId: string): Promise<DeletionRequest | null> {
     try {
 
-      const snapshot = await getDocs(query(collection(db, 'deletion_requests'), where('__name__', '==', requestId)));
+      const snapshot = await getDocs(query(collection(getDbInstance(), 'deletion_requests'), where('__name__', '==', requestId)));
 
       if (snapshot.empty) {
         return null;

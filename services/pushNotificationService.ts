@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { doc, updateDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { UserRole } from '@/types';
 
 export interface PushNotificationPayload {
@@ -115,13 +115,13 @@ export const pushNotificationService = {
       const token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log('[Push] Device token:', token);
 
-      await updateDoc(doc(db, 'users', userId), {
+      await updateDoc(doc(getDbInstance(), 'users', userId), {
         pushToken: token,
         pushTokenUpdatedAt: new Date().toISOString(),
         devicePlatform: Platform.OS,
       });
 
-      await addDoc(collection(db, 'deviceTokens'), {
+      await addDoc(collection(getDbInstance(), 'deviceTokens'), {
         userId,
         token,
         platform: Platform.OS,
@@ -140,7 +140,7 @@ export const pushNotificationService = {
   async unregisterDevice(userId: string): Promise<void> {
     try {
       const tokensQuery = query(
-        collection(db, 'deviceTokens'),
+        collection(getDbInstance(), 'deviceTokens'),
         where('userId', '==', userId)
       );
       const snapshot = await getDocs(tokensQuery);
@@ -165,7 +165,7 @@ export const pushNotificationService = {
   ): Promise<void> {
     try {
       const userDoc = await getDocs(
-        query(collection(db, 'users'), where('id', '==', userId))
+        query(collection(getDbInstance(), 'users'), where('id', '==', userId))
       );
 
       if (userDoc.empty) {
@@ -181,7 +181,7 @@ export const pushNotificationService = {
         return;
       }
 
-      await addDoc(collection(db, 'notifications'), {
+      await addDoc(collection(getDbInstance(), 'notifications'), {
         userId,
         title: payload.title,
         body: payload.body,
@@ -389,7 +389,7 @@ export const pushNotificationService = {
     preferences: NotificationPreferences
   ): Promise<void> {
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      await updateDoc(doc(getDbInstance(), 'users', userId), {
         notificationPreferences: preferences,
         preferencesUpdatedAt: new Date().toISOString(),
       });
@@ -404,7 +404,7 @@ export const pushNotificationService = {
   ): Promise<NotificationPreferences> {
     try {
       const userDoc = await getDocs(
-        query(collection(db, 'users'), where('id', '==', userId))
+        query(collection(getDbInstance(), 'users'), where('id', '==', userId))
       );
 
       if (!userDoc.empty) {

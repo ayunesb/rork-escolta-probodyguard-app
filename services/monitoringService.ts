@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { db, auth } from '@/config/firebase';
+import { db as getDbInstance, auth as getAuthInstance } from '@/lib/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 type LogLevel = 'info' | 'warn' | 'error' | 'critical';
@@ -90,7 +90,7 @@ class MonitoringService {
   async flush(): Promise<void> {
     if (!this.enabled || this.logBuffer.length === 0) return;
 
-    if (!auth.currentUser) {
+    if (!getAuthInstance().currentUser) {
       this.logBuffer = [];
       return;
     }
@@ -103,13 +103,13 @@ class MonitoringService {
         level: entry.level,
         message: entry.message,
         context: entry.context || {},
-        userId: entry.userId || auth.currentUser?.uid || null,
+        userId: entry.userId || getAuthInstance().currentUser?.uid || null,
         timestamp: Timestamp.fromDate(entry.timestamp),
         platform: entry.platform,
       }));
 
       for (const log of batch) {
-        await addDoc(collection(db, 'logs'), log);
+        await addDoc(collection(getDbInstance(), 'logs'), log);
       }
 
       if (__DEV__) {
@@ -126,7 +126,7 @@ class MonitoringService {
   async reportError(report: ErrorReport): Promise<void> {
     const { error, context, userId, fatal = false } = report;
 
-    if (!auth.currentUser) {
+    if (!getAuthInstance().currentUser) {
       return;
     }
 
@@ -137,14 +137,14 @@ class MonitoringService {
       message: error.message,
       stack: error.stack || '',
       context: sanitizedContext,
-      userId: userId || auth.currentUser.uid,
+      userId: userId || getAuthInstance().currentUser!.uid,
       fatal,
       timestamp: Timestamp.now(),
       platform: Platform.OS,
     };
 
     try {
-      await addDoc(collection(db, 'errors'), errorData);
+      await addDoc(collection(getDbInstance(), 'errors'), errorData);
       if (__DEV__) {
         console.log('[Monitoring] Error reported:', error.message);
       }
@@ -157,21 +157,21 @@ class MonitoringService {
     await this.log(fatal ? 'critical' : 'error', error.message, {
       ...sanitizedContext,
       stack: error.stack,
-    }, userId || auth.currentUser.uid);
+    }, userId || getAuthInstance().currentUser!.uid);
   }
 
   async trackEvent(eventName: string, properties?: Record<string, any>, userId?: string): Promise<void> {
-    if (!auth.currentUser) {
+    if (!getAuthInstance().currentUser) {
       return;
     }
 
     const sanitizedProperties = properties ? this.sanitizePII(properties) : {};
 
     try {
-      await addDoc(collection(db, 'analytics'), {
+      await addDoc(collection(getDbInstance(), 'analytics'), {
         eventName,
         properties: sanitizedProperties,
-        userId: userId || auth.currentUser.uid,
+        userId: userId || getAuthInstance().currentUser!.uid,
         timestamp: Timestamp.now(),
         platform: Platform.OS,
       });
@@ -187,12 +187,12 @@ class MonitoringService {
   }
 
   async trackPerformance(metric: string, value: number, context?: Record<string, any>): Promise<void> {
-    if (!auth.currentUser) {
+    if (!getAuthInstance().currentUser) {
       return;
     }
 
     try {
-      await addDoc(collection(db, 'performance'), {
+      await addDoc(collection(getDbInstance(), 'performance'), {
         metric,
         value,
         context: context || {},

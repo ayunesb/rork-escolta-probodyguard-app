@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 
 const RATE_LIMIT_PREFIX = '@rate_limit_';
 
@@ -128,7 +128,7 @@ export const rateLimitService = {
     attempts: number
   ): Promise<void> {
     try {
-      const violationRef = doc(db, 'rateLimitViolations', `${action}_${identifier}_${Date.now()}`);
+      const violationRef = doc(getDbInstance(), 'rateLimitViolations', `${action}_${identifier}_${Date.now()}`);
       await setDoc(violationRef, {
         action,
         identifier,

@@ -1,6 +1,6 @@
 import { Guard, Booking, Language } from '@/types';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 
 export interface MatchingCriteria {
   location: {
@@ -67,7 +67,7 @@ export const guardMatchingService = {
       console.log('[Matching] Finding guards with criteria:', criteria);
 
       const guardsQuery = query(
-        collection(db, 'users'),
+        collection(getDbInstance(), 'users'),
         where('role', '==', 'guard'),
         where('availability', '==', true),
         where('kycStatus', '==', 'approved')
@@ -184,7 +184,7 @@ export const guardMatchingService = {
   ): Promise<boolean> {
     try {
       const bookingsQuery = query(
-        collection(db, 'bookings'),
+        collection(getDbInstance(), 'bookings'),
         where('guardId', '==', guardId),
         where('status', 'in', ['confirmed', 'accepted', 'en_route', 'active'])
       );
@@ -251,7 +251,7 @@ export const guardMatchingService = {
   ): Promise<GuardScore[]> {
     try {
       const bookingsQuery = query(
-        collection(db, 'bookings'),
+        collection(getDbInstance(), 'bookings'),
         where('clientId', '==', clientId),
         where('status', '==', 'completed')
       );
@@ -297,7 +297,7 @@ export const guardMatchingService = {
     guardId: string
   ): Promise<boolean> {
     try {
-      const bookingRef = doc(db, 'bookings', bookingId);
+      const bookingRef = doc(getDbInstance(), 'bookings', bookingId);
       await updateDoc(bookingRef, {
         guardId,
         status: 'confirmed',

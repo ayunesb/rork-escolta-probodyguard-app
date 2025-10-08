@@ -10,7 +10,7 @@ import {
   setDoc,
   deleteDoc,
 } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { ChatMessage, Language } from '@/types';
 import { translationService } from './translationService';
 import { rateLimitService } from './rateLimitService';
@@ -46,7 +46,7 @@ export const chatService = {
         timestamp: Timestamp.now(),
       };
 
-      await addDoc(collection(db, 'messages'), messageData);
+      await addDoc(collection(getDbInstance(), 'messages'), messageData);
       console.log('[Chat] Message sent:', bookingId);
     } catch (error) {
       console.error('[Chat] Error sending message:', error);
@@ -61,7 +61,7 @@ export const chatService = {
   ): () => void {
     try {
       const messagesQuery = query(
-        collection(db, 'messages'),
+        collection(getDbInstance(), 'messages'),
         where('bookingId', '==', bookingId)
       );
 
@@ -115,7 +115,7 @@ export const chatService = {
   async getMessages(bookingId: string): Promise<ChatMessage[]> {
     try {
       const messagesQuery = query(
-        collection(db, 'messages'),
+        collection(getDbInstance(), 'messages'),
         where('bookingId', '==', bookingId)
       );
 
@@ -150,7 +150,7 @@ export const chatService = {
   async getUnreadCount(bookingId: string, userId: string): Promise<number> {
     try {
       const messagesQuery = query(
-        collection(db, 'messages'),
+        collection(getDbInstance(), 'messages'),
         where('bookingId', '==', bookingId),
         where('senderId', '!=', userId)
       );
@@ -170,7 +170,7 @@ export const chatService = {
     isTyping: boolean
   ): Promise<void> {
     try {
-      const typingRef = doc(db, 'typing', `${bookingId}_${userId}`);
+      const typingRef = doc(getDbInstance(), 'typing', `${bookingId}_${userId}`);
       
       if (isTyping) {
         await setDoc(typingRef, {
@@ -196,7 +196,7 @@ export const chatService = {
   ): () => void {
     try {
       const typingQuery = query(
-        collection(db, 'typing'),
+        collection(getDbInstance(), 'typing'),
         where('bookingId', '==', bookingId)
       );
 
@@ -230,7 +230,7 @@ export const chatService = {
   async markAsRead(bookingId: string, userId: string): Promise<void> {
     try {
       const messagesQuery = query(
-        collection(db, 'messages'),
+        collection(getDbInstance(), 'messages'),
         where('bookingId', '==', bookingId),
         where('senderId', '!=', userId)
       );

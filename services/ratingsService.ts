@@ -1,5 +1,5 @@
 import { collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { RatingBreakdown } from '@/types';
 
 export interface Review {
@@ -63,9 +63,9 @@ export const ratingsService = {
         createdAt: new Date().toISOString(),
       };
 
-      const reviewRef = await addDoc(collection(db, 'reviews'), reviewData);
+      const reviewRef = await addDoc(collection(getDbInstance(), 'reviews'), reviewData);
 
-      await updateDoc(doc(db, 'bookings', bookingId), {
+      await updateDoc(doc(getDbInstance(), 'bookings', bookingId), {
         rating,
         ratingBreakdown,
         review,
@@ -85,7 +85,7 @@ export const ratingsService = {
   async updateGuardRating(guardId: string): Promise<void> {
     try {
       const reviewsQuery = query(
-        collection(db, 'reviews'),
+        collection(getDbInstance(), 'reviews'),
         where('guardId', '==', guardId)
       );
 
@@ -127,7 +127,7 @@ export const ratingsService = {
         languageClarity: breakdownSums.languageClarity / reviews.length,
       };
 
-      await updateDoc(doc(db, 'users', guardId), {
+      await updateDoc(doc(getDbInstance(), 'users', guardId), {
         rating: overallRating,
         ratingBreakdown: averageBreakdown,
         totalReviews: reviews.length,
@@ -143,7 +143,7 @@ export const ratingsService = {
   async getGuardRatingStats(guardId: string): Promise<GuardRatingStats | null> {
     try {
       const reviewsQuery = query(
-        collection(db, 'reviews'),
+        collection(getDbInstance(), 'reviews'),
         where('guardId', '==', guardId),
         orderBy('createdAt', 'desc')
       );
@@ -218,7 +218,7 @@ export const ratingsService = {
   ): Promise<Review[]> {
     try {
       const reviewsQuery = query(
-        collection(db, 'reviews'),
+        collection(getDbInstance(), 'reviews'),
         where('guardId', '==', guardId),
         orderBy('createdAt', 'desc'),
         limit(limitCount)
@@ -246,7 +246,7 @@ export const ratingsService = {
     responseText: string
   ): Promise<boolean> {
     try {
-      await updateDoc(doc(db, 'reviews', reviewId), {
+      await updateDoc(doc(getDbInstance(), 'reviews', reviewId), {
         response: {
           text: responseText,
           respondedAt: new Date().toISOString(),
@@ -267,11 +267,11 @@ export const ratingsService = {
     isHelpful: boolean
   ): Promise<boolean> {
     try {
-      const reviewRef = doc(db, 'reviews', reviewId);
+      const reviewRef = doc(getDbInstance(), 'reviews', reviewId);
       const field = isHelpful ? 'helpful' : 'notHelpful';
 
       const reviewDoc = await getDocs(
-        query(collection(db, 'reviews'), where('__name__', '==', reviewId))
+        query(collection(getDbInstance(), 'reviews'), where('__name__', '==', reviewId))
       );
 
       if (!reviewDoc.empty) {
@@ -292,7 +292,7 @@ export const ratingsService = {
   async getClientRatingHistory(clientId: string): Promise<Review[]> {
     try {
       const reviewsQuery = query(
-        collection(db, 'reviews'),
+        collection(getDbInstance(), 'reviews'),
         where('clientId', '==', clientId),
         orderBy('createdAt', 'desc')
       );
@@ -317,7 +317,7 @@ export const ratingsService = {
   async getTopRatedGuards(limitCount: number = 10): Promise<any[]> {
     try {
       const guardsQuery = query(
-        collection(db, 'users'),
+        collection(getDbInstance(), 'users'),
         where('role', '==', 'guard'),
         where('kycStatus', '==', 'approved'),
         orderBy('rating', 'desc'),

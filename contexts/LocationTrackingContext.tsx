@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import { ref, onValue, set, off } from 'firebase/database';
-import { realtimeDb } from '@/config/firebase';
+import { realtimeDb as getRealtimeDb } from '@/lib/firebase';
 import { UserRole } from '@/types';
 
 interface LocationCoords {
@@ -239,7 +239,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
         timestamp: Date.now(),
       };
 
-      const locationRef = ref(realtimeDb, `guardLocations/${guardId}`);
+      const locationRef = ref(getRealtimeDb(), `guardLocations/${guardId}`);
       await set(locationRef, guardLocationData);
 
       setGuardLocations((prev) => {
@@ -255,7 +255,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
   }, []);
 
   const subscribeToGuardLocation = useCallback((guardId: string) => {
-    const locationRef = ref(realtimeDb, `guardLocations/${guardId}`);
+    const locationRef = ref(getRealtimeDb(), `guardLocations/${guardId}`);
     
     onValue(locationRef, (snapshot) => {
       const data = snapshot.val();

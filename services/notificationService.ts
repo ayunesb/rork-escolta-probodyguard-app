@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({
@@ -68,7 +68,7 @@ export const notificationService = {
       const token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log('[Notifications] Push token:', token);
 
-      await updateDoc(doc(db, 'users', userId), {
+      await updateDoc(doc(getDbInstance(), 'users', userId), {
         pushToken: token,
         pushTokenUpdatedAt: new Date().toISOString(),
       });

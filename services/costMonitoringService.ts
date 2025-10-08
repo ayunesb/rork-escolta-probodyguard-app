@@ -1,5 +1,5 @@
 import { collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 
 export interface UsageMetrics {
   date: string;
@@ -43,7 +43,7 @@ export const costMonitoringService = {
     try {
       const estimatedCost = this.calculateCost(metrics);
       
-      await addDoc(collection(db, 'usage_metrics'), {
+      await addDoc(collection(getDbInstance(), 'usage_metrics'), {
         ...metrics,
         estimatedCost,
         createdAt: serverTimestamp(),
@@ -112,7 +112,7 @@ export const costMonitoringService = {
     }
     
     for (const alert of alerts) {
-      await addDoc(collection(db, 'cost_alerts'), {
+      await addDoc(collection(getDbInstance(), 'cost_alerts'), {
         ...alert,
         createdAt: serverTimestamp(),
       });
@@ -129,7 +129,7 @@ export const costMonitoringService = {
       startDate.setDate(startDate.getDate() - days);
       
       const metricsQuery = query(
-        collection(db, 'usage_metrics'),
+        collection(getDbInstance(), 'usage_metrics'),
         where('date', '>=', startDate.toISOString().split('T')[0]),
         orderBy('date', 'desc'),
         limit(days)
@@ -154,7 +154,7 @@ export const costMonitoringService = {
     
     try {
       const alertsQuery = query(
-        collection(db, 'cost_alerts'),
+        collection(getDbInstance(), 'cost_alerts'),
         where('acknowledged', '==', acknowledged),
         orderBy('createdAt', 'desc'),
         limit(50)

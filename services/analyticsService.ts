@@ -1,5 +1,5 @@
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { Booking } from '@/types';
 
 export interface BookingAnalytics {
@@ -63,11 +63,11 @@ export const analyticsService = {
     endDate?: Date
   ): Promise<BookingAnalytics> {
     try {
-      let bookingsQuery = query(collection(db, 'bookings'));
+      let bookingsQuery = query(collection(getDbInstance(), 'bookings'));
 
       if (startDate && endDate) {
         bookingsQuery = query(
-          collection(db, 'bookings'),
+          collection(getDbInstance(), 'bookings'),
           where('createdAt', '>=', startDate.toISOString()),
           where('createdAt', '<=', endDate.toISOString())
         );
@@ -130,7 +130,7 @@ export const analyticsService = {
   async getGuardAnalytics(guardId: string): Promise<GuardAnalytics> {
     try {
       const bookingsQuery = query(
-        collection(db, 'bookings'),
+        collection(getDbInstance(), 'bookings'),
         where('guardId', '==', guardId)
       );
 
@@ -192,7 +192,7 @@ export const analyticsService = {
   async getClientAnalytics(clientId: string): Promise<ClientAnalytics> {
     try {
       const bookingsQuery = query(
-        collection(db, 'bookings'),
+        collection(getDbInstance(), 'bookings'),
         where('clientId', '==', clientId)
       );
 
@@ -252,7 +252,7 @@ export const analyticsService = {
 
   async getPlatformAnalytics(): Promise<PlatformAnalytics> {
     try {
-      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const usersSnapshot = await getDocs(collection(getDbInstance(), 'users'));
       const users: any[] = [];
 
       usersSnapshot.forEach((doc) => {
@@ -268,7 +268,7 @@ export const analyticsService = {
       const totalCompanies = users.filter((u) => u.role === 'company').length;
       const activeUsers = users.filter((u) => u.availability).length;
 
-      const bookingsSnapshot = await getDocs(collection(db, 'bookings'));
+      const bookingsSnapshot = await getDocs(collection(getDbInstance(), 'bookings'));
       const bookings: Booking[] = [];
 
       bookingsSnapshot.forEach((doc) => {
@@ -433,7 +433,7 @@ export const analyticsService = {
   > {
     try {
       const guardsQuery = query(
-        collection(db, 'users'),
+        collection(getDbInstance(), 'users'),
         where('role', '==', 'guard'),
         orderBy('rating', 'desc')
       );

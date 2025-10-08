@@ -1,5 +1,5 @@
 import { collection, addDoc, updateDoc, doc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { SavedPaymentMethod } from '@/types';
 import { PAYMENT_CONFIG, ENV } from '@/config/env';
 
@@ -87,7 +87,7 @@ export const paymentService = {
 
       console.log('[Payment] Payment successful:', data.transactionId);
       
-      await addDoc(collection(db, 'payments'), {
+      await addDoc(collection(getDbInstance(), 'payments'), {
         bookingId,
         userId,
         amount,
@@ -221,14 +221,14 @@ export const paymentService = {
       console.log('[Payment] Refund successful:', data.refundId);
       
       const paymentQuery = query(
-        collection(db, 'payments'),
+        collection(getDbInstance(), 'payments'),
         where('transactionId', '==', transactionId)
       );
       const paymentSnapshot = await getDocs(paymentQuery);
       
       if (!paymentSnapshot.empty) {
         const paymentDoc = paymentSnapshot.docs[0];
-        await updateDoc(doc(db, 'payments', paymentDoc.id), {
+        await updateDoc(doc(getDbInstance(), 'payments', paymentDoc.id), {
           status: 'refunded',
           refundId: data.refundId,
           refundedAt: serverTimestamp(),

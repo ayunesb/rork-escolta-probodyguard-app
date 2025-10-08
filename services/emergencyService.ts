@@ -1,4 +1,4 @@
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
 import { notificationService } from './notificationService';
 import * as Location from 'expo-location';
@@ -46,7 +46,7 @@ class EmergencyService {
         timestamp: new Date().toISOString(),
       };
 
-      const docRef = await addDoc(collection(db, 'emergencyAlerts'), alert);
+      const docRef = await addDoc(collection(getDbInstance(), 'emergencyAlerts'), alert);
       console.log('[Emergency] Alert created:', docRef.id);
 
       await this.notifyEmergencyContacts(docRef.id, alert);
@@ -70,7 +70,7 @@ class EmergencyService {
     try {
       console.log('[Emergency] Resolving alert:', alertId, status);
 
-      await updateDoc(doc(db, 'emergencyAlerts', alertId), {
+      await updateDoc(doc(getDbInstance(), 'emergencyAlerts', alertId), {
         status,
         resolvedAt: new Date().toISOString(),
         notes,
@@ -86,7 +86,7 @@ class EmergencyService {
   async getActiveAlerts(userId: string): Promise<EmergencyAlert[]> {
     try {
       const q = query(
-        collection(db, 'emergencyAlerts'),
+        collection(getDbInstance(), 'emergencyAlerts'),
         where('userId', '==', userId),
         where('status', '==', 'active')
       );
@@ -179,7 +179,7 @@ class EmergencyService {
     alert: Omit<EmergencyAlert, 'id'>
   ): Promise<void> {
     try {
-      const userDoc = await getDoc(doc(db, 'users', alert.userId));
+      const userDoc = await getDoc(doc(getDbInstance(), 'users', alert.userId));
       const userData = userDoc.data();
 
       if (!userData) return;
@@ -187,7 +187,7 @@ class EmergencyService {
       const message = `🚨 EMERGENCY ALERT: ${userData.firstName} ${userData.lastName} has triggered a ${alert.type} alert at ${alert.location.address || 'unknown location'}`;
 
       const adminsQuery = query(
-        collection(db, 'users'),
+        collection(getDbInstance(), 'users'),
         where('role', '==', 'admin')
       );
       const adminsSnapshot = await getDocs(adminsQuery);
@@ -212,7 +212,7 @@ class EmergencyService {
     alert: Omit<EmergencyAlert, 'id'>
   ): Promise<void> {
     try {
-      const bookingDoc = await getDoc(doc(db, 'bookings', bookingId));
+      const bookingDoc = await getDoc(doc(getDbInstance(), 'bookings', bookingId));
       const booking = bookingDoc.data();
 
       if (!booking) return;

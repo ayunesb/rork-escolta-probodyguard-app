@@ -1,4 +1,4 @@
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, Timestamp, orderBy } from 'firebase/firestore';
 import { monitoringService } from './monitoringService';
 
@@ -45,7 +45,7 @@ class KYCAuditService {
         timestamp: new Date(),
       };
 
-      await addDoc(collection(db, 'kyc_audit_log'), {
+      await addDoc(collection(getDbInstance(), 'kyc_audit_log'), {
         ...auditEntry,
         timestamp: Timestamp.fromDate(auditEntry.timestamp),
       });
@@ -91,7 +91,7 @@ class KYCAuditService {
         timestamp: new Date(),
       };
 
-      await addDoc(collection(db, 'kyc_audit_log'), {
+      await addDoc(collection(getDbInstance(), 'kyc_audit_log'), {
         ...auditEntry,
         timestamp: Timestamp.fromDate(auditEntry.timestamp),
       });
@@ -131,7 +131,7 @@ class KYCAuditService {
         timestamp: new Date(),
       };
 
-      await addDoc(collection(db, 'kyc_audit_log'), {
+      await addDoc(collection(getDbInstance(), 'kyc_audit_log'), {
         ...auditEntry,
         timestamp: Timestamp.fromDate(auditEntry.timestamp),
       });
@@ -156,7 +156,7 @@ class KYCAuditService {
   async getAuditTrail(userId: string): Promise<KYCAuditEntry[]> {
     try {
       const q = query(
-        collection(db, 'kyc_audit_log'),
+        collection(getDbInstance(), 'kyc_audit_log'),
         where('userId', '==', userId),
         orderBy('timestamp', 'desc')
       );
@@ -191,7 +191,7 @@ class KYCAuditService {
   async getDocumentHistory(documentId: string): Promise<KYCAuditEntry[]> {
     try {
       const q = query(
-        collection(db, 'kyc_audit_log'),
+        collection(getDbInstance(), 'kyc_audit_log'),
         where('documentId', '==', documentId),
         orderBy('timestamp', 'desc')
       );
@@ -226,7 +226,7 @@ class KYCAuditService {
   async getReviewerActivity(reviewerId: string, startDate?: Date, endDate?: Date): Promise<KYCAuditEntry[]> {
     try {
       let q = query(
-        collection(db, 'kyc_audit_log'),
+        collection(getDbInstance(), 'kyc_audit_log'),
         where('reviewerId', '==', reviewerId),
         orderBy('timestamp', 'desc')
       );
@@ -273,7 +273,7 @@ class KYCAuditService {
   }> {
     try {
       const q = query(
-        collection(db, 'kyc_audit_log'),
+        collection(getDbInstance(), 'kyc_audit_log'),
         orderBy('timestamp', 'desc')
       );
 

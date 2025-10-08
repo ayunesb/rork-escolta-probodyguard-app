@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Booking, BookingStatus, BookingType } from '@/types';
 import { ref, set, onValue, off, update } from 'firebase/database';
-import { realtimeDb } from '@/config/firebase';
+import { realtimeDb as getRealtimeDb } from '@/lib/firebase';
 import { notificationService } from './notificationService';
 import { rateLimitService } from './rateLimitService';
 
@@ -83,7 +83,7 @@ export const bookingService = {
   },
 
   subscribeToBookings(callback: BookingListener): () => void {
-    const bookingsRef = ref(realtimeDb, 'bookings');
+    const bookingsRef = ref(getRealtimeDb(), 'bookings');
     
     onValue(bookingsRef, async (snapshot) => {
       try {
@@ -130,7 +130,7 @@ export const bookingService = {
   },
 
   subscribeToGuardBookings(guardId: string, callback: BookingListener): () => void {
-    const bookingsRef = ref(realtimeDb, 'bookings');
+    const bookingsRef = ref(getRealtimeDb(), 'bookings');
     
     onValue(bookingsRef, async (snapshot) => {
       try {
@@ -185,7 +185,7 @@ export const bookingService = {
       await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
       try {
-        const bookingsRef = ref(realtimeDb, 'bookings');
+        const bookingsRef = ref(getRealtimeDb(), 'bookings');
         const bookingsData = bookings.reduce((acc, b) => ({ ...acc, [b.id]: b }), {});
         await set(bookingsRef, bookingsData);
         console.log('[Booking] Synced to Firebase Realtime Database');
@@ -266,7 +266,7 @@ export const bookingService = {
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
         try {
-          const bookingRef = ref(realtimeDb, `bookings/${id}`);
+          const bookingRef = ref(getRealtimeDb(), `bookings/${id}`);
           await update(bookingRef, bookings[index]);
           console.log('[Booking] Synced status update to Firebase');
 
@@ -301,7 +301,7 @@ export const bookingService = {
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
         try {
-          const bookingRef = ref(realtimeDb, `bookings/${id}`);
+          const bookingRef = ref(getRealtimeDb(), `bookings/${id}`);
           await update(bookingRef, bookings[index]);
           console.log('[Booking] Synced payment confirmation to Firebase');
 
@@ -436,7 +436,7 @@ export const bookingService = {
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
         try {
-          const bookingRef = ref(realtimeDb, `bookings/${bookingId}`);
+          const bookingRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
           await update(bookingRef, bookings[index]);
           console.log('[Booking] Synced acceptance to Firebase');
 
@@ -471,7 +471,7 @@ export const bookingService = {
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
         try {
-          const bookingRef = ref(realtimeDb, `bookings/${bookingId}`);
+          const bookingRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
           await update(bookingRef, bookings[index]);
           console.log('[Booking] Synced rejection to Firebase');
 
@@ -533,7 +533,7 @@ export const bookingService = {
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
         try {
-          const bookingRef = ref(realtimeDb, `bookings/${bookingId}`);
+          const bookingRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
           await update(bookingRef, bookings[index]);
           console.log('[Booking] Synced cancellation to Firebase');
 

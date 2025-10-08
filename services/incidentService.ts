@@ -1,4 +1,4 @@
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs, orderBy } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
@@ -65,7 +65,7 @@ class IncidentService {
         actions: [],
       };
 
-      const docRef = await addDoc(collection(db, 'incidentReports'), report);
+      const docRef = await addDoc(collection(getDbInstance(), 'incidentReports'), report);
       console.log('[Incident] Report created:', docRef.id);
 
       return { success: true, reportId: docRef.id };
@@ -82,7 +82,7 @@ class IncidentService {
     try {
       console.log('[Incident] Updating report:', reportId);
       const { id, ...updateData } = updates;
-      await updateDoc(doc(db, 'incidentReports', reportId), updateData);
+      await updateDoc(doc(getDbInstance(), 'incidentReports', reportId), updateData);
       return true;
     } catch (error) {
       console.error('[Incident] Error updating report:', error);
@@ -98,7 +98,7 @@ class IncidentService {
     try {
       console.log('[Incident] Resolving incident:', reportId);
 
-      await updateDoc(doc(db, 'incidentReports', reportId), {
+      await updateDoc(doc(getDbInstance(), 'incidentReports', reportId), {
         status: 'resolved',
         resolution,
         resolvedBy,
@@ -114,7 +114,7 @@ class IncidentService {
 
   async getIncidentReport(reportId: string): Promise<IncidentReport | null> {
     try {
-      const docSnap = await getDoc(doc(db, 'incidentReports', reportId));
+      const docSnap = await getDoc(doc(getDbInstance(), 'incidentReports', reportId));
       
       if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() } as IncidentReport;
@@ -130,7 +130,7 @@ class IncidentService {
   async getBookingIncidents(bookingId: string): Promise<IncidentReport[]> {
     try {
       const q = query(
-        collection(db, 'incidentReports'),
+        collection(getDbInstance(), 'incidentReports'),
         where('bookingId', '==', bookingId),
         orderBy('timestamp', 'desc')
       );
@@ -149,7 +149,7 @@ class IncidentService {
   async getUserIncidents(userId: string): Promise<IncidentReport[]> {
     try {
       const q = query(
-        collection(db, 'incidentReports'),
+        collection(getDbInstance(), 'incidentReports'),
         where('reportedBy', '==', userId),
         orderBy('timestamp', 'desc')
       );
@@ -248,7 +248,7 @@ class IncidentService {
       }
 
       const updatedMedia = [...report.media, media];
-      await updateDoc(doc(db, 'incidentReports', reportId), {
+      await updateDoc(doc(getDbInstance(), 'incidentReports', reportId), {
         media: updatedMedia,
       });
 

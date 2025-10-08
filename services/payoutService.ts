@@ -1,5 +1,5 @@
 import { collection, addDoc, updateDoc, doc, getDocs, query, where, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db as getDbInstance } from '@/lib/firebase';
 import { ENV, PAYMENT_CONFIG } from '@/config/env';
 
 export interface PayoutRequest {
@@ -45,7 +45,7 @@ export const payoutService = {
     
     try {
       const ledgerQuery = query(
-        collection(db, 'ledger'),
+        collection(getDbInstance(), 'ledger'),
         where('guardId', '==', guardId),
         orderBy('createdAt', 'desc')
       );
@@ -76,7 +76,7 @@ export const payoutService = {
       });
       
       const pendingPayoutsQuery = query(
-        collection(db, 'payouts'),
+        collection(getDbInstance(), 'payouts'),
         where('guardId', '==', guardId),
         where('status', 'in', ['pending', 'processing'])
       );
@@ -105,7 +105,7 @@ export const payoutService = {
     console.log('[Payout] Recording earning:', { guardId, bookingId, amount });
     
     try {
-      await addDoc(collection(db, 'ledger'), {
+      await addDoc(collection(getDbInstance(), 'ledger'), {
         guardId,
         bookingId,
         type: 'earning',
@@ -131,7 +131,7 @@ export const payoutService = {
         throw new Error('Insufficient balance for payout');
       }
       
-      const payoutDoc = await addDoc(collection(db, 'payouts'), {
+      const payoutDoc = await addDoc(collection(getDbInstance(), 'payouts'), {
         guardId,
         amount,
         bookingIds,
@@ -163,17 +163,17 @@ export const payoutService = {
         throw new Error(data.error || 'Payout processing failed');
       }
       
-      await updateDoc(doc(db, 'payouts', payoutId), {
+      await updateDoc(doc(getDbInstance(), 'payouts', payoutId), {
         status: 'completed',
         processedAt: serverTimestamp(),
         braintreePayoutId: data.braintreePayoutId,
       });
       
-      const payoutDoc = await getDocs(query(collection(db, 'payouts'), where('__name__', '==', payoutId)));
+      const payoutDoc = await getDocs(query(collection(getDbInstance(), 'payouts'), where('__name__', '==', payoutId)));
       if (!payoutDoc.empty) {
         const payout = payoutDoc.docs[0].data() as PayoutRecord;
         
-        await addDoc(collection(db, 'ledger'), {
+        await addDoc(collection(getDbInstance(), 'ledger'), {
           guardId: payout.guardId,
           bookingId: payout.bookingIds[0] || 'multiple',
           type: 'payout',
@@ -187,7 +187,7 @@ export const payoutService = {
     } catch (error) {
       console.error('[Payout] Error processing payout:', error);
       
-      await updateDoc(doc(db, 'payouts', payoutId), {
+      await updateDoc(doc(getDbInstance(), 'payouts', payoutId), {
         status: 'failed',
         failureReason: error instanceof Error ? error.message : 'Unknown error',
       });
@@ -201,7 +201,7 @@ export const payoutService = {
     
     try {
       const payoutsQuery = query(
-        collection(db, 'payouts'),
+        collection(getDbInstance(), 'payouts'),
         where('guardId', '==', guardId),
         orderBy('createdAt', 'desc'),
         limit(limitCount)
@@ -229,7 +229,7 @@ export const payoutService = {
     
     try {
       const ledgerQuery = query(
-        collection(db, 'ledger'),
+        collection(getDbInstance(), 'ledger'),
         where('guardId', '==', guardId),
         orderBy('createdAt', 'desc'),
         limit(limitCount)

@@ -11,7 +11,7 @@ import { Stack } from 'expo-router';
 import { CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { trpcClient } from '@/lib/trpc';
-import { auth, db, initializeFirebaseServices } from '@/lib/firebase';
+import { auth, db, initializeFirebaseServices } from '../lib/firebase';
 import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 interface TestResult {

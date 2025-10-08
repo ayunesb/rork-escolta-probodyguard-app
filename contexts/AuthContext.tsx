@@ -1,7 +1,7 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, UserRole } from '@/types';
-import { auth, db } from '@/config/firebase';
+import { auth as getAuthInstance, db as getDbInstance } from '@/lib/firebase';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -21,7 +21,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const ensureUserDocument = useCallback(async (firebaseUser: { uid: string; email: string | null }) => {
     try {
-      const userRef = doc(db, 'users', firebaseUser.uid);
+      const userRef = doc(getDbInstance(), 'users', firebaseUser.uid);
       const snap = await getDoc(userRef);
       if (!snap.exists()) {
         const minimal: Omit<User, 'id'> = {
@@ -54,7 +54,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(getAuthInstance(), async (firebaseUser) => {
       console.log('[Auth] State changed:', firebaseUser?.uid);
       if (firebaseUser) {
         try {
@@ -64,7 +64,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           
           while (retryCount < maxRetries && !userData) {
             try {
-              const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+              const userDoc = await getDoc(doc(getDbInstance(), 'users', firebaseUser.uid));
               if (userDoc.exists()) {
                 userData = userDoc.data() as Omit<User, 'id'>;
                 console.log('[Auth] User document loaded successfully');
@@ -125,12 +125,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         console.log('[Auth] Rate limit exceeded for:', email);
         return { success: false, error: errorMessage };
       }
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(getAuthInstance(), email, password);
       console.log('[Auth] Sign in successful:', userCredential.user.uid);
       const allowUnverified = (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? '') === '1';
       if (!userCredential.user.emailVerified && !allowUnverified) {
         console.log('[Auth] Email not verified');
-        await firebaseSignOut(auth);
+        await firebaseSignOut(getAuthInstance());
         return { success: false, error: 'Please verify your email before signing in', emailNotVerified: true };
       }
       if (!userCredential.user.emailVerified && allowUnverified) {
@@ -166,7 +166,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   ): Promise<{ success: boolean; error?: string; needsVerification?: boolean }> => {
     try {
       console.log('[Auth] Signing up:', email, role);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(getAuthInstance(), email, password);
       const userId = userCredential.user.uid;
       await sendEmailVerification(userCredential.user);
       console.log('[Auth] Verification email sent to:', email);
@@ -180,10 +180,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         kycStatus: 'pending',
         createdAt: new Date().toISOString(),
       };
-      await setDoc(doc(db, 'users', userId), userData);
+      await setDoc(doc(getDbInstance(), 'users', userId), userData);
       console.log('[Auth] User document created:', userId);
       await monitoringService.trackEvent('user_signup', { email, role, userId }, userId);
-      await firebaseSignOut(auth);
+      await firebaseSignOut(getAuthInstance());
       return { success: true, needsVerification: true };
     } catch (error: any) {
       console.error('[Auth] Sign up error:', error);
@@ -203,7 +203,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const signOut = useCallback(async () => {
     try {
       console.log('[Auth] Signing out');
-      await firebaseSignOut(auth);
+      await firebaseSignOut(getAuthInstance());
     } catch (error) {
       console.error('[Auth] Sign out error:', error);
     }
@@ -214,7 +214,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     try {
       console.log('[Auth] Updating user:', user.id);
       const { id, ...updateData } = updates as Partial<User> & { id?: string };
-      await updateDoc(doc(db, 'users', user.id), updateData);
+      await updateDoc(doc(getDbInstance(), 'users', user.id), updateData);
       setUser({ ...user, ...updates });
     } catch (error) {
       console.error('[Auth] Update user error:', error);
@@ -223,14 +223,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const resendVerificationEmail = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      if (!auth.currentUser) {
+      const authInstance = getAuthInstance();
+      if (!authInstance.currentUser) {
         return { success: false, error: 'No user signed in' };
       }
-      await reload(auth.currentUser);
-      if (auth.currentUser.emailVerified) {
+      await reload(authInstance.currentUser);
+      if (authInstance.currentUser.emailVerified) {
         return { success: false, error: 'Email already verified' };
       }
-      await sendEmailVerification(auth.currentUser);
+      await sendEmailVerification(authInstance.currentUser);
       console.log('[Auth] Verification email resent');
       return { success: true };
     } catch (error: any) {

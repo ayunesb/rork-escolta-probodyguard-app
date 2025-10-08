@@ -2,7 +2,7 @@ import { createTRPCReact, createTRPCProxyClient } from "@trpc/react-query";
 import { httpLink } from "@trpc/client";
 import type { AppRouter } from "@/backend/trpc/app-router";
 import superjson from "superjson";
-import { auth } from "@/config/firebase";
+import { auth as getAuthInstance } from "@/lib/firebase";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -26,7 +26,7 @@ const getBaseUrl = () => {
 // ✅ Helper: attach Firebase auth token if user is logged in
 const getAuthHeaders = async () => {
   try {
-    const user = auth.currentUser;
+    const user = getAuthInstance().currentUser;
     if (user) {
       const token = await user.getIdToken();
       return {

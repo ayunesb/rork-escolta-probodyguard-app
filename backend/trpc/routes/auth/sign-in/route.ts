@@ -1,6 +1,6 @@
 import { publicProcedure } from "@/backend/trpc/create-context";
 import { z } from "zod";
-import { auth, db } from "@/config/firebase";
+import { auth as getAuthInstance, db as getDbInstance } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { checkRateLimit, resetRateLimit } from "@/backend/middleware/rateLimitMiddleware";
@@ -26,10 +26,10 @@ export default publicProcedure
         throw new Error(rateLimit.error || 'Too many login attempts. Please try again later.');
       }
 
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(getAuthInstance(), email, password);
       const user = userCredential.user;
 
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userDoc = await getDoc(doc(getDbInstance(), 'users', user.uid));
       const userData = userDoc.data();
 
       const token = await user.getIdToken();

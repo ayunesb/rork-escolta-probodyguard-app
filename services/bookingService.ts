@@ -21,7 +21,7 @@ const pollingConfig: PollingConfig = {
   isActive: false,
 };
 
-let pollingTimer: NodeJS.Timeout | null = null;
+let pollingTimer: ReturnType<typeof setTimeout> | null = null;
 
 function generateStartCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();

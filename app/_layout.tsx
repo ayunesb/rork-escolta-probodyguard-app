@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
 import { RorkErrorBoundary as RootErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient({
@@ -26,11 +27,13 @@ export default function RootLayout() {
             <AuthProvider>
               <LanguageProvider>
                 <NotificationProvider>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                    }}
-                  />
+                  <LocationTrackingProvider>
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                      }}
+                    />
+                  </LocationTrackingProvider>
                 </NotificationProvider>
               </LanguageProvider>
             </AuthProvider>

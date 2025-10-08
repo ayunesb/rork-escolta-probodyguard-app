@@ -14,8 +14,8 @@ app.use(express.json());
 const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
   merchantId: process.env.BRAINTREE_MERCHANT_ID || '8jbcpm9yj7df7w4h',
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY || 'fnig6rkd6vbkmxt',
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed66339',
+  publicKey: process.env.BRAINTREE_PUBLIC_KEY || 'fnjq66rkd6vbkmxt',
+  privateKey: process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed663393d6e4e2976',
 });
 
 app.post('/client-token', async (req: Request, res: Response) => {

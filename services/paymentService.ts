@@ -133,6 +133,34 @@ export const paymentService = {
     }).format(amount);
   },
 
+  async calculateBookingCost(
+    hourlyRate: number,
+    duration: number,
+    vehicleType: 'standard' | 'armored',
+    protectionType: 'armed' | 'unarmed',
+    numberOfProtectees: number
+  ): Promise<{
+    subtotal: number;
+    vehicleFee: number;
+    protectionFee: number;
+    platformFee: number;
+    total: number;
+  }> {
+    const subtotal = hourlyRate * duration;
+    const vehicleFee = vehicleType === 'armored' ? 500 * duration : 0;
+    const protectionFee = protectionType === 'armed' ? 200 * duration : 0;
+    const platformFee = (subtotal + vehicleFee + protectionFee) * 0.1;
+    const total = subtotal + vehicleFee + protectionFee + platformFee;
+
+    return {
+      subtotal,
+      vehicleFee,
+      protectionFee,
+      platformFee,
+      total,
+    };
+  },
+
   async getSavedPaymentMethods(userId: string): Promise<SavedPaymentMethod[]> {
     try {
       const response = await fetch(`${ENV.API_URL}/payments/methods/${userId}`);

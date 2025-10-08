@@ -2,7 +2,7 @@ import { createTRPCReact, createTRPCProxyClient } from "@trpc/react-query";
 import { httpLink } from "@trpc/client";
 import type { AppRouter } from "@/backend/trpc/app-router";
 import superjson from "superjson";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/config/firebase";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -41,10 +41,10 @@ const getAuthHeaders = async () => {
 
 // ✅ Create proxy client for background/server use
 export const trpcClient = createTRPCProxyClient<AppRouter>({
-  transformer: superjson,
   links: [
     httpLink({
       url: `${getBaseUrl()}/api/trpc`,
+      transformer: superjson,
       async headers() {
         const headers = await getAuthHeaders();
         console.log("[tRPC Client] Request to:", `${getBaseUrl()}/api/trpc`);
@@ -89,10 +89,10 @@ export const trpcClient = createTRPCProxyClient<AppRouter>({
 
 // ✅ Create React Query-integrated client for app UI
 export const trpcReactClient = trpc.createClient({
-  transformer: superjson,
   links: [
     httpLink({
       url: `${getBaseUrl()}/api/trpc`,
+      transformer: superjson,
       async headers() {
         return await getAuthHeaders();
       },

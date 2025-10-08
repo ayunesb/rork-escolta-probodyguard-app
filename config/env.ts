@@ -1,12 +1,12 @@
 import Constants from 'expo-constants';
 
 export const ENV = {
-  BRAINTREE_ENV: Constants.expoConfig?.extra?.braintreeEnv ?? 'sandbox',
-  BRAINTREE_MERCHANT_ID: Constants.expoConfig?.extra?.braintreeMerchantId ?? '',
-  BRAINTREE_PUBLIC_KEY: Constants.expoConfig?.extra?.braintreePublicKey ?? '',
-  BRAINTREE_PRIVATE_KEY: Constants.expoConfig?.extra?.braintreePrivateKey ?? '',
+  BRAINTREE_ENV: Constants.expoConfig?.extra?.braintreeEnv ?? process.env.BRAINTREE_ENV ?? 'sandbox',
+  BRAINTREE_MERCHANT_ID: Constants.expoConfig?.extra?.braintreeMerchantId ?? process.env.BRAINTREE_MERCHANT_ID ?? '',
+  BRAINTREE_PUBLIC_KEY: Constants.expoConfig?.extra?.braintreePublicKey ?? process.env.BRAINTREE_PUBLIC_KEY ?? '',
+  BRAINTREE_PRIVATE_KEY: Constants.expoConfig?.extra?.braintreePrivateKey ?? process.env.BRAINTREE_PRIVATE_KEY ?? '',
   PAYMENTS_CURRENCY: 'MXN' as const,
-  API_URL: Constants.expoConfig?.extra?.apiUrl ?? '',
+  API_URL: process.env.EXPO_PUBLIC_API_URL ?? Constants.expoConfig?.extra?.apiUrl ?? '',
 };
 
 if (!ENV.BRAINTREE_MERCHANT_ID || !ENV.BRAINTREE_PUBLIC_KEY || !ENV.BRAINTREE_PRIVATE_KEY) {

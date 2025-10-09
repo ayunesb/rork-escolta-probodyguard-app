@@ -1,49 +1,38 @@
 {
   "expo": {
     "name": "Escolta Pro - On-Demand Security & Bodyguard App",
-    "slug": "escolta-pro-on-demand-security-bodyguard-app",
+    "slug": "escolta-pro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "escoltapromobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
+    "platforms": ["ios", "android", "web"],
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "bundleIdentifier": "app.rork.escolta-pro-on-demand-security-bodyguard-app",
+      "bundleIdentifier": "com.rork.escolta.probodyguardapp",
       "supportsTablet": true,
       "usesIcloudStorage": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location to enable guard tracking and pickups.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to access your location in the background for active bookings.",
         "NSLocationAlwaysUsageDescription": "Allow $(PRODUCT_NAME) to access your location in the background for active bookings.",
-        "UIBackgroundModes": [
-          "location"
-        ],
+        "UIBackgroundModes": ["location"],
         "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID for biometric login.",
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload KYC and profile images.",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera for KYC and profile images.",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for in-app calling.",
         "CFBundleAllowMixedLocalizations": true,
-        "CFBundleLocalizations": [
-          "en",
-          "es",
-          "fr",
-          "de"
-        ]
+        "CFBundleLocalizations": ["en", "es", "fr", "de"]
       }
     },
     "android": {
-      "package": "app.rork.escolta-pro-on-demand-security-bodyguard-app",
+      "package": "com.rork.escolta.probodyguardapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -61,17 +50,7 @@
         "android.permission.USE_FINGERPRINT",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -79,12 +58,7 @@
       "bundler": "metro"
     },
     "plugins": [
-      [
-        "expo-router",
-        {
-          "origin": "https://rork.com/"
-        }
-      ],
+      ["expo-router", { "origin": "https://rork.com/" }],
       [
         "expo-location",
         {
@@ -100,17 +74,13 @@
           "icon": "./assets/images/notification_icon.png",
           "color": "#ffffff",
           "defaultChannel": "default",
-          "sounds": [
-            "./assets/sounds/notification_sound.wav"
-          ],
+          "sounds": ["./assets/sounds/notification_sound.wav"],
           "enableBackgroundRemoteNotifications": false
         }
       ],
       [
         "expo-local-authentication",
-        {
-          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID for biometric login."
-        }
+        { "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID for biometric login." }
       ],
       [
         "expo-image-picker",
@@ -118,18 +88,9 @@
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to upload KYC and profile images."
         }
       ],
-      [
-        "expo-document-picker",
-        {
-          "iCloudContainerEnvironment": "Production"
-        }
-      ]
+      ["expo-document-picker", { "iCloudContainerEnvironment": "Production" }]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "apiUrl": "https://escolta-pro-fe90e.web.app"
-    }
+    "experiments": { "typedRoutes": true },
+    "extra": { "apiUrl": "https://escolta-pro-fe90e.web.app" }
   }
 }

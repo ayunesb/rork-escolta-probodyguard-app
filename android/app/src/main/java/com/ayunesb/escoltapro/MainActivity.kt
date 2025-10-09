@@ -1,4 +1,4 @@
-package com.escoltaproondemandsecuritybodyguardapp
+package com.ayunesb.escoltapro
 
 import android.os.Build
 import android.os.Bundle

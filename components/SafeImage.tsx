@@ -12,13 +12,13 @@ export function SafeImage({ source, fallbackSource, ...props }: SafeImageProps) 
       const uri = source.uri;
       if (!uri || (typeof uri === 'string' && uri.trim() === '')) {
         console.warn('[SafeImage] Empty or invalid URI provided, using fallback');
-        return fallbackSource || require('@/assets/images/icon.png');
+        return fallbackSource || require('@/assets/icon.png');
       }
       return { uri: uri as string };
     }
     if (!source) {
       console.warn('[SafeImage] No source provided, using fallback');
-      return fallbackSource || require('@/assets/images/icon.png');
+      return fallbackSource || require('@/assets/icon.png');
     }
     return source as ImageSourcePropType;
   };

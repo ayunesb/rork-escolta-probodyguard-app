@@ -7,28 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		097D82F23C4F43FCBCE39BFE /* notification_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = C560D10FA5AF47D2A5FFB29C /* notification_sound.wav */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		16516FC60BDB980FA731DA55 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4FAE6676B95E5397FB1FCF11 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		6B9B3AAFF2507C8E8186B6E9 /* libPods-EscoltaProBodyguardApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 914AB528B747093DDA1B00C0 /* libPods-EscoltaProBodyguardApp.a */; };
-		9CB6A4B73CA5C57C1BB87CE9 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41ED3BDAE7BB2BDA63C670A7 /* ExpoModulesProvider.swift */; };
+		409324DF07B44E8ABD1165D9 /* notification_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 6B47CD667239415796CB564E /* notification_sound.wav */; };
+		4C7DC46C91385F930A1EE20C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E16C3DDD64EDA6F7807648A2 /* PrivacyInfo.xcprivacy */; };
+		5B3F8ACFCB67EB2DE6FBC8EA /* libPods-EscoltaProBodyguardApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0270A7678E989D6F0182A20D /* libPods-EscoltaProBodyguardApp.a */; };
+		7A08F6307D277C80831E6B83 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F524ECCA5942A177116BAD0 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0270A7678E989D6F0182A20D /* libPods-EscoltaProBodyguardApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EscoltaProBodyguardApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* EscoltaProBodyguardApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EscoltaProBodyguardApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = EscoltaProBodyguardApp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = EscoltaProBodyguardApp/Info.plist; sourceTree = "<group>"; };
-		41ED3BDAE7BB2BDA63C670A7 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-EscoltaProBodyguardApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		4FAE6676B95E5397FB1FCF11 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = EscoltaProBodyguardApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		914AB528B747093DDA1B00C0 /* libPods-EscoltaProBodyguardApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EscoltaProBodyguardApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3F68D923F7593D583DE366A /* Pods-EscoltaProBodyguardApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EscoltaProBodyguardApp.debug.xcconfig"; path = "Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp.debug.xcconfig"; sourceTree = "<group>"; };
+		143DCB79EA66DFDFF70C9094 /* Pods-EscoltaProBodyguardApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EscoltaProBodyguardApp.release.xcconfig"; path = "Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp.release.xcconfig"; sourceTree = "<group>"; };
+		3F524ECCA5942A177116BAD0 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-EscoltaProBodyguardApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		6B47CD667239415796CB564E /* notification_sound.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = notification_sound.wav; path = EscoltaProBodyguardApp/notification_sound.wav; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = EscoltaProBodyguardApp/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C560D10FA5AF47D2A5FFB29C /* notification_sound.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = notification_sound.wav; path = EscoltaProBodyguardApp/notification_sound.wav; sourceTree = "<group>"; };
-		D1B95174FF42AD8384937D27 /* Pods-EscoltaProBodyguardApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EscoltaProBodyguardApp.release.xcconfig"; path = "Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp.release.xcconfig"; sourceTree = "<group>"; };
+		E16C3DDD64EDA6F7807648A2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = EscoltaProBodyguardApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		EAF4D146EAC27D2FEDE4ED5A /* Pods-EscoltaProBodyguardApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EscoltaProBodyguardApp.debug.xcconfig"; path = "Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = EscoltaProBodyguardApp/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* EscoltaProBodyguardApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EscoltaProBodyguardApp-Bridging-Header.h"; path = "EscoltaProBodyguardApp/EscoltaProBodyguardApp-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -39,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6B9B3AAFF2507C8E8186B6E9 /* libPods-EscoltaProBodyguardApp.a in Frameworks */,
+				5B3F8ACFCB67EB2DE6FBC8EA /* libPods-EscoltaProBodyguardApp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,8 +55,8 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				C560D10FA5AF47D2A5FFB29C /* notification_sound.wav */,
-				4FAE6676B95E5397FB1FCF11 /* PrivacyInfo.xcprivacy */,
+				6B47CD667239415796CB564E /* notification_sound.wav */,
+				E16C3DDD64EDA6F7807648A2 /* PrivacyInfo.xcprivacy */,
 			);
 			name = EscoltaProBodyguardApp;
 			sourceTree = "<group>";
@@ -65,17 +65,9 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				914AB528B747093DDA1B00C0 /* libPods-EscoltaProBodyguardApp.a */,
+				0270A7678E989D6F0182A20D /* libPods-EscoltaProBodyguardApp.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		59CC0F420A0B51EE30126CB4 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				FDFC8B3C98FA2CBE6D9C3077 /* EscoltaProBodyguardApp */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -92,8 +84,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				F11D71949F90CB3424422320 /* Pods */,
-				59CC0F420A0B51EE30126CB4 /* ExpoModulesProviders */,
+				DCF5E9F806AA36B69F49A322 /* Pods */,
+				DF0FFAA231BBC353A6C92820 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -108,6 +100,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		A4A4A0F55293D9EDB7E90106 /* EscoltaProBodyguardApp */ = {
+			isa = PBXGroup;
+			children = (
+				3F524ECCA5942A177116BAD0 /* ExpoModulesProvider.swift */,
+			);
+			name = EscoltaProBodyguardApp;
+			sourceTree = "<group>";
+		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -117,22 +117,22 @@
 			path = EscoltaProBodyguardApp/Supporting;
 			sourceTree = "<group>";
 		};
-		F11D71949F90CB3424422320 /* Pods */ = {
+		DCF5E9F806AA36B69F49A322 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				A3F68D923F7593D583DE366A /* Pods-EscoltaProBodyguardApp.debug.xcconfig */,
-				D1B95174FF42AD8384937D27 /* Pods-EscoltaProBodyguardApp.release.xcconfig */,
+				EAF4D146EAC27D2FEDE4ED5A /* Pods-EscoltaProBodyguardApp.debug.xcconfig */,
+				143DCB79EA66DFDFF70C9094 /* Pods-EscoltaProBodyguardApp.release.xcconfig */,
 			);
 			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		FDFC8B3C98FA2CBE6D9C3077 /* EscoltaProBodyguardApp */ = {
+		DF0FFAA231BBC353A6C92820 /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				41ED3BDAE7BB2BDA63C670A7 /* ExpoModulesProvider.swift */,
+				A4A4A0F55293D9EDB7E90106 /* EscoltaProBodyguardApp */,
 			);
-			name = EscoltaProBodyguardApp;
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -143,13 +143,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "EscoltaProBodyguardApp" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				CEFE6A155F81CA40EBA86A69 /* [Expo] Configure project */,
+				80744C0B4B1E33CEFFB0148D /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				BE51969ECE85AF4FF2A0145F /* [CP] Embed Pods Frameworks */,
+				09D13A73A657E0E854DF2F96 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -199,8 +199,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				097D82F23C4F43FCBCE39BFE /* notification_sound.wav in Resources */,
-				16516FC60BDB980FA731DA55 /* PrivacyInfo.xcprivacy in Resources */,
+				409324DF07B44E8ABD1165D9 /* notification_sound.wav in Resources */,
+				4C7DC46C91385F930A1EE20C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,6 +246,28 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		09D13A73A657E0E854DF2F96 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -282,29 +304,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		BE51969ECE85AF4FF2A0145F /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-EscoltaProBodyguardApp/Pods-EscoltaProBodyguardApp-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		CEFE6A155F81CA40EBA86A69 /* [Expo] Configure project */ = {
+		80744C0B4B1E33CEFFB0148D /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -336,7 +336,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				9CB6A4B73CA5C57C1BB87CE9 /* ExpoModulesProvider.swift in Sources */,
+				7A08F6307D277C80831E6B83 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,7 +345,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A3F68D923F7593D583DE366A /* Pods-EscoltaProBodyguardApp.debug.xcconfig */;
+			baseConfigurationReference = EAF4D146EAC27D2FEDE4ED5A /* Pods-EscoltaProBodyguardApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -381,7 +381,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D1B95174FF42AD8384937D27 /* Pods-EscoltaProBodyguardApp.release.xcconfig */;
+			baseConfigurationReference = 143DCB79EA66DFDFF70C9094 /* Pods-EscoltaProBodyguardApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

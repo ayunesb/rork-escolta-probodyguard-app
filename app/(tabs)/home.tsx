@@ -252,7 +252,7 @@ export default function HomeScreen() {
                   style={styles.guardCardCompact}
                   onPress={() => router.push(`/guard/${guard.id}`)}
                 >
-                  <SafeImage source={{ uri: guard.photos?.[0] }} style={styles.guardImageCompact} fallbackSource={require('@/assets/images/icon.png')} />
+                  <SafeImage source={{ uri: guard.photos?.[0] }} style={styles.guardImageCompact} fallbackSource={require('@/assets/icon.png')} />
                   <View style={styles.guardInfoCompact}>
                     <Text style={styles.guardNameCompact}>
                       {guard.firstName} {guard.lastName.charAt(0)}.
@@ -297,7 +297,7 @@ export default function HomeScreen() {
             accessibilityHint="Double tap to view guard profile and book protection"
             accessibilityRole="button"
           >
-            <SafeImage source={{ uri: guard.photos?.[0] }} style={styles.guardImage} fallbackSource={require('@/assets/images/icon.png')} />
+            <SafeImage source={{ uri: guard.photos?.[0] }} style={styles.guardImage} fallbackSource={require('@/assets/icon.png')} />
             
             <View style={styles.guardInfo}>
               <View style={styles.guardHeader}>

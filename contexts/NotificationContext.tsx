@@ -1,17 +1,17 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '@/services/notificationService';
 
-interface NotificationContextType {
-  expoPushToken: string | null;
+interface NotificationContextProps {
+  expoPushToken?: string;
+  notification?: Notifications.Notification;
 }
 
-export const NotificationContext = createContext<NotificationContextType>({
-  expoPushToken: null,
-});
+const NotificationContext = createContext<NotificationContextProps>({});
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
+  const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
+  const [notification, setNotification] = useState<Notifications.Notification | undefined>();
 
   useEffect(() => {
     const setupNotifications = async () => {
@@ -25,18 +25,22 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     setupNotifications();
 
-    const subscription = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('[NotificationContext] Notification received:', notification);
+    const notificationListener = Notifications.addNotificationReceivedListener(setNotification);
+    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      console.log('[Notification] User responded:', response);
     });
 
     return () => {
-      subscription.remove();
+      notificationListener.remove();
+      responseListener.remove();
     };
   }, []);
 
   return (
-    <NotificationContext.Provider value={{ expoPushToken }}>
+    <NotificationContext.Provider value={{ expoPushToken, notification }}>
       {children}
     </NotificationContext.Provider>
   );
 };
+
+export const useNotification = () => useContext(NotificationContext);

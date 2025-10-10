@@ -71,7 +71,7 @@ Improved validation for image URIs:
 ```typescript
 if (!uri || (typeof uri === 'string' && uri.trim() === '')) {
   console.warn('[SafeImage] Empty or invalid URI provided, using fallback');
-  return fallbackSource || require('@/assets/images/icon.png');
+  return fallbackSource || require('@/assets/icon.png');
 }
 ```
 

@@ -5,34 +5,28 @@ import { Platform } from 'react-native';
 
 export async function registerForPushNotificationsAsync() {
   try {
-    if (!Device.isDevice) {
-      console.log('[Notifications] Must use physical device for Push Notifications');
-      return null;
+    let token;
+
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        throw new Error('Permission not granted for push notifications');
+      }
+
+      token = (await Notifications.getExpoPushTokenAsync({
+        projectId: 'escolta-pro-fe90e'
+      })).data;
+      console.log('Expo push token:', token);
+    } else {
+      console.warn('Must use physical device for push notifications');
     }
-
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.warn('[Notifications] Permission not granted');
-      return null;
-    }
-
-    // ✅ Fix: Include projectId
-    const projectId =
-      Constants.expoConfig?.extra?.eas?.projectId ??
-      Constants.expoConfig?.extra?.projectId ??
-      Constants.manifest?.extra?.projectId;
-
-    const { data: token } = await Notifications.getExpoPushTokenAsync({
-      projectId,
-    });
-
-    console.log('Expo push token:', token);
 
     if (Platform.OS === 'android') {
       Notifications.setNotificationChannelAsync('default', {
@@ -40,13 +34,12 @@ export async function registerForPushNotificationsAsync() {
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
-        sound: 'default',
       });
     }
 
     return token;
   } catch (error) {
     console.error('[Notifications] Registration error:', error);
-    return null;
+    throw error;
   }
 }

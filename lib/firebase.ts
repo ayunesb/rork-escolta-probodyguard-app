@@ -1,9 +1,15 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, initializeAuth, Auth } from 'firebase/auth';
+import { 
+  getAuth, 
+  initializeAuth, 
+  getReactNativePersistence, 
+  Auth 
+} from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getDatabase, Database } from 'firebase/database';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes",
@@ -30,10 +36,14 @@ export const initializeFirebaseServices = async (): Promise<void> => {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     console.log('[Firebase] App initialized');
 
+    // Enable App Check for web
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       try {
         initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'),
+          provider: new ReCaptchaV3Provider(
+            process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY || 
+            '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+          ),
           isTokenAutoRefreshEnabled: true
         });
         console.log('[Firebase] App Check initialized for web');
@@ -42,16 +52,16 @@ export const initializeFirebaseServices = async (): Promise<void> => {
       }
     }
 
+    // ✅ Proper Auth Initialization (works in Expo Go)
     try {
-      authInstance = getAuth(app);
-    } catch {
       authInstance = initializeAuth(app, {
-        persistence: {
-          type: 'LOCAL',
-        }
+        persistence: getReactNativePersistence(AsyncStorage),
       });
+      console.log('[Firebase] Auth initialized with AsyncStorage persistence');
+    } catch (error) {
+      console.warn('[Firebase] Fallback to getAuth (web):', error);
+      authInstance = getAuth(app);
     }
-    console.log('[Firebase] Auth initialized');
 
     dbInstance = getFirestore(app);
     console.log('[Firebase] Firestore initialized');
@@ -66,6 +76,7 @@ export const initializeFirebaseServices = async (): Promise<void> => {
   }
 };
 
+// Export singletons
 export const auth = (): Auth => {
   if (!authInstance) {
     throw new Error('[Firebase] Auth not initialized. Call initializeFirebaseServices() first.');
@@ -87,6 +98,7 @@ export const realtimeDb = (): Database => {
   return realtimeDbInstance;
 };
 
+// Auto initialize when imported
 initializeFirebaseServices().catch(error => {
   console.error('[Firebase] Auto-initialization failed:', error);
 });

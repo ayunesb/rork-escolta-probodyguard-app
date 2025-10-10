@@ -27,6 +27,7 @@ export default {
     web: {
       favicon: './assets/favicon.png'
     },
+    owner: 'ayunesb',
     extra: {
       // === BRAINTREE SANDBOX ===
       BRAINTREE_ENV: process.env.BRAINTREE_ENV,
@@ -46,7 +47,12 @@ export default {
 
       // === GENERAL CONFIG ===
       EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
-      EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN: process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN
+      EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN: process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN,
+
+      // === EAS PROJECT LINK ===
+      eas: {
+        projectId: '7cee6c31-9a1c-436d-9baf-57fc8a43b651'
+      }
     }
   }
 };

@@ -8,14 +8,15 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log"
-  ]
-      
+      ]
     }
   ],
   "database": {
     "rules": "database.rules.json"
   },
   "firestore": {
+    "database": "(default)",
+    "location": "nam5",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   }

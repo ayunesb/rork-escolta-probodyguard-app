@@ -23,7 +23,8 @@ service cloud.firestore {
     function isKYCApproved() {
       return isAuthenticated() && getUserData().kycStatus == 'approved';
     }
-    
+
+    // === USERS COLLECTION ===
     match /users/{userId} {
       allow get: if isAuthenticated() && request.auth.uid == userId;
       
@@ -47,7 +48,8 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-    
+
+    // === BOOKINGS COLLECTION ===
     match /bookings/{bookingId} {
       allow read: if isAuthenticated() && (
         resource.data.clientId == request.auth.uid ||
@@ -57,8 +59,7 @@ service cloud.firestore {
       );
       
       allow create: if isAuthenticated() && (
-        hasRole('client') ||
-        hasRole('company')
+        hasRole('client') || hasRole('company')
       ) && request.resource.data.clientId == request.auth.uid;
       
       allow update: if isAuthenticated() && (
@@ -70,7 +71,8 @@ service cloud.firestore {
       
       allow delete: if hasRole('admin');
     }
-    
+
+    // === MESSAGES COLLECTION ===
     match /messages/{messageId} {
       allow read: if isAuthenticated() && (
         resource.data.senderId == request.auth.uid ||
@@ -88,21 +90,18 @@ service cloud.firestore {
       
       allow update, delete: if false;
     }
-    
+
+    // === DOCUMENTS COLLECTION ===
     match /documents/{documentId} {
       allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        hasRole('admin')
+        resource.data.userId == request.auth.uid || hasRole('admin')
       );
-      
-      allow create: if isAuthenticated() && 
-        request.resource.data.userId == request.auth.uid;
-      
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update: if hasRole('admin');
-      
       allow delete: if hasRole('admin') || isOwner(resource.data.userId);
     }
-    
+
+    // === EMERGENCY ALERTS COLLECTION ===
     match /emergencyAlerts/{alertId} {
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
@@ -111,65 +110,70 @@ service cloud.firestore {
          (get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.clientId == request.auth.uid ||
           get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.guardId == request.auth.uid))
       );
-      
-      allow create: if isAuthenticated() && 
-        request.resource.data.userId == request.auth.uid;
-      
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update: if hasRole('admin') || isOwner(resource.data.userId);
-      
       allow delete: if hasRole('admin');
     }
-    
+
+    // === PAYMENTS COLLECTION ===
     match /payments/{paymentId} {
       allow read: if isAuthenticated() && (
         resource.data.clientId == request.auth.uid ||
         resource.data.guardId == request.auth.uid ||
         hasRole('admin')
       );
-      
-      allow create: if hasRole('admin');
-      
-      allow update: if hasRole('admin');
-      
+      allow create, update: if hasRole('admin');
       allow delete: if false;
     }
-    
+
+    // === KYC AUDIT LOGS ===
     match /kycAuditLog/{logId} {
-      allow read: if hasRole('admin');
-      
-      allow create: if hasRole('admin');
-      
+      allow read, create: if hasRole('admin');
       allow update, delete: if false;
     }
-    
+
+    // === RATE LIMITS ===
     match /rateLimits/{limitId} {
       allow read, write: if false;
     }
-    
+
+    // === SYSTEM LOGS ===
     match /logs/{logId} {
       allow read: if hasRole('admin');
       allow create: if isAuthenticated();
       allow update, delete: if false;
     }
-    
+
+    // === ERRORS ===
     match /errors/{errorId} {
       allow read: if hasRole('admin');
       allow create: if isAuthenticated();
       allow update, delete: if false;
     }
-    
+
+    // === ANALYTICS ===
     match /analytics/{eventId} {
       allow read: if hasRole('admin');
       allow create: if isAuthenticated();
       allow update, delete: if false;
     }
-    
+
+    // === PERFORMANCE ===
     match /performance/{metricId} {
       allow read: if hasRole('admin');
       allow create: if isAuthenticated();
       allow update, delete: if false;
     }
-    
+
+    // === WEBHOOK LOGS ===
+    match /webhook_logs/{logId} {
+      allow write: if request.auth == null ||
+                   (request.auth.token.email_verified == false &&
+                    request.auth.token.email.matches('.*@appspot.gserviceaccount.com$'));
+      allow read: if hasRole('admin');
+    }
+
+    // === DEFAULT DENY ===
     match /{document=**} {
       allow read, write: if false;
     }

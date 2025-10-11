@@ -1,6 +1,18 @@
 import express from "express";
 import bodyParser from "body-parser";
 import braintree from "braintree";
+import admin from "firebase-admin";
+
+// === FIREBASE ADMIN INIT ===
+if (!admin.apps.length) {
+  // ✅ Use Cloud Run’s built-in credentials — no firebase-key.json required
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    databaseURL: "https://escolta-pro-fe90e-default-rtdb.firebaseio.com",
+  });
+}
+
+const db = admin.firestore();
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -16,7 +28,7 @@ const gateway = new braintree.BraintreeGateway({
   privateKey: "93d6e4e2976c96f93d2d472395ed6633",
 });
 
-// === MAIN ENDPOINT ===
+// === MAIN WEBHOOK ENDPOINT ===
 app.post("/", async (req, res) => {
   const { bt_signature, bt_payload } = req.body;
 
@@ -30,22 +42,52 @@ app.post("/", async (req, res) => {
       bt_payload
     );
 
-    console.log("✅ Webhook verified:", webhookNotification.kind);
-    console.log("🧾 Payload:", webhookNotification);
+    const kind = webhookNotification.kind;
+    const subscriptionId = webhookNotification.subscription?.id;
 
-    if (webhookNotification.kind === "subscription_went_past_due") {
-      const subId = webhookNotification.subscription?.id;
-      console.log("⚠️ Subscription went past due:", subId);
-      // 🔜 (Next: Firestore update logic will go here)
+    console.log(`✅ Webhook received: ${kind}`);
+    console.log("🧾 Full payload:", JSON.stringify(webhookNotification, null, 2));
+
+    // === 🔥 FIRESTORE LOGGING ===
+    const logEntry = {
+  kind,
+  subscriptionId: subscriptionId || null,
+  timestamp: admin.firestore.FieldValue.serverTimestamp(),
+  payload: JSON.parse(JSON.stringify(webhookNotification)), // 👈 clean JSON for Firestore
+};
+
+    await db.collection("webhook_logs").add(logEntry);
+    console.log("🪵 Logged webhook event to Firestore");
+
+    // === 🔥 FIRESTORE USER STATUS SYNC ===
+    if (subscriptionId) {
+      let newStatus = null;
+
+      if (kind === "subscription_went_past_due") newStatus = "inactive";
+      if (kind === "subscription_canceled") newStatus = "inactive";
+      if (kind === "subscription_charged_successfully") newStatus = "active";
+
+      if (newStatus) {
+        const usersRef = db.collection("users");
+        const snapshot = await usersRef
+          .where("subscriptionId", "==", subscriptionId)
+          .get();
+
+        if (!snapshot.empty) {
+          for (const doc of snapshot.docs) {
+            await doc.ref.update({ status: newStatus });
+            console.log(`✅ Updated user ${doc.id} → ${newStatus}`);
+          }
+        } else {
+          console.log("⚠️ No user found with that subscription ID");
+        }
+      }
     }
 
     res.status(200).json({
       success: true,
-      type: webhookNotification.kind,
-      id:
-        webhookNotification.subscription?.id ||
-        webhookNotification.transaction?.id ||
-        "n/a",
+      type: kind,
+      id: subscriptionId || webhookNotification.transaction?.id || "n/a",
     });
   } catch (err) {
     console.error("❌ Webhook error:", err);
@@ -55,7 +97,6 @@ app.post("/", async (req, res) => {
   }
 });
 
-// ✅ REQUIRED FOR CLOUD RUN
 app.listen(PORT, () => {
   console.log(`🚀 Webhook server listening on port ${PORT}`);
 });

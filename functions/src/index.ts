@@ -113,12 +113,11 @@ app.post('/payments/refund', async (req: Request, res: Response) => {
   }
 });
 
-// Shared handler used for both GET and POST to create/vault a payment method.
+// POST creates (vaults) a payment method for a user. Use verifyCard and
+// failOnDuplicatePaymentMethod to reduce fraud and duplicates.
 export async function handleCreatePaymentMethod(req: Request, res: Response) {
   try {
     const { userId } = req.params;
-
-    // Allow both payment_method_nonce or raw card data (not recommended). Prefer nonce.
     const {
       payment_method_nonce,
       token,
@@ -127,48 +126,80 @@ export async function handleCreatePaymentMethod(req: Request, res: Response) {
       make_default,
       verify_card,
       options,
-    } = req.body;
+    } = req.body || {};
 
-    const createParams: any = {
-      customerId: userId,
-    };
+    if (!payment_method_nonce && !token) {
+      return res.status(400).json({ success: false, error: 'payment_method_nonce or token is required' });
+    }
 
+    const createParams: any = { customerId: userId };
     if (payment_method_nonce) createParams.paymentMethodNonce = payment_method_nonce;
     if (token) createParams.token = token;
     if (cardholder_name) createParams.cardholderName = cardholder_name;
     if (billing_address) createParams.billingAddress = billing_address;
-    if (options || make_default !== undefined || verify_card !== undefined) {
-      createParams.options = { ...(options || {}) };
-      if (make_default) createParams.options.makeDefault = true;
-      if (verify_card !== undefined) createParams.options.verifyCard = !!verify_card;
-    }
 
-    // Call Braintree gateway to create a payment method in the vault
+    createParams.options = {
+      ...(options || {}),
+      verifyCard: verify_card !== undefined ? !!verify_card : true,
+      failOnDuplicatePaymentMethod: true,
+    };
+    if (make_default) createParams.options.makeDefault = true;
+
     const result = await (gateway.paymentMethod as any).create(createParams as any);
 
     if ((result as any)?.success) {
       const pm = (result as any).paymentMethod;
-      res.json({ success: true, token: pm.token, type: pm.__type || pm.type });
+      res.status(201).json({ success: true, token: pm.token, type: pm.__type || pm.type });
       return;
     }
 
-    // Local/test fallback
     if (isTestMode()) {
-      console.warn('[PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active');
+      console.warn('[PaymentMethod] Braintree create failed; returning mock token because test-mode is active');
       res.json({ success: true, token: `mock-pm-${Date.now()}` });
       return;
     }
 
+    console.error('[PaymentMethod] create failed:', (result as any)?.message || result);
     res.status(400).json({ success: false, error: (result as any)?.message || 'Failed to create payment method' });
   } catch (error) {
-    console.error('[GetMethods] Error:', error);
-    res.json({ paymentMethods: [] });
+    console.error('[PaymentMethod] Error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
+  return;
 }
 
-// Support both GET (legacy mobile clients) and POST (preferred) for creating payment methods.
-app.get('/payments/methods/:userId', handleCreatePaymentMethod);
+// Register the exported function as the route handler
 app.post('/payments/methods/:userId', handleCreatePaymentMethod);
+
+// GET lists vaulted payment methods for a user (customer)
+app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
+
+    // Use gateway.customer.find to retrieve customer + payment methods
+    const customerResult = await (gateway.customer as any).find(userId);
+    if (!customerResult) {
+      return res.status(404).json({ success: false, error: 'Customer not found' });
+    }
+
+    const vaulted: any[] = [];
+    const paymentMethods = customerResult.paymentMethods || [];
+    for (const pm of paymentMethods) {
+      vaulted.push({ token: pm.token, type: pm.__type || pm.type, default: pm.default, cardType: pm.cardType || pm.brand, maskedNumber: pm.maskedNumber || pm.maskedNumber });
+    }
+
+    res.json({ success: true, paymentMethods: vaulted });
+  } catch (error) {
+    console.error('[ListPaymentMethods] Error:', error);
+    // Braintree throws for missing customer; map to 404
+    if (error && (error as any).type === 'notFoundError') {
+      return res.status(404).json({ success: false, error: 'Customer not found' });
+    }
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+  return;
+});
 
 app.delete('/payments/methods/:userId/:token', async (req: Request, res: Response) => {
   try {

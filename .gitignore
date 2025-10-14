@@ -36,3 +36,6 @@ yarn-error.*
 *.tsbuildinfo
 .vercel
 *.swp
+
+# functions compiled output
+functions/lib/

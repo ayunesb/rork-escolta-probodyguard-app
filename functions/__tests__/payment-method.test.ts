@@ -1,5 +1,5 @@
-import { handleCreatePaymentMethod } from '../src/index';
-import httpMocks from 'node-mocks-http';
+const { handleCreatePaymentMethod } = require('../lib/index');
+const httpMocks = require('node-mocks-http');
 
 // Mock gateway.paymentMethod.create via jest spy on module import
 jest.mock('braintree', () => {
@@ -26,10 +26,11 @@ describe('handleCreatePaymentMethod', () => {
     });
     const res = httpMocks.createResponse();
 
-    await handleCreatePaymentMethod(req as any, res as any);
+    await handleCreatePaymentMethod(req, res);
 
     const data = res._getJSONData();
-    expect(res.statusCode).toBe(200);
+    // handler returns 201 on success
+    expect(res.statusCode).toBe(201);
     expect(data).toHaveProperty('success', true);
     expect(data).toHaveProperty('token', 'unit-test-token');
   });

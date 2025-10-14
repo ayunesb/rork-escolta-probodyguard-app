@@ -1,0 +1,73 @@
+i  emulators: Starting emulators: functions
+⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect
+i  functions: Watching "/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions" for Cloud Functions...
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8998
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+✔  functions[us-central1-api]: http function initialized (http://127.0.0.1:5001/escolta-pro/us-central1/api).
+i  functions[us-central1-processPayouts]: function ignored because the pubsub emulator does not exist or is not running.
+✔  functions[us-central1-generateInvoice]: http function initialized (http://127.0.0.1:5001/escolta-pro/us-central1/generateInvoice).
+i  functions[us-central1-recordUsageMetrics]: function ignored because the pubsub emulator does not exist or is not running.
+
+[90m┌─────────────────────────────────────────────────────────────┐[39m
+[90m│[39m ✔  All emulators ready! It is now safe to connect your app. [90m│[39m
+[90m│[39m i  View Emulator UI at http://127.0.0.1:4000/               [90m│[39m
+[90m└─────────────────────────────────────────────────────────────┘[39m
+
+[90m┌───────────[39m[90m┬────────────────[39m[90m┬─────────────────────────────────┐[39m
+[90m│[39m[33m Emulator  [39m[90m│[39m[33m Host:Port      [39m[90m│[39m[33m View in Emulator UI             [39m[90m│[39m
+[90m├───────────[39m[90m┼────────────────[39m[90m┼─────────────────────────────────┤[39m
+[90m│[39m Functions [90m│[39m 127.0.0.1:5001 [90m│[39m http://127.0.0.1:4000/functions [90m│[39m
+[90m└───────────[39m[90m┴────────────────[39m[90m┴─────────────────────────────────┘[39m
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 42.263042ms
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8745
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8665
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+i  functions: Beginning execution of "us-central1-api"
+>  [PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active
+i  functions: Finished "us-central1-api" in 765.595458ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active
+i  functions: Finished "us-central1-api" in 343.159875ms
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8842
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8788
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8285
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8060
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8437
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
+i  functions: Beginning execution of "us-central1-api"
+>  [ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active
+i  functions: Finished "us-central1-api" in 771.999458ms
+i  functions: Beginning execution of "us-central1-api"
+>  [PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active
+i  functions: Finished "us-central1-api" in 475.343583ms
+⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+Serving at port 8452
+
+✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.

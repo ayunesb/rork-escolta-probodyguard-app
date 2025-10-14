@@ -1,0 +1,657 @@
+[debug] [2025-10-14T18:22:49.691Z] ----------------------------------------------------------------------
+[debug] [2025-10-14T18:22:49.693Z] Command:       /Users/abrahamyunes/.nvm/versions/node/v20.19.5/bin/node /Users/abrahamyunes/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase emulators:start --only functions --project escolta-pro
+[debug] [2025-10-14T18:22:49.693Z] CLI Version:   14.19.1
+[debug] [2025-10-14T18:22:49.693Z] Platform:      darwin
+[debug] [2025-10-14T18:22:49.693Z] Node Version:  v20.19.5
+[debug] [2025-10-14T18:22:49.693Z] Time:          Tue Oct 14 2025 13:22:49 GMT-0500 (Eastern Standard Time)
+[debug] [2025-10-14T18:22:49.693Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-14T18:22:49.817Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-14T18:22:49.818Z] > authorizing via signed-in user (natasha.imrie@gmail.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2025-10-14T18:22:50.072Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-14T18:22:50.072Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-10-14T18:22:50.077Z] Emulator locator file path: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/hub-escolta-pro.json
+[debug] [2025-10-14T18:22:50.077Z] [hub] writing locator at /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/hub-escolta-pro.json
+[debug] [2025-10-14T18:22:50.336Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-14T18:22:50.336Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-14T18:22:50.336Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-14T18:22:50.336Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect"}}
+[debug] [2025-10-14T18:22:50.342Z] defaultcredentials: writing to file /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json
+[debug] [2025-10-14T18:22:50.343Z] Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json"}}
+[debug] [2025-10-14T18:22:50.343Z] Checked if tokens are valid: true, expires at: 1760468324504
+[debug] [2025-10-14T18:22:50.343Z] Checked if tokens are valid: true, expires at: 1760468324504
+[debug] [2025-10-14T18:22:50.344Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro/adminSdkConfig [none]
+[debug] [2025-10-14T18:22:50.839Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro/adminSdkConfig 200
+[debug] [2025-10-14T18:22:50.839Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro/adminSdkConfig {"projectId":"escolta-pro","storageBucket":"escolta-pro.firebasestorage.app"}
+[info] i  functions: Watching "/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions\" for Cloud Functions..."}}
+[debug] [2025-10-14T18:22:50.881Z] Validating nodejs source
+[debug] [2025-10-14T18:22:51.548Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:22:51.549Z] Building nodejs source
+[debug] [2025-10-14T18:22:51.549Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:22:51.552Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:22:51.557Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8998
+
+[debug] [2025-10-14T18:22:51.846Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[info] ✔  functions[us-central1-api]: http function initialized (http://127.0.0.1:5001/escolta-pro/us-central1/api). {"metadata":{"emulator":{"name":"functions"},"message":"http function initialized (http://127.0.0.1:5001/escolta-pro/us-central1/api)."}}
+[info] i  functions[us-central1-processPayouts]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] ✔  functions[us-central1-generateInvoice]: http function initialized (http://127.0.0.1:5001/escolta-pro/us-central1/generateInvoice). {"metadata":{"emulator":{"name":"functions"},"message":"http function initialized (http://127.0.0.1:5001/escolta-pro/us-central1/generateInvoice)."}}
+[info] i  functions[us-central1-recordUsageMetrics]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[debug] [2025-10-14T18:22:55.884Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port      │ View in Emulator UI             │
+├───────────┼────────────────┼─────────────────────────────────┤
+│ Functions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions │
+└───────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2025-10-14T18:22:58.245Z] [work-queue] {"queuedWork":["/escolta-pro/us-central1/api/payments/methods/test-user-2025-10-14T18:22:58.245Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:22:58.245Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/escolta-pro/us-central1/api/payments/methods/test-user-2025-10-14T18:22:58.245Z"],"workRunningCount":1}
+[debug] [2025-10-14T18:22:58.246Z] Accepted request POST /escolta-pro/us-central1/api/payments/methods/test-user --> us-central1-api
+[debug] [2025-10-14T18:22:58.246Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-10-14T18:22:58.247Z] [functions] Got req.url=/escolta-pro/us-central1/api/payments/methods/test-user, mapping to path=/payments/methods/test-user {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/escolta-pro/us-central1/api/payments/methods/test-user, mapping to path=/payments/methods/test-user"}}
+[debug] [2025-10-14T18:22:58.249Z] [worker-pool] addWorker(us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-api)"}}
+[debug] [2025-10-14T18:22:58.249Z] [worker-pool] Adding worker with key us-central1-api, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-api, total=1"}}
+[debug] [2025-10-14T18:22:58.941Z] [runtime-status] [3867] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-10-14T18:22:58.942Z] [runtime-status] [3867] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:22:58.942Z] [runtime-status] [3867] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-10-14T18:22:58.942Z] [runtime-status] [3867] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:22:59.087Z] [runtime-status] [3867] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Checked functions.config() {\"config\":{}}"}}
+[debug] [2025-10-14T18:22:59.087Z] [runtime-status] [3867] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}}"}}
+[debug] [2025-10-14T18:22:59.087Z] [runtime-status] [3867] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:22:59.089Z] [runtime-status] [3867] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-10-14T18:22:59.089Z] [runtime-status] [3867] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:22:59.090Z] [runtime-status] [3867] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-10-14T18:22:59.194Z] [runtime-status] [3867] initializeApp(DEFAULT) {"storageBucket":"escolta-pro.firebasestorage.app","projectId":"escolta-pro"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] initializeApp(DEFAULT) {\"storageBucket\":\"escolta-pro.firebasestorage.app\",\"projectId\":\"escolta-pro\"}"}}
+[debug] [2025-10-14T18:22:59.198Z] [runtime-status] [3867] Functions runtime initialized. {"cwd":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions","node_version":"20.19.5"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Functions runtime initialized. {\"cwd\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions\",\"node_version\":\"20.19.5\"}"}}
+[debug] [2025-10-14T18:22:59.198Z] [runtime-status] [3867] Listening to port: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/fire_emu_3a40b4789ee2ad2b.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [3867] Listening to port: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/fire_emu_3a40b4789ee2ad2b.sock"}}
+[debug] [2025-10-14T18:22:59.279Z] [worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: IDLE"}}
+[debug] [2025-10-14T18:22:59.279Z] [worker-pool] submitRequest(triggerId=us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-api)"}}
+[info] i  functions: Beginning execution of "us-central1-api" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Beginning execution of \"us-central1-api\""}}
+[debug] [2025-10-14T18:22:59.280Z] [worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: BUSY"}}
+[debug] [2025-10-14T18:22:59.322Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-api" in 42.263042ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finished \"us-central1-api\" in 42.263042ms"}}
+[debug] [2025-10-14T18:22:59.322Z] [worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: IDLE"}}
+[debug] [2025-10-14T18:22:59.322Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-10-14T18:22:59.322Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-10-14T18:22:59.323Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:23:27.615Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/src/index.ts changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/src/index.ts changed, reloading triggers"}}
+[debug] [2025-10-14T18:23:28.622Z] Validating nodejs source
+[debug] [2025-10-14T18:23:30.345Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:23:30.347Z] Building nodejs source
+[debug] [2025-10-14T18:23:30.347Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:23:30.349Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:23:30.350Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8745
+
+[debug] [2025-10-14T18:23:30.718Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[debug] [2025-10-14T18:23:33.990Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/lib/index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/lib/index.js changed, reloading triggers"}}
+[debug] [2025-10-14T18:23:33.991Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/lib/index.js.map changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/lib/index.js.map changed, reloading triggers"}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:23:34.741Z] [worker-pool] Shutting down IDLE worker (us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-api)"}}
+[debug] [2025-10-14T18:23:34.741Z] [worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: FINISHING"}}
+[debug] [2025-10-14T18:23:34.750Z] [worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: exited"}}
+[debug] [2025-10-14T18:23:34.751Z] [worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-a7a195b9-dc39-4daf-a61d-98df8eb07310]: FINISHED"}}
+[debug] [2025-10-14T18:23:34.994Z] Validating nodejs source
+[debug] [2025-10-14T18:23:35.718Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:23:35.718Z] Building nodejs source
+[debug] [2025-10-14T18:23:35.718Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:23:35.719Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:23:35.721Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8665
+
+[debug] [2025-10-14T18:23:35.952Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[debug] [2025-10-14T18:23:39.819Z] [work-queue] {"queuedWork":["/escolta-pro/us-central1/api/payments/methods/test-user-2025-10-14T18:23:39.819Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:23:39.820Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/escolta-pro/us-central1/api/payments/methods/test-user-2025-10-14T18:23:39.819Z"],"workRunningCount":1}
+[debug] [2025-10-14T18:23:39.820Z] Accepted request POST /escolta-pro/us-central1/api/payments/methods/test-user --> us-central1-api
+[debug] [2025-10-14T18:23:39.822Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-10-14T18:23:39.822Z] [functions] Got req.url=/escolta-pro/us-central1/api/payments/methods/test-user, mapping to path=/payments/methods/test-user {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/escolta-pro/us-central1/api/payments/methods/test-user, mapping to path=/payments/methods/test-user"}}
+[debug] [2025-10-14T18:23:39.822Z] [worker-pool] Cleaned up workers for us-central1-api: 1 --> 0 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Cleaned up workers for us-central1-api: 1 --> 0"}}
+[debug] [2025-10-14T18:23:39.824Z] [worker-pool] addWorker(us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-api)"}}
+[debug] [2025-10-14T18:23:39.824Z] [worker-pool] Adding worker with key us-central1-api, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-api, total=1"}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:23:40.645Z] [runtime-status] [4433] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-10-14T18:23:40.645Z] [runtime-status] [4433] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:23:40.646Z] [runtime-status] [4433] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-10-14T18:23:40.646Z] [runtime-status] [4433] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:23:40.757Z] [runtime-status] [4433] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Checked functions.config() {\"config\":{}}"}}
+[debug] [2025-10-14T18:23:40.757Z] [runtime-status] [4433] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}}"}}
+[debug] [2025-10-14T18:23:40.757Z] [runtime-status] [4433] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:23:40.758Z] [runtime-status] [4433] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-10-14T18:23:40.759Z] [runtime-status] [4433] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:23:40.759Z] [runtime-status] [4433] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-10-14T18:23:40.804Z] [runtime-status] [4433] initializeApp(DEFAULT) {"storageBucket":"escolta-pro.firebasestorage.app","projectId":"escolta-pro"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] initializeApp(DEFAULT) {\"storageBucket\":\"escolta-pro.firebasestorage.app\",\"projectId\":\"escolta-pro\"}"}}
+[debug] [2025-10-14T18:23:40.808Z] [runtime-status] [4433] Functions runtime initialized. {"cwd":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions","node_version":"20.19.5"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Functions runtime initialized. {\"cwd\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions\",\"node_version\":\"20.19.5\"}"}}
+[debug] [2025-10-14T18:23:40.808Z] [runtime-status] [4433] Listening to port: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/fire_emu_1d449d26c958f7a5.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [4433] Listening to port: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/fire_emu_1d449d26c958f7a5.sock"}}
+[debug] [2025-10-14T18:23:40.851Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: IDLE"}}
+[debug] [2025-10-14T18:23:40.851Z] [worker-pool] submitRequest(triggerId=us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-api)"}}
+[info] i  functions: Beginning execution of "us-central1-api" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Beginning execution of \"us-central1-api\""}}
+[debug] [2025-10-14T18:23:40.851Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: BUSY"}}
+[info] >  [PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active {"user":"[PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":">  [PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active"}}
+[debug] [2025-10-14T18:23:41.616Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-api" in 765.595458ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finished \"us-central1-api\" in 765.595458ms"}}
+[debug] [2025-10-14T18:23:41.617Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: IDLE"}}
+[debug] [2025-10-14T18:23:41.617Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-10-14T18:23:41.617Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-10-14T18:23:41.617Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:23:47.576Z] [work-queue] {"queuedWork":["/escolta-pro/us-central1/api/payments/client-token-2025-10-14T18:23:47.576Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:23:47.576Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/escolta-pro/us-central1/api/payments/client-token-2025-10-14T18:23:47.576Z"],"workRunningCount":1}
+[debug] [2025-10-14T18:23:47.577Z] Accepted request GET /escolta-pro/us-central1/api/payments/client-token?userId=test-user --> us-central1-api
+[debug] [2025-10-14T18:23:47.579Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-10-14T18:23:47.579Z] [functions] Got req.url=/escolta-pro/us-central1/api/payments/client-token?userId=test-user, mapping to path=/payments/client-token?userId=test-user {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/escolta-pro/us-central1/api/payments/client-token?userId=test-user, mapping to path=/payments/client-token?userId=test-user"}}
+[debug] [2025-10-14T18:23:47.579Z] [worker-pool] submitRequest(triggerId=us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-api)"}}
+[info] i  functions: Beginning execution of "us-central1-api" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Beginning execution of \"us-central1-api\""}}
+[debug] [2025-10-14T18:23:47.579Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: BUSY"}}
+[info] >  [ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active {"user":"[ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":">  [ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active"}}
+[debug] [2025-10-14T18:23:47.922Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-api" in 343.159875ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finished \"us-central1-api\" in 343.159875ms"}}
+[debug] [2025-10-14T18:23:47.922Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: IDLE"}}
+[debug] [2025-10-14T18:23:47.923Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-10-14T18:23:47.923Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-10-14T18:23:47.923Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:24:34.702Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/src/index.ts changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/src/index.ts changed, reloading triggers"}}
+[debug] [2025-10-14T18:24:35.715Z] Validating nodejs source
+[debug] [2025-10-14T18:24:37.067Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:24:37.068Z] Building nodejs source
+[debug] [2025-10-14T18:24:37.068Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:24:37.071Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:24:37.077Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8842
+
+[debug] [2025-10-14T18:24:37.454Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:24:41.526Z] [worker-pool] Shutting down IDLE worker (us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-api)"}}
+[debug] [2025-10-14T18:24:41.526Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: FINISHING"}}
+[debug] [2025-10-14T18:24:41.576Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: exited"}}
+[debug] [2025-10-14T18:24:41.578Z] [worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-046d3a66-35e5-42a2-a56c-870c93809367]: FINISHED"}}
+[debug] [2025-10-14T18:24:53.752Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/package.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/package.json changed, reloading triggers"}}
+[debug] [2025-10-14T18:24:54.756Z] Validating nodejs source
+[debug] [2025-10-14T18:24:56.326Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.4",
+    "jest": "^29.6.1",
+    "node-mocks-http": "^1.11.0",
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:24:56.327Z] Building nodejs source
+[debug] [2025-10-14T18:24:56.327Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:24:56.330Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:24:56.332Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8788
+
+[debug] [2025-10-14T18:24:56.583Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:25:06.961Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/package-lock.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/package-lock.json changed, reloading triggers"}}
+[debug] [2025-10-14T18:25:07.969Z] Validating nodejs source
+[debug] [2025-10-14T18:25:08.548Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.4",
+    "jest": "^29.6.1",
+    "node-mocks-http": "^1.11.0",
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:25:08.548Z] Building nodejs source
+[debug] [2025-10-14T18:25:08.548Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:25:08.550Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:25:08.551Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8285
+
+[debug] [2025-10-14T18:25:08.828Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:25:24.922Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/__tests__/payment-method.test.ts changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/__tests__/payment-method.test.ts changed, reloading triggers"}}
+[debug] [2025-10-14T18:25:25.930Z] Validating nodejs source
+[debug] [2025-10-14T18:25:26.683Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.4",
+    "jest": "^29.6.1",
+    "node-mocks-http": "^1.11.0",
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:25:26.683Z] Building nodejs source
+[debug] [2025-10-14T18:25:26.683Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:25:26.685Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:25:26.686Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8060
+
+[debug] [2025-10-14T18:25:26.944Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:25:40.359Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/package.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/package.json changed, reloading triggers"}}
+[debug] [2025-10-14T18:25:40.457Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/src/index.ts changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/src/index.ts changed, reloading triggers"}}
+[debug] [2025-10-14T18:25:40.457Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/__tests__/payment-method.test.ts changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/__tests__/payment-method.test.ts changed, reloading triggers"}}
+[debug] [2025-10-14T18:25:41.460Z] Validating nodejs source
+[debug] [2025-10-14T18:25:42.240Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.4",
+    "jest": "^29.6.1",
+    "node-mocks-http": "^1.11.0",
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:25:42.241Z] Building nodejs source
+[debug] [2025-10-14T18:25:42.241Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:25:42.242Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:25:42.244Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8437
+
+[debug] [2025-10-14T18:25:42.484Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:26:05.530Z] [work-queue] {"queuedWork":["/escolta-pro/us-central1/api/payments/client-token-2025-10-14T18:26:05.530Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:26:05.533Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/escolta-pro/us-central1/api/payments/client-token-2025-10-14T18:26:05.530Z"],"workRunningCount":1}
+[debug] [2025-10-14T18:26:05.533Z] Accepted request GET /escolta-pro/us-central1/api/payments/client-token?userId=test-user --> us-central1-api
+[debug] [2025-10-14T18:26:05.537Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-10-14T18:26:05.537Z] [functions] Got req.url=/escolta-pro/us-central1/api/payments/client-token?userId=test-user, mapping to path=/payments/client-token?userId=test-user {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/escolta-pro/us-central1/api/payments/client-token?userId=test-user, mapping to path=/payments/client-token?userId=test-user"}}
+[debug] [2025-10-14T18:26:05.537Z] [worker-pool] Cleaned up workers for us-central1-api: 1 --> 0 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Cleaned up workers for us-central1-api: 1 --> 0"}}
+[debug] [2025-10-14T18:26:05.541Z] [worker-pool] addWorker(us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-api)"}}
+[debug] [2025-10-14T18:26:05.541Z] [worker-pool] Adding worker with key us-central1-api, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-api, total=1"}}
+[debug] [2025-10-14T18:26:06.164Z] [runtime-status] [6137] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-10-14T18:26:06.165Z] [runtime-status] [6137] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:26:06.165Z] [runtime-status] [6137] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-10-14T18:26:06.165Z] [runtime-status] [6137] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:26:06.305Z] [runtime-status] [6137] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Checked functions.config() {\"config\":{}}"}}
+[debug] [2025-10-14T18:26:06.305Z] [runtime-status] [6137] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}}"}}
+[debug] [2025-10-14T18:26:06.305Z] [runtime-status] [6137] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:26:06.306Z] [runtime-status] [6137] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-10-14T18:26:06.307Z] [runtime-status] [6137] Resolved module firebase-functions {"declared":true,"installed":true,"version":"6.5.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"6.5.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-10-14T18:26:06.307Z] [runtime-status] [6137] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-10-14T18:26:06.411Z] [runtime-status] [6137] initializeApp(DEFAULT) {"storageBucket":"escolta-pro.firebasestorage.app","projectId":"escolta-pro"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] initializeApp(DEFAULT) {\"storageBucket\":\"escolta-pro.firebasestorage.app\",\"projectId\":\"escolta-pro\"}"}}
+[debug] [2025-10-14T18:26:06.415Z] [runtime-status] [6137] Functions runtime initialized. {"cwd":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions","node_version":"20.19.5"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Functions runtime initialized. {\"cwd\":\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions\",\"node_version\":\"20.19.5\"}"}}
+[debug] [2025-10-14T18:26:06.415Z] [runtime-status] [6137] Listening to port: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/fire_emu_0e82ebce63069471.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[runtime-status] [6137] Listening to port: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/fire_emu_0e82ebce63069471.sock"}}
+[debug] [2025-10-14T18:26:06.456Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: IDLE"}}
+[debug] [2025-10-14T18:26:06.456Z] [worker-pool] submitRequest(triggerId=us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-api)"}}
+[info] i  functions: Beginning execution of "us-central1-api" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Beginning execution of \"us-central1-api\""}}
+[debug] [2025-10-14T18:26:06.457Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: BUSY"}}
+[debug] [2025-10-14T18:26:07.095Z] File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/__tests__/payment-method.integration.test.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/__tests__/payment-method.integration.test.js changed, reloading triggers"}}
+[info] >  [ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active {"user":"[ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":">  [ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active"}}
+[debug] [2025-10-14T18:26:07.229Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-api" in 771.999458ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finished \"us-central1-api\" in 771.999458ms"}}
+[debug] [2025-10-14T18:26:07.229Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: IDLE"}}
+[debug] [2025-10-14T18:26:07.229Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-10-14T18:26:07.229Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-10-14T18:26:07.229Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:26:07.237Z] [work-queue] {"queuedWork":["/escolta-pro/us-central1/api/payments/methods/test-user-2025-10-14T18:26:07.237Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:26:07.237Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/escolta-pro/us-central1/api/payments/methods/test-user-2025-10-14T18:26:07.237Z"],"workRunningCount":1}
+[debug] [2025-10-14T18:26:07.237Z] Accepted request POST /escolta-pro/us-central1/api/payments/methods/test-user --> us-central1-api
+[debug] [2025-10-14T18:26:07.238Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-10-14T18:26:07.238Z] [functions] Got req.url=/escolta-pro/us-central1/api/payments/methods/test-user, mapping to path=/payments/methods/test-user {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/escolta-pro/us-central1/api/payments/methods/test-user, mapping to path=/payments/methods/test-user"}}
+[debug] [2025-10-14T18:26:07.238Z] [worker-pool] submitRequest(triggerId=us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-api)"}}
+[info] i  functions: Beginning execution of "us-central1-api" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Beginning execution of \"us-central1-api\""}}
+[debug] [2025-10-14T18:26:07.238Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: BUSY"}}
+[info] >  [PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active {"user":"[PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":">  [PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active"}}
+[debug] [2025-10-14T18:26:07.713Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-api" in 475.343583ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finished \"us-central1-api\" in 475.343583ms"}}
+[debug] [2025-10-14T18:26:07.713Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: IDLE"}}
+[debug] [2025-10-14T18:26:07.714Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-10-14T18:26:07.714Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-10-14T18:26:07.714Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-10-14T18:26:08.098Z] Validating nodejs source
+[debug] [2025-10-14T18:26:08.804Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.4",
+    "jest": "^29.6.1",
+    "node-mocks-http": "^1.11.0",
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-14T18:26:08.804Z] Building nodejs source
+[debug] [2025-10-14T18:26:08.804Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2025-10-14T18:26:08.805Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-14T18:26:08.806Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8452
+
+[debug] [2025-10-14T18:26:08.947Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[debug] [2025-10-14T18:26:12.958Z] [worker-pool] Shutting down IDLE worker (us-central1-api) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-api)"}}
+[debug] [2025-10-14T18:26:12.958Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: FINISHING"}}
+[debug] [2025-10-14T18:26:12.966Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: exited"}}
+[debug] [2025-10-14T18:26:12.966Z] [worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-api"},"extension":{},"message":"[worker-us-central1-api-6c4c5256-fcd2-4657-890f-c0341c3c038e]: FINISHED"}}

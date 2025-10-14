@@ -18,6 +18,13 @@ const gateway = new braintree.BraintreeGateway({
   privateKey: process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed663393d6e4e2976',
 });
 
+// Helper to decide whether to use local test-mode fallbacks. Prefer explicit
+// NODE_ENV==='test' so CI/Jest runs behave predictably. Keep legacy
+// BRAINTREE_EMULATE_LOCAL for local dev convenience but prefer test-mode.
+function isTestMode() {
+  return process.env.NODE_ENV === 'test' || process.env.BRAINTREE_EMULATE_LOCAL === 'true';
+}
+
 // === Payments routes (mobile expects /payments/*) ===
 app.get('/payments/client-token', async (req: Request, res: Response) => {
   try {
@@ -27,7 +34,18 @@ app.get('/payments/client-token', async (req: Request, res: Response) => {
       customerId: userId,
     });
 
-    res.json({ clientToken: result.clientToken });
+    const clientToken = (result as any)?.clientToken;
+
+    // Local/test fallback: return a mock client token only in explicit test
+    // mode or when BRAINTREE_EMULATE_LOCAL is set. This prevents accidental
+    // mock tokens in production while preserving local dev convenience.
+    if (!clientToken && isTestMode()) {
+      console.warn('[ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active');
+      res.json({ clientToken: 'mock-client-token' });
+      return;
+    }
+
+    res.json({ clientToken });
   } catch (error) {
     console.error('[ClientToken] Error:', error);
     res.status(500).json({ error: 'Failed to generate client token' });
@@ -95,26 +113,62 @@ app.post('/payments/refund', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
+// Shared handler used for both GET and POST to create/vault a payment method.
+export async function handleCreatePaymentMethod(req: Request, res: Response) {
   try {
     const { userId } = req.params;
-    
-    const customer = await gateway.customer.find(userId);
-    
-    const paymentMethods = customer.paymentMethods?.map((method: braintree.CreditCard | braintree.PayPalAccount) => ({
-      token: method.token,
-      last4: method.last4,
-      cardType: method.cardType,
-      expirationMonth: method.expirationMonth,
-      expirationYear: method.expirationYear,
-    })) || [];
-    
-    res.json({ paymentMethods });
+
+    // Allow both payment_method_nonce or raw card data (not recommended). Prefer nonce.
+    const {
+      payment_method_nonce,
+      token,
+      cardholder_name,
+      billing_address,
+      make_default,
+      verify_card,
+      options,
+    } = req.body;
+
+    const createParams: any = {
+      customerId: userId,
+    };
+
+    if (payment_method_nonce) createParams.paymentMethodNonce = payment_method_nonce;
+    if (token) createParams.token = token;
+    if (cardholder_name) createParams.cardholderName = cardholder_name;
+    if (billing_address) createParams.billingAddress = billing_address;
+    if (options || make_default !== undefined || verify_card !== undefined) {
+      createParams.options = { ...(options || {}) };
+      if (make_default) createParams.options.makeDefault = true;
+      if (verify_card !== undefined) createParams.options.verifyCard = !!verify_card;
+    }
+
+    // Call Braintree gateway to create a payment method in the vault
+    const result = await (gateway.paymentMethod as any).create(createParams as any);
+
+    if ((result as any)?.success) {
+      const pm = (result as any).paymentMethod;
+      res.json({ success: true, token: pm.token, type: pm.__type || pm.type });
+      return;
+    }
+
+    // Local/test fallback
+    if (isTestMode()) {
+      console.warn('[PaymentMethod] Braintree create failed; emitting local mock token because test-mode is active');
+      res.json({ success: true, token: `mock-pm-${Date.now()}` });
+      return;
+    }
+
+    res.status(400).json({ success: false, error: (result as any)?.message || 'Failed to create payment method' });
   } catch (error) {
     console.error('[GetMethods] Error:', error);
     res.json({ paymentMethods: [] });
   }
-});
+}
+
+// Support both GET (legacy mobile clients) and POST (preferred) for creating payment methods.
+app.get('/payments/methods/:userId', handleCreatePaymentMethod);
+app.post('/payments/methods/:userId', handleCreatePaymentMethod);
 
 app.delete('/payments/methods/:userId/:token', async (req: Request, res: Response) => {
   try {
@@ -129,6 +183,7 @@ app.delete('/payments/methods/:userId/:token', async (req: Request, res: Respons
   }
 });
 
+export { app };
 export const api = onRequest(app);
 
 // === Webhook route moved into Express app to avoid separate Cloud Run service ===

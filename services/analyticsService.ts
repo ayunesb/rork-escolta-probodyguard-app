@@ -1,6 +1,109 @@
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db as getDbInstance } from '@/lib/firebase';
 import { Booking } from '@/types';
+import analytics from '@react-native-firebase/analytics';
+import { Platform } from 'react-native';
+
+// Analytics Events for tracking
+export enum AnalyticsEvent {
+  // User Events
+  USER_SIGN_UP = 'user_sign_up',
+  USER_SIGN_IN = 'user_sign_in',
+  USER_SIGN_OUT = 'user_sign_out',
+  PROFILE_UPDATE = 'profile_update',
+  
+  // Booking Events
+  BOOKING_STARTED = 'booking_started',
+  BOOKING_COMPLETED = 'booking_completed',
+  BOOKING_CANCELLED = 'booking_cancelled',
+  GUARD_SELECTED = 'guard_selected',
+  
+  // Payment Events
+  PAYMENT_INITIATED = 'payment_initiated',
+  PAYMENT_COMPLETED = 'payment_completed',
+  PAYMENT_FAILED = 'payment_failed',
+  PAYMENT_METHOD_ADDED = 'payment_method_added',
+  
+  // Performance Events
+  SCREEN_VIEW = 'screen_view',
+  API_CALL = 'api_call',
+}
+
+// Firebase Analytics Helper
+class FirebaseAnalyticsHelper {
+  private static instance: FirebaseAnalyticsHelper;
+  private isEnabled = true;
+
+  static getInstance() {
+    if (!FirebaseAnalyticsHelper.instance) {
+      FirebaseAnalyticsHelper.instance = new FirebaseAnalyticsHelper();
+    }
+    return FirebaseAnalyticsHelper.instance;
+  }
+
+  async initialize() {
+    try {
+      this.isEnabled = await analytics().isEnabled();
+      await analytics().setDefaultEventParameters({
+        platform: Platform.OS,
+        app_version: '1.0.0',
+      });
+      console.log('[Analytics] Firebase Analytics initialized');
+    } catch (error) {
+      console.error('[Analytics] Initialization failed:', error);
+      this.isEnabled = false;
+    }
+  }
+
+  async logEvent(event: AnalyticsEvent, params?: Record<string, any>) {
+    if (!this.isEnabled) return;
+    
+    try {
+      await analytics().logEvent(event, params);
+      console.log(`[Analytics] Event logged: ${event}`, params);
+    } catch (error) {
+      console.error(`[Analytics] Failed to log event ${event}:`, error);
+    }
+  }
+
+  async setUserId(userId: string) {
+    if (!this.isEnabled) return;
+    
+    try {
+      await analytics().setUserId(userId);
+    } catch (error) {
+      console.error('[Analytics] Failed to set user ID:', error);
+    }
+  }
+
+  async setUserProperties(properties: Record<string, string>) {
+    if (!this.isEnabled) return;
+    
+    try {
+      for (const [key, value] of Object.entries(properties)) {
+        await analytics().setUserProperty(key, value);
+      }
+    } catch (error) {
+      console.error('[Analytics] Failed to set user properties:', error);
+    }
+  }
+
+  async trackScreenView(screenName: string) {
+    await this.logEvent(AnalyticsEvent.SCREEN_VIEW, {
+      screen_name: screenName,
+    });
+  }
+
+  async trackBookingEvent(event: AnalyticsEvent, bookingData: any) {
+    await this.logEvent(event, bookingData);
+  }
+
+  async trackPaymentEvent(event: AnalyticsEvent, paymentData: any) {
+    await this.logEvent(event, paymentData);
+  }
+}
+
+export const firebaseAnalytics = FirebaseAnalyticsHelper.getInstance();
 
 export interface BookingAnalytics {
   totalBookings: number;
@@ -11,8 +114,8 @@ export interface BookingAnalytics {
   averageBookingValue: number;
   bookingsByStatus: Record<string, number>;
   bookingsByType: Record<string, number>;
-  revenueByMonth: Array<{ month: string; revenue: number }>;
-  topGuards: Array<{ guardId: string; guardName: string; bookings: number; revenue: number }>;
+  revenueByMonth: []{ month: string; revenue: number }>;
+  topGuards: []{ guardId: string; guardName: string; bookings: number; revenue: number }>;
 }
 
 export interface GuardAnalytics {
@@ -26,8 +129,8 @@ export interface GuardAnalytics {
   acceptanceRate: number;
   completionRate: number;
   responseTime: number;
-  bookingsByMonth: Array<{ month: string; bookings: number }>;
-  earningsByMonth: Array<{ month: string; earnings: number }>;
+  bookingsByMonth: []{ month: string; bookings: number }>;
+  earningsByMonth: []{ month: string; earnings: number }>;
 }
 
 export interface ClientAnalytics {
@@ -36,9 +139,9 @@ export interface ClientAnalytics {
   completedBookings: number;
   totalSpent: number;
   averageBookingValue: number;
-  favoriteGuards: Array<{ guardId: string; guardName: string; bookings: number }>;
-  bookingsByMonth: Array<{ month: string; bookings: number }>;
-  spendingByMonth: Array<{ month: string; spent: number }>;
+  favoriteGuards: []{ guardId: string; guardName: string; bookings: number }>;
+  bookingsByMonth: []{ month: string; bookings: number }>;
+  spendingByMonth: []{ month: string; spent: number }>;
 }
 
 export interface PlatformAnalytics {
@@ -51,10 +154,10 @@ export interface PlatformAnalytics {
   totalRevenue: number;
   platformRevenue: number;
   averageBookingValue: number;
-  userGrowth: Array<{ month: string; users: number }>;
-  revenueGrowth: Array<{ month: string; revenue: number }>;
-  topPerformingGuards: Array<{ guardId: string; guardName: string; rating: number; bookings: number }>;
-  bookingTrends: Array<{ date: string; bookings: number }>;
+  userGrowth: []{ month: string; users: number }>;
+  revenueGrowth: []{ month: string; revenue: number }>;
+  topPerformingGuards: []{ guardId: string; guardName: string; rating: number; bookings: number }>;
+  bookingTrends: []{ date: string; bookings: number }>;
 }
 
 export const analyticsService = {
@@ -311,7 +414,7 @@ export const analyticsService = {
     }
   },
 
-  calculateRevenueByMonth(bookings: Booking[]): Array<{ month: string; revenue: number }> {
+  calculateRevenueByMonth(bookings: Booking[]): []{ month: string; revenue: number }> {
     const revenueByMonth: Record<string, number> = {};
 
     bookings
@@ -327,7 +430,7 @@ export const analyticsService = {
       .map(([month, revenue]) => ({ month, revenue }));
   },
 
-  calculateBookingsByMonth(bookings: Booking[]): Array<{ month: string; bookings: number }> {
+  calculateBookingsByMonth(bookings: Booking[]): []{ month: string; bookings: number }> {
     const bookingsByMonth: Record<string, number> = {};
 
     bookings.forEach((booking) => {
@@ -341,7 +444,7 @@ export const analyticsService = {
       .map(([month, bookings]) => ({ month, bookings }));
   },
 
-  calculateEarningsByMonth(bookings: Booking[]): Array<{ month: string; earnings: number }> {
+  calculateEarningsByMonth(bookings: Booking[]): []{ month: string; earnings: number }> {
     const earningsByMonth: Record<string, number> = {};
 
     bookings
@@ -357,7 +460,7 @@ export const analyticsService = {
       .map(([month, earnings]) => ({ month, earnings }));
   },
 
-  calculateSpendingByMonth(bookings: Booking[]): Array<{ month: string; spent: number }> {
+  calculateSpendingByMonth(bookings: Booking[]): []{ month: string; spent: number }> {
     const spendingByMonth: Record<string, number> = {};
 
     bookings
@@ -373,7 +476,7 @@ export const analyticsService = {
       .map(([month, spent]) => ({ month, spent }));
   },
 
-  calculateUserGrowth(users: any[]): Array<{ month: string; users: number }> {
+  calculateUserGrowth(users: any[]): []{ month: string; users: number }> {
     const usersByMonth: Record<string, number> = {};
 
     users.forEach((user) => {
@@ -387,7 +490,7 @@ export const analyticsService = {
       .map(([month, users]) => ({ month, users }));
   },
 
-  calculateBookingTrends(bookings: Booking[]): Array<{ date: string; bookings: number }> {
+  calculateBookingTrends(bookings: Booking[]): []{ date: string; bookings: number }> {
     const bookingsByDate: Record<string, number> = {};
 
     bookings.forEach((booking) => {
@@ -404,7 +507,7 @@ export const analyticsService = {
 
   async getTopGuards(
     bookings: Booking[]
-  ): Promise<Array<{ guardId: string; guardName: string; bookings: number; revenue: number }>> {
+  ): Promise<[]{ guardId: string; guardName: string; bookings: number; revenue: number }>> {
     const guardStats: Record<string, { bookings: number; revenue: number }> = {};
 
     bookings
@@ -429,7 +532,7 @@ export const analyticsService = {
   },
 
   async getTopPerformingGuards(): Promise<
-    Array<{ guardId: string; guardName: string; rating: number; bookings: number }>
+    []{ guardId: string; guardName: string; rating: number; bookings: number }>
   > {
     try {
       const guardsQuery = query(

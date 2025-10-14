@@ -8,6 +8,10 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
 import { RorkErrorBoundary as RootErrorBoundary } from "@/components/ErrorBoundary";
+import { initSentry, SentryErrorBoundary } from "@/services/sentryService";
+
+// Initialize Sentry
+initSentry();
 
 const queryClient = new QueryClient({
   defaultOptions: {

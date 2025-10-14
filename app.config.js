@@ -26,7 +26,24 @@ export default {
       package: 'com.escolta.pro'
     },
     web: {
-      favicon: './assets/favicon.png'
+      favicon: './assets/favicon.png',
+      bundler: 'metro',
+      config: {
+        // Content Security Policy for web
+        meta: {
+          'Content-Security-Policy': [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.braintreegateway.com https://checkout.paypal.com https://www.paypal.com",
+            "style-src 'self' 'unsafe-inline' https://checkout.paypal.com https://fonts.googleapis.com",
+            "img-src 'self' data: https: https://checkout.paypal.com https://assets.braintreegateway.com",
+            "connect-src 'self' https://api.braintreegateway.com https://api.sandbox.braintreegateway.com https://firestore.googleapis.com https://firebase.googleapis.com wss://*.firebaseio.com",
+            "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com",
+            "frame-src https://checkout.paypal.com https://assets.braintreegateway.com",
+            "object-src 'none'",
+            "base-uri 'self'"
+          ].join('; ')
+        }
+      }
     },
     owner: 'ayunesb',
     extra: {

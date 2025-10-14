@@ -3,7 +3,7 @@
 ## Problem Summary
 The app was experiencing persistent "Failed to fetch" errors when trying to make payment requests through tRPC. The errors were:
 - `[tRPC Client] Fetch error: TypeError: Failed to fetch`
-- `[Stripe Web] Create payment intent error: TRPCClientError: Failed to fetch`
+- `[Braintree Web] Create payment intent error: TRPCClientError: Failed to fetch`
 - `[Payment] Payment error: Error: Unable to connect to payment server`
 
 ## Root Causes Identified
@@ -12,7 +12,7 @@ The app was experiencing persistent "Failed to fetch" errors when trying to make
 The Hono backend was defined but never exposed through Expo Router's API routes system. Without an API route file, the backend endpoints were not accessible.
 
 ### 2. **Environment Variable Access Issues**
-The backend code was trying to access `process.env.STRIPE_SECRET_KEY` directly, but in Expo's architecture, environment variables need special handling. Only variables prefixed with `EXPO_PUBLIC_` are reliably available.
+The backend code was trying to access `process.env.BRAINTREE_SECRET_KEY` directly, but in Expo's architecture, environment variables need special handling. Only variables prefixed with `EXPO_PUBLIC_` are reliably available.
 
 ### 3. **Rate Limiter Blocking Requests**
 The rate limiter middleware was potentially blocking legitimate requests during development.
@@ -57,15 +57,15 @@ function getEnvVar(key: string): string | undefined {
   return undefined;
 }
 
-export const STRIPE_SECRET_KEY = getEnvVar('STRIPE_SECRET_KEY') || getEnvVar('EXPO_PUBLIC_STRIPE_SECRET_KEY');
+export const BRAINTREE_SECRET_KEY = getEnvVar('BRAINTREE_SECRET_KEY') || getEnvVar('EXPO_PUBLIC_BRAINTREE_SECRET_KEY');
 ```
 
 ### 3. Updated .env File
-Added `EXPO_PUBLIC_STRIPE_SECRET_KEY` to ensure the Stripe secret key is accessible in all contexts:
+Added `EXPO_PUBLIC_BRAINTREE_SECRET_KEY` to ensure the Braintree secret key is accessible in all contexts:
 
 ```env
-STRIPE_SECRET_KEY=sk_live_...
-EXPO_PUBLIC_STRIPE_SECRET_KEY=sk_live_...
+BRAINTREE_SECRET_KEY=sk_live_...
+EXPO_PUBLIC_BRAINTREE_SECRET_KEY=sk_live_...
 ```
 
 **Note:** While this makes the secret key accessible on the client side (which is not ideal for production), it's necessary for Expo's architecture when running API routes in the same process. For production, consider:
@@ -83,12 +83,12 @@ Updated all payment-related tRPC routes to use the new environment configuration
 
 Changed from:
 ```typescript
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const BRAINTREE_SECRET_KEY = process.env.BRAINTREE_SECRET_KEY;
 ```
 
 To:
 ```typescript
-import { STRIPE_SECRET_KEY } from "@/backend/config/env";
+import { BRAINTREE_SECRET_KEY } from "@/backend/config/env";
 ```
 
 ### 5. Removed Rate Limiter (Temporarily)
@@ -147,7 +147,7 @@ You should see logs like:
 ```
 [API Route] POST request: http://localhost:8081/api/trpc/payments.createIntent
 [Backend] POST http://localhost:8081/api/trpc/payments.createIntent
-[Env Config] STRIPE_SECRET_KEY available: true
+[Env Config] BRAINTREE_SECRET_KEY available: true
 [Payment] Create intent: { bookingId: '...', amount: 50000 }
 [Payment] Payment intent created: pi_...
 ```
@@ -171,7 +171,7 @@ You should see logs like:
 ## Security Considerations
 
 ### Current Setup (Development)
-- Stripe secret key is accessible on the client side via `EXPO_PUBLIC_` prefix
+- Braintree secret key is accessible on the client side via `EXPO_PUBLIC_` prefix
 - This is acceptable for development but **NOT for production**
 
 ### Production Recommendations
@@ -179,7 +179,7 @@ You should see logs like:
 2. **Use Expo EAS Build** with secure environment variables
 3. **Implement proper API authentication** to prevent unauthorized access
 4. **Re-enable rate limiting** with appropriate limits
-5. **Use Stripe webhooks** for payment confirmation instead of client-side polling
+5. **Use Braintree webhooks** for payment confirmation instead of client-side polling
 6. **Implement proper error handling** and logging
 7. **Add request validation** and sanitization
 
@@ -197,7 +197,7 @@ You should see logs like:
 1. `app/api/trpc/[...trpc]+api.ts` - NEW: API route handler
 2. `app/api/health+api.ts` - NEW: Health check endpoint
 3. `backend/config/env.ts` - NEW: Environment configuration
-4. `.env` - UPDATED: Added EXPO_PUBLIC_STRIPE_SECRET_KEY
+4. `.env` - UPDATED: Added EXPO_PUBLIC_BRAINTREE_SECRET_KEY
 5. `lib/trpc.ts` - UPDATED: Simplified URL configuration
 6. `backend/hono.ts` - UPDATED: Removed rate limiter
 7. `backend/trpc/routes/payments/*.ts` - UPDATED: Use new env config
@@ -214,11 +214,11 @@ If you still see errors:
 
 2. **Check environment variables:**
    - Ensure `.env` file is in the root directory
-   - Verify `EXPO_PUBLIC_STRIPE_SECRET_KEY` is set
+   - Verify `EXPO_PUBLIC_BRAINTREE_SECRET_KEY` is set
    - Restart the dev server after changing `.env`
 
 3. **Check console logs:**
-   - Look for `[Env Config] STRIPE_SECRET_KEY available: true`
+   - Look for `[Env Config] BRAINTREE_SECRET_KEY available: true`
    - Look for `[API Route]` logs showing requests are being received
    - Look for `[Backend]` logs showing Hono is processing requests
 

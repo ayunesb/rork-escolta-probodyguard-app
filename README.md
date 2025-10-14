@@ -268,7 +268,7 @@ Monetize your app:
 
 **Web & Credit Card Payments (works in Expo Go):**
 
-- **Stripe** - Credit card payments and subscriptions - [Expo + Stripe Guide](https://docs.expo.dev/guides/using-stripe/)
+- **Braintree** - Credit card payments and subscriptions - [Expo + Braintree Guide](https://docs.expo.dev/guides/using-braintree/)
 - **PayPal** - PayPal payments integration - [Setup Guide](https://developer.paypal.com/docs/checkout/mobile/react-native/)
 
 **Native In-App Purchases (requires Custom Development Build):**

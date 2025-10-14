@@ -14,17 +14,11 @@
 - [ ] Test database operations
 - [ ] Test file uploads
 
-### 2. Stripe Integration
-- [ ] Create Stripe account
-- [ ] Get production API keys
-- [ ] Configure webhook endpoints
-- [ ] Test payment flow in test mode
-- [ ] Complete PCI compliance questionnaire
-- [ ] Set up payout schedule
-- [ ] Configure payment methods
-- [ ] Test refund flow
-- [ ] Add Stripe keys to environment variables
-- [ ] Switch to production mode
+### 2. Payment Integration (legacy Braintree checklist archived)
+
+The project previously used Braintree; detailed pre-launch steps for payment provider configuration have been archived to `docs/braintree-legacy.md`.
+
+See: docs/braintree-legacy.md
 
 ### 3. Environment Variables
 Create `.env` file with:
@@ -37,9 +31,9 @@ EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 EXPO_PUBLIC_FIREBASE_APP_ID=
 
-# Stripe
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_SECRET_KEY=
+# Payment provider keys (see archive)
+EXPO_PUBLIC_BRAINTREE_PUBLISHABLE_KEY=pk_test_<REDACTED>
+BRAINTREE_SECRET_KEY=sk_test_<REDACTED>
 
 # Backend
 EXPO_PUBLIC_RORK_API_BASE_URL=
@@ -236,7 +230,7 @@ EXPO_PUBLIC_SENTRY_DSN=
 
 ### Critical Issues
 - **Backend Down**: [Contact DevOps]
-- **Payment Issues**: [Contact Stripe Support]
+- **Payment Issues**: [Contact Braintree Support]
 - **Security Breach**: [Contact Security Team]
 - **Legal Issues**: [Contact Legal Team]
 

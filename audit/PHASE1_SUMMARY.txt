@@ -10,7 +10,7 @@
 verified_features: 11
 looped_features: 3
 unverified_features: 7
-redundant_artifacts: 93 (89 .md files + 4 Stripe stub files)
+redundant_artifacts: 93 (89 .md files + 4 Braintree stub files)
 
 ═══════════════════════════════════════════════════════════════════════════════
   TOP 10 FIXES FOR PHASE 2 (BY SEVERITY)
@@ -70,11 +70,11 @@ redundant_artifacts: 93 (89 .md files + 4 Stripe stub files)
    - Fix: Add accessibilityLabel, accessibilityHint to interactive elements
    - Files: All component files
 
-10) LOW: Delete Redundant Stripe Artifacts
-    - Issue: 4 Stripe stub files + 89 .md files with Stripe references
+10) LOW: Delete Redundant Braintree Artifacts
+    - Issue: 4 Braintree stub files + 89 .md files with Braintree references
     - Impact: Confusion and clutter
     - Fix: Delete stub files; archive or delete .md files
-    - Files: services/stripeInit.*, mocks/bookings.ts, 89 .md files
+    - Files: services/braintreeInit.*, mocks/bookings.ts, 89 .md files
 
 ═══════════════════════════════════════════════════════════════════════════════
   FEATURE STATUS BREAKDOWN
@@ -96,7 +96,7 @@ redundant_artifacts: 93 (89 .md files + 4 Stripe stub files)
 🔁 LOOPED (3):
   - Firestore RLS & Security Rules (deployed but App Check not confirmed)
   - Cloud Functions (exist but deployment fails)
-  - app.json (mobile-only config but Stripe plugin error in logs)
+  - app.json (mobile-only config but Braintree plugin error in logs)
 
 ⚠️ UNVERIFIED (7):
   - Braintree 3DS2 + Vaulting
@@ -109,9 +109,9 @@ redundant_artifacts: 93 (89 .md files + 4 Stripe stub files)
   - Accessibility Labels & Hints
 
 ❌ REDUNDANT (93):
-  - 4 Stripe stub files (services/stripeInit.*)
-  - 1 mock file with 'stripeFee' field (mocks/bookings.ts)
-  - 89 .md files with Stripe references
+  - 4 Braintree stub files (services/braintreeInit.*)
+  - 1 mock file with 'braintreeFee' field (mocks/bookings.ts)
+  - 89 .md files with Braintree references
 
 ═══════════════════════════════════════════════════════════════════════════════
   CRITICAL BLOCKERS
@@ -153,7 +153,7 @@ Run Phase 2 to:
 6. Add FlatList virtualization
 7. Add polling optimization
 8. Add accessibility labels
-9. Delete redundant Stripe artifacts
+9. Delete redundant Braintree artifacts
 10. Deploy and validate all fixes
 
 ═══════════════════════════════════════════════════════════════════════════════

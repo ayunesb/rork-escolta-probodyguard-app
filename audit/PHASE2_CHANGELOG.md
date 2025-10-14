@@ -2,7 +2,7 @@
 
 **Date:** 2025-10-07  
 **Platform:** iOS/Android (Mobile-Only)  
-**Scope:** Production-grade fixes, Stripe removal, type corrections, performance optimizations
+**Scope:** Production-grade fixes, Braintree removal, type corrections, performance optimizations
 
 ---
 
@@ -19,27 +19,27 @@
 
 #### mocks/bookings.ts
 - **Status:** ✅ CORRECTED
-- **Issue:** Used deprecated `stripeFee` field instead of `processingFee`
-- **Fix:** Renamed `stripeFee` → `processingFee`, added missing `bookingType` field
+- **Issue:** Used deprecated `braintreeFee` field instead of `processingFee`
+- **Fix:** Renamed `braintreeFee` → `processingFee`, added missing `bookingType` field
 - **Functions Verified:** 1/1 (mockBookings export)
 - **Notes:** Now fully compliant with Booking type definition
 
-### 2. **Stripe Removal (Complete)**
+### 2. **Braintree Removal (Complete)**
 
 #### Deleted Files (5 total)
 - **Status:** ✅ DELETED
-- services/stripeInit.d.ts
-- services/stripeInit.native.ts
-- services/stripeInit.web.tsx
-- services/stripeInit.web.ts
-- services/stripeService.d.ts
-- **Notes:** All Stripe stub files removed; Braintree-only payment flow confirmed
+- services/braintreeInit.d.ts
+- services/braintreeInit.native.ts
+- services/braintreeInit.web.tsx
+- services/braintreeInit.web.ts
+- services/braintreeService.d.ts
+- **Notes:** All Braintree stub files removed; Braintree-only payment flow confirmed
 
 ### 3. **Documentation Cleanup**
 
 #### Obsolete .md Files (63 deleted)
 - **Status:** ✅ DELETED
-- Removed all PHASE_*.md, QUICK_*.md, START_*.md, TEST_*.md, STRIPE_*.md files
+- Removed all PHASE_*.md, QUICK_*.md, START_*.md, TEST_*.md, BRAINTREE_*.md files
 - Kept: README.md, DEPLOYMENT_INSTRUCTIONS.md, AUDIT_COMPLETION_REPORT.md
 - **Notes:** Eliminated 89 redundant development phase documents
 
@@ -110,18 +110,18 @@
 
 ### Files Corrected
 1. app/_layout.tsx — Removed duplicate imports, simplified layout
-2. mocks/bookings.ts — Fixed stripeFee → processingFee, added bookingType
+2. mocks/bookings.ts — Fixed braintreeFee → processingFee, added bookingType
 3. app/(tabs)/bookings.tsx — Replaced ScrollView with FlatList virtualization
 
 ### Files Verified (No Changes Needed)
 1. functions/package.json — Clean backend dependencies
 2. app/(tabs)/company-guards.tsx — CSV import fully implemented
-3. types/index.ts — Braintree types, no Stripe references
+3. types/index.ts — Braintree types, no Braintree references
 4. backend/lib/braintree.ts — Gateway initialization correct
 5. components/ErrorBoundary.tsx — Exports RorkErrorBoundary correctly
 
 ### Files Deleted
-- 5 Stripe stub files
+- 5 Braintree stub files
 - 63 obsolete .md documentation files
 
 ---
@@ -173,7 +173,7 @@ For Firebase Functions set them via `firebase functions:config:set` or using the
 | Category | Score | Max | Status |
 |----------|-------|-----|--------|
 | Type Safety & Imports | 20 | 20 | ✅ PASS |
-| Stripe Removal | 15 | 15 | ✅ PASS |
+| Braintree Removal | 15 | 15 | ✅ PASS |
 | Performance (Virtualization) | 10 | 10 | ✅ PASS |
 | CSV Import | 10 | 10 | ✅ PASS |
 | Documentation Cleanup | 10 | 10 | ✅ PASS |

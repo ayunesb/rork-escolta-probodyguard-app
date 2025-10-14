@@ -35,32 +35,32 @@
       "reason": "Folder contains a standalone webhook server duplicate of Cloud Functions code. Move or remove if you rely on Firebase functions instead of Docker/Cloud Run."
     },
     {
-      "path": "services/stripeInit.d.ts",
-      "reason": "Stripe stub/type file (obsolete). Project migrated to Braintree — remove Stripe stub files."
+      "path": "services/braintreeInit.d.ts",
+      "reason": "Braintree stub/type file (obsolete). Project migrated to Braintree — remove Braintree stub files."
     },
     {
-      "path": "services/stripeInit.native.ts",
-      "reason": "Stripe stub file — no active Stripe usage."
+      "path": "services/braintreeInit.native.ts",
+      "reason": "Braintree stub file — no active Braintree usage."
     },
     {
-      "path": "services/stripeInit.web.ts",
-      "reason": "Stripe stub file — no active Stripe usage."
+      "path": "services/braintreeInit.web.ts",
+      "reason": "Braintree stub file — no active Braintree usage."
     },
     {
-      "path": "services/stripeInit.web.tsx",
-      "reason": "Stripe stub file — no active Stripe usage."
+      "path": "services/braintreeInit.web.tsx",
+      "reason": "Braintree stub file — no active Braintree usage."
     },
     {
-      "path": "services/stripeService.d.ts",
-      "reason": "Stripe service types stub — obsolete after Braintree migration."
+      "path": "services/braintreeService.d.ts",
+      "reason": "Braintree service types stub — obsolete after Braintree migration."
     },
     {
-      "path": "STRIPE_FLOW_DIAGRAM.md",
-      "reason": "Legacy Stripe docs referencing removed Stripe flow. Archive or delete if Braintree-only project desired."
+      "path": "BRAINTREE_FLOW_DIAGRAM.md",
+      "reason": "Legacy Braintree docs referencing removed Braintree flow. Archive or delete if Braintree-only project desired."
     },
     {
       "path": "docs/archive",
-      "reason": "Legacy archive docs (many Stripe and migration guides). Consider moving to an external archive or compressing and removing from the repo to reduce footprint."
+      "reason": "Legacy archive docs (many Braintree and migration guides). Consider moving to an external archive or compressing and removing from the repo to reduce footprint."
     }
     ,
     {

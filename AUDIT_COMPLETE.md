@@ -28,11 +28,11 @@ The Escolta Pro security app has been **thoroughly audited** and **all critical 
 - **Fixed**: Phone validation regex
 - **Result**: 27/29 tests passing (93%)
 
-### 2. Stripe Integration ✅
-- **Fixed**: Web compatibility (no bundling errors)
-- **Added**: Saved payment methods
-- **Added**: 1-tap payment
-- **Result**: Full payment flow working on all platforms
+### 2. Payment Integration (legacy Braintree details archived)
+
+This audit previously included detailed notes for Braintree integration (testing steps, PCI notes, test card examples). Those legacy details have been moved to `docs/braintree-legacy.md`.
+
+See: docs/braintree-legacy.md
 
 ### 3. Authentication ✅
 - **Fixed**: Slow login (30s → <3s)
@@ -119,7 +119,7 @@ trpc.payments.setDefaultPaymentMethod.mutate({
 ### ✅ Security
 - Input validation
 - Authentication & authorization
-- Payment security (PCI compliant via Stripe)
+- Payment security (PCI compliant via Braintree)
 - API security (rate limiting, protected routes)
 - Data protection
 
@@ -186,7 +186,7 @@ Expected: Login in <3 seconds
 ### Test Payment Flow
 1. Sign in as client
 2. Book a guard
-3. Enter payment details (use Stripe test card: 4242 4242 4242 4242)
+3. Enter payment details (use Braintree test card: 4242 4242 4242 4242)
 4. Complete payment
 5. Card should be saved automatically
 6. Book another guard
@@ -206,7 +206,7 @@ Expected: Login in <3 seconds
 
 ✅ **All security best practices implemented**:
 - Firebase Authentication
-- Stripe PCI compliance
+- Braintree PCI compliance
 - Input validation (Zod)
 - XSS prevention
 - Rate limiting
@@ -229,7 +229,7 @@ Expected: Login in <3 seconds
 
 ### Environment Setup
 - [ ] Update `.env` with production Firebase keys
-- [ ] Update `.env` with production Stripe keys
+- [ ] Update `.env` with production Braintree keys
 - [ ] Set production backend URL
 
 ### Firebase
@@ -237,7 +237,7 @@ Expected: Login in <3 seconds
 - [ ] Deploy Storage security rules
 - [ ] Set up Firebase indexes
 
-### Stripe
+### Braintree
 - [ ] Switch to production API keys
 - [ ] Configure webhook endpoints
 - [ ] Test production payment flow

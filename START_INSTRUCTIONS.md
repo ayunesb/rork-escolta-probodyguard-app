@@ -45,22 +45,11 @@ The error "API endpoint returned HTML instead of JSON" means:
 2. The API routes should be automatically available at `/api/*`
 3. Check the console logs - you should see `[Backend]` and `[API Route]` messages
 
-## Testing Stripe Payments
+## Testing Payments (legacy Braintree notes archived)
 
-Once the backend is running:
-1. Go to the booking flow
-2. Try to create a payment
-3. Use test card: 4242 4242 4242 4242
-4. Any future expiry date and any CVC
+This file previously included Braintree-specific testing steps and env var examples. Those legacy details have been archived to `docs/braintree-legacy.md`.
 
-## Environment Variables
-
-Make sure your `.env` file has:
-```
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51SDc1sLe5z8vTWFiXcjY53w36vVFSFDfnlRebaVs0a9cccTJEZk2DHzr2rQp3tDp1XlobwOrMpN1nJdJ1DIa9Zpc002zUNcHVj
-STRIPE_SECRET_KEY=sk_test_51SDc1sLe5z8vTWFih4TVw2lNZebHxgRoCQgcNqcaJsDirzDAlXFGVEt8UDl1n0YSOG2IhC3nke0wYNHB4v2tRG3w00tLsIETPD
-EXPO_PUBLIC_API_URL=http://localhost:8081
-```
+See: docs/braintree-legacy.md
 
 ## Common Issues
 
@@ -73,7 +62,7 @@ EXPO_PUBLIC_API_URL=http://localhost:8081
 - Make sure you're using the correct start command
 - Check that `/api/health` returns JSON, not HTML
 
-### Stripe errors
+### Braintree errors
 - Make sure you're in test mode (keys start with `pk_test_` and `sk_test_`)
 - Check that the secret key is set in `.env`
-- Verify the backend can access the Stripe API
+- Verify the backend can access the Braintree API

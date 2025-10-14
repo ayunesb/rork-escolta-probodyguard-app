@@ -11,7 +11,7 @@ API endpoint returned HTML instead of JSON
 ## What This Means
 - The tRPC API routes (`/api/trpc/*`) are returning the main app HTML page instead of JSON
 - This prevents all backend functionality from working (auth, payments, bookings, etc.)
-- The Stripe payment integration cannot create payment intents
+- The Braintree payment integration cannot create payment intents
 
 ## What I've Fixed
 
@@ -24,7 +24,7 @@ API endpoint returned HTML instead of JSON
 ### 2. Updated Environment Variables
 - **File:** `.env`
 - Simplified to use `EXPO_PUBLIC_API_URL=http://localhost:8081`
-- Kept all Stripe and Firebase keys intact
+- Kept all Braintree and Firebase keys intact
 
 ### 3. Improved API Route Handler
 - **File:** `app/api/trpc/[...trpc]+api.ts`
@@ -90,18 +90,11 @@ Look for these logs in your terminal:
 [tRPC Client] Body preview: <!DOCTYPE html>
 ```
 
-### Step 4: Test Stripe Payment
-Once the API is working:
+### Step 4: Test Payment (legacy Braintree notes archived)
 
-1. Sign in to the app
-2. Navigate to Home → Select a guard → Create booking
-3. Fill in booking details
-4. On payment screen, use test card:
-   - **Card:** 4242 4242 4242 4242
-   - **Expiry:** Any future date (e.g., 12/25)
-   - **CVC:** Any 3 digits (e.g., 123)
-5. Click "Pay"
-6. Payment should succeed
+This file previously included Braintree-specific payment testing steps. Those legacy details have been archived to `docs/braintree-legacy.md`.
+
+See: docs/braintree-legacy.md
 
 ## Troubleshooting
 
@@ -135,10 +128,10 @@ npx expo start --clear --tunnel
 npx expo start --web
 ```
 
-### Problem: Stripe payment fails
+### Problem: Braintree payment fails
 **Check:**
-1. ✅ `STRIPE_SECRET_KEY` is in `.env`
-2. ✅ Console shows: `[Env Config] STRIPE_SECRET_KEY available: true`
+1. ✅ `BRAINTREE_SECRET_KEY` is in `.env`
+2. ✅ Console shows: `[Env Config] BRAINTREE_SECRET_KEY available: true`
 3. ✅ Using test keys (start with `pk_test_` and `sk_test_`)
 4. ✅ API routes return JSON (not HTML)
 
@@ -182,9 +175,9 @@ EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=escolta-pro-fe90e.firebasestorage.app
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=919834684647
 EXPO_PUBLIC_FIREBASE_APP_ID=1:919834684647:web:60dad6457ad0f92b068642
 
-# Stripe
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51SDc1sLe5z8vTWFiXcjY53w36vVFSFDfnlRebaVs0a9cccTJEZk2DHzr2rQp3tDp1XlobwOrMpN1nJdJ1DIa9Zpc002zUNcHVj
-STRIPE_SECRET_KEY=sk_test_51SDc1sLe5z8vTWFih4TVw2lNZebHxgRoCQgcNqcaJsDirzDAlXFGVEt8UDl1n0YSOG2IhC3nke0wYNHB4v2tRG3w00tLsIETPD
+# Braintree
+EXPO_PUBLIC_BRAINTREE_PUBLISHABLE_KEY=pk_test_<REDACTED>
+BRAINTREE_SECRET_KEY=sk_test_<REDACTED>
 
 # Backend
 EXPO_PUBLIC_API_URL=http://localhost:8081
@@ -201,7 +194,7 @@ EXPO_PUBLIC_API_URL=http://localhost:8081
    - `/api/trpc/*` returns JSON
    - Console shows `[Backend]` and `[API Route]` logs
 
-3. **Stripe payments work**
+3. **Braintree payments work**
    - Can create payment intents
    - Can confirm payments with test card
    - No "HTML instead of JSON" errors
@@ -229,7 +222,7 @@ Once the API is working:
    - Test the same flow on mobile
 
 3. **Prepare for production:**
-   - Switch to production Stripe keys
+   - Switch to production Braintree keys
    - Configure production Firebase
    - Test with real payment methods
    - Deploy to app stores
@@ -251,4 +244,4 @@ If you're still seeing errors after following these steps:
 
 **How to verify:** Check that `/api/health` returns JSON, not HTML
 
-**When it's fixed:** Stripe payments will work and you'll see JSON responses in the console
+**When it's fixed:** Braintree payments will work and you'll see JSON responses in the console

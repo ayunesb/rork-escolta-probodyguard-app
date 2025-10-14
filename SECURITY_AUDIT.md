@@ -40,12 +40,12 @@
 
 #### ✅ FIXED: Payment Processing
 - **Issue**: Mock payment implementation
-- **Fix**: Integrated Stripe with proper client-side handling
+- **Fix**: Integrated payment provider with proper client-side handling
 - **Status**: Test mode ready
 
 #### ⚠️ TODO: PCI Compliance
 - **Issue**: Need to verify full PCI DSS compliance
-- **Recommendation**: Complete Stripe integration and security review
+- **Recommendation**: Complete Braintree integration and security review
 - **Priority**: Critical for production
 
 #### ✅ FIXED: Refund Authorization
@@ -159,7 +159,7 @@
 
 #### ✅ FIXED: HTTPS Only
 - **Issue**: Need to enforce HTTPS
-- **Fix**: Firebase and Stripe enforce HTTPS
+- **Fix**: Firebase and Braintree enforce HTTPS
 - **Status**: Secure
 
 ## 🛡️ Security Best Practices Implemented
@@ -170,7 +170,7 @@
 3. Environment variable protection
 4. Input validation with Zod
 5. Error boundaries for crash prevention
-6. Secure payment processing with Stripe
+6. Secure payment processing with Braintree
 7. Location permission handling
 8. User data encryption at rest (Firebase)
 9. Audit logging for sensitive operations
@@ -234,9 +234,9 @@ EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-# Stripe
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_publishable_key
-STRIPE_SECRET_KEY=your_secret_key
+# Payment provider (legacy Braintree placeholders)
+EXPO_PUBLIC_BRAINTREE_PUBLISHABLE_KEY=pk_test_<REDACTED>
+BRAINTREE_SECRET_KEY=sk_test_<REDACTED>
 
 # Backend
 EXPO_PUBLIC_RORK_API_BASE_URL=your_api_url
@@ -274,7 +274,7 @@ export const rateLimiter = (maxRequests: number, windowMs: number) => {
 
 ### Critical (Must Fix Before Launch)
 - [ ] Configure Firebase security rules
-- [ ] Set up production Stripe keys
+- [ ] Set up production Braintree keys
 - [ ] Implement rate limiting
 - [ ] Add server-side input validation
 - [ ] Set up error monitoring (Sentry)

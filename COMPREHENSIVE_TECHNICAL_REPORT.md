@@ -906,9 +906,9 @@ Display original Spanish text
 - **Impact:** Confusion between mock and real data
 - **Fix:** Remove or clearly mark as test fixtures
 
-**6. Unused Stripe References**
-- **Status:** ✅ No Stripe imports found (verified via grep)
-- **Note:** Stripe fully removed, Braintree-only
+**6. Unused Braintree References**
+- **Status:** ✅ No active Braintree imports found (verified via grep)
+- **Note:** The project now uses Braintree. Legacy Braintree documentation and notes have been consolidated into `docs/braintree-legacy.md`.
 
 **7. Inconsistent Error Handling**
 - **Issue:** Some services throw errors, others return error objects
@@ -964,19 +964,19 @@ docs/archive/PAYMENT_FIX_COMPLETE.md
 docs/archive/PAYMENT_SETUP_GUIDE.md
 docs/archive/PAYMENT_TEST_GUIDE.md
 docs/archive/PRODUCTION_AUDIT_COMPLETE.md
-docs/archive/QUICK_TEST_STRIPE.md
+docs/archive/QUICK_TEST_BRAINTREE.md
 docs/archive/QUICK_FIX.md
 docs/archive/README_FIRST.md
 docs/archive/SETUP_INSTRUCTIONS.md
 docs/archive/START_APP_GUIDE.md
 docs/archive/START_NOW.md
-docs/archive/STRIPE_REMOVAL_COMPLETE.md
+docs/archive/BRAINTREE_REMOVAL_COMPLETE.md
 docs/archive/START_APP_NOW.md
-docs/archive/STRIPE_TESTING_GUIDE.md
+docs/archive/BRAINTREE_TESTING_GUIDE.md
 docs/archive/VERIFICATION_COMPLETE.md
-docs/archive/TEST_STRIPE_NOW.md
+docs/archive/TEST_BRAINTREE_NOW.md
 docs/archive/SUMMARY.md
-docs/archive/STRIPE_TEST_SUMMARY.md
+docs/archive/BRAINTREE_TEST_SUMMARY.md
 docs/archive/WEB_COMPATIBILITY_FIX.md
 ```
 

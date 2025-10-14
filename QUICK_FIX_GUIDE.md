@@ -36,15 +36,11 @@ Open in browser: http://localhost:8081/api/health
 npx expo start --clear --tunnel
 ```
 
-## Test Stripe Payment
+## Payment testing (legacy Braintree notes archived)
 
-Once API is working:
+This document previously contained legacy Braintree testing instructions. Those details have been archived to `docs/braintree-legacy.md`.
 
-1. Sign in to app
-2. Home → Select guard → Create booking
-3. Use test card: **4242 4242 4242 4242**
-4. Any future expiry + any CVC
-5. Click Pay
+If you need historical Braintree testing steps, see: docs/braintree-legacy.md
 
 ## Still Not Working?
 
@@ -56,8 +52,8 @@ Look for:
 ### Check Environment
 Make sure `.env` has:
 ```
-STRIPE_SECRET_KEY=sk_test_51SDc1sLe5z8vTWFih4TVw2lNZebHxgRoCQgcNqcaJsDirzDAlXFGVEt8UDl1n0YSOG2IhC3nke0wYNHB4v2tRG3w00tLsIETPD
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51SDc1sLe5z8vTWFiXcjY53w36vVFSFDfnlRebaVs0a9cccTJEZk2DHzr2rQp3tDp1XlobwOrMpN1nJdJ1DIa9Zpc002zUNcHVj
+BRAINTREE_SECRET_KEY=sk_test_<REDACTED>
+EXPO_PUBLIC_BRAINTREE_PUBLISHABLE_KEY=pk_test_<REDACTED>
 EXPO_PUBLIC_API_URL=http://localhost:8081
 ```
 

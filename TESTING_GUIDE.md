@@ -155,7 +155,7 @@
 
 ### Current Limitations
 1. **Firebase Setup Required**: You need to configure Firebase with your own project credentials
-2. **Stripe Test Mode**: Payment processing is in test mode
+2. **Braintree Test Mode**: Payment processing is in test mode
 3. **Mock Data**: Some features use mock data until backend is fully connected
 4. **Translation**: Auto-translation requires external API integration
 5. **Push Notifications**: Requires Expo push notification setup
@@ -211,11 +211,11 @@ npm run start-web
    - Configure Firestore security rules
    - Set up Firebase Storage rules
 
-2. **Configure Stripe**:
-   - Get production API keys
-   - Set up webhooks
-   - Configure payment methods
-   - Test with real cards
+2. **Configure Payments (legacy Braintree steps archived)**:
+
+Payment provider configuration details (historically Braintree) have been archived in `docs/braintree-legacy.md`. See the archive for test and production migration steps.
+
+See: docs/braintree-legacy.md
 
 3. **Set Up Push Notifications**:
    - Configure Expo push notifications
@@ -246,7 +246,7 @@ For issues or questions:
 - Check the code comments
 - Review the TEST_GUIDE.md
 - Check Firebase console for errors
-- Review Stripe dashboard for payment issues
+- Review Braintree dashboard for payment issues
 
 ## 🎯 Success Criteria
 
@@ -257,6 +257,6 @@ The app is ready for production when:
 - ✅ Performance is acceptable
 - ✅ Security audit passed
 - ✅ Firebase is properly configured
-- ✅ Stripe payments work in production mode
+- ✅ Braintree payments work in production mode
 - ✅ Push notifications are working
 - ✅ All platforms tested (iOS, Android, Web)

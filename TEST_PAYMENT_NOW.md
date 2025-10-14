@@ -39,14 +39,9 @@ Open: `http://localhost:8081/api/health`
    - Click "Pay Now"
 
 4. **Watch Console Logs**
-   You should see:
-   ```
-   [API Route] POST request: ...
-   [Backend] POST ...
-   [Env Config] STRIPE_SECRET_KEY available: true
-   [Payment] Create intent: ...
-   [Payment] Payment intent created: pi_...
-   ```
+This section previously referenced Braintree-specific logs and keys. Those legacy details have been archived to `docs/braintree-legacy.md`.
+
+See: docs/braintree-legacy.md
 
 ## 🔍 What to Look For
 
@@ -73,14 +68,13 @@ bun run start --clear
 ```
 
 ### Step 2: Check Environment Variables
-Open `.env` and verify:
-```env
-EXPO_PUBLIC_STRIPE_SECRET_KEY=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
-```
+This guide previously included Braintree secret key examples; all secret values have been redacted. See `docs/braintree-legacy.md` for archived notes.
+
+See: docs/braintree-legacy.md
 
 ### Step 3: Check Console for Specific Errors
 Look for:
-- `[Env Config] STRIPE_SECRET_KEY available: false` - Environment variable not loaded
+- `[Env Config] BRAINTREE_SECRET_KEY available: false` - Environment variable not loaded
 - `404 Not Found` - API route not registered
 - `CORS error` - CORS configuration issue
 - `Unauthorized` - Authentication issue
@@ -95,11 +89,10 @@ fetch('http://localhost:8081/api/health')
   .then(console.log)
 ```
 
-#### Test Stripe Key:
-Check console for:
-```
-[Env Config] STRIPE_SECRET_KEY available: true
-```
+#### Test Payment Key (legacy)
+Legacy Braintree key checks were here and are now archived to `docs/braintree-legacy.md`.
+
+See: docs/braintree-legacy.md
 
 ## 📝 Common Issues & Solutions
 
@@ -109,11 +102,11 @@ Check console for:
 2. Dev server restarted after creating the file
 3. No TypeScript errors in the file
 
-### Issue: "Stripe key not configured"
+### Issue: "Braintree key not configured"
 **Solution:** Environment variable not loaded. Check:
-1. `.env` file has `EXPO_PUBLIC_STRIPE_SECRET_KEY`
+1. `.env` file has `EXPO_PUBLIC_BRAINTREE_SECRET_KEY`
 2. Dev server restarted after updating `.env`
-3. Console shows `[Env Config] STRIPE_SECRET_KEY available: true`
+3. Console shows `[Env Config] BRAINTREE_SECRET_KEY available: true`
 
 ### Issue: "Unauthorized"
 **Solution:** Authentication issue. Check:
@@ -124,7 +117,7 @@ Check console for:
 ### Issue: Payment stays "Processing"
 **Solution:** Backend is hanging. Check:
 1. Console for backend errors
-2. Stripe API key is valid
+2. Braintree API key is valid
 3. Network connection is stable
 
 ## 🎯 Expected Console Output
@@ -137,17 +130,17 @@ When payment works correctly, you should see this sequence:
 [tRPC Client] Fetching: http://localhost:8081/api/trpc/payments.createIntent
 [API Route] POST request: http://localhost:8081/api/trpc/payments.createIntent
 [Backend] POST http://localhost:8081/api/trpc/payments.createIntent
-[Env Config] STRIPE_SECRET_KEY available: true
+[Env Config] BRAINTREE_SECRET_KEY available: true
 [Payment] Create intent: { bookingId: 'booking-1234567890', amount: 50000 }
 [tRPC Client] Response status: 200
 [Payment] Payment intent created: pi_3ABC123...
-[Stripe Web] Payment intent created successfully: { clientSecret: '...', paymentIntentId: 'pi_3ABC123...' }
+[Braintree Web] Payment intent created successfully: { clientSecret: '...', paymentIntentId: 'pi_3ABC123...' }
 [Payment] Payment completed successfully
 ```
 
 ## 🔐 Security Note
 
-The current setup exposes the Stripe secret key on the client side (via `EXPO_PUBLIC_` prefix). This is:
+The current setup exposes the Braintree secret key on the client side (via `EXPO_PUBLIC_` prefix). This is:
 - ✅ OK for development and testing
 - ❌ NOT OK for production
 

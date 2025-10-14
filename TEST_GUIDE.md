@@ -259,7 +259,7 @@ Use this account to test platform-wide admin features:
 
 ## Testing Payment Flow
 
-### Test Card Numbers (Stripe Test Mode)
+### Test Card Numbers (Braintree Test Mode)
 - **Success**: `4242 4242 4242 4242`
 - **Decline**: `4000 0000 0000 0002`
 - **Insufficient Funds**: `4000 0000 0000 9995`
@@ -270,7 +270,7 @@ Use this account to test platform-wide admin features:
 ### Payment Breakdown
 For a $150/hour guard, 4-hour booking:
 - **Subtotal**: $600
-- **Stripe Fee (3%)**: $18
+- **Braintree Fee (3%)**: $18
 - **Platform Cut (10%)**: $60
 - **Guard Payout**: $522
 
@@ -338,7 +338,7 @@ For a $150/hour guard, 4-hour booking:
 ### ✅ Business Logic
 - [ ] Correct payment calculations
 - [ ] Platform cut (10%) applied correctly
-- [ ] Stripe fee (3%) calculated properly
+- [ ] Braintree fee (3%) calculated properly
 - [ ] Guard payout accurate
 - [ ] Refunds process correctly
 

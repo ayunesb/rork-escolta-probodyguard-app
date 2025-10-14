@@ -16,12 +16,9 @@ Expo Router API routes (`app/api/`) need to be properly configured and the app n
 ## Solution
 
 ### Step 1: Verify Your Environment
-Check that your `.env` file has:
-```bash
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51SDc1sLe5z8vTWFiXcjY53w36vVFSFDfnlRebaVs0a9cccTJEZk2DHzr2rQp3tDp1XlobwOrMpN1nJdJ1DIa9Zpc002zUNcHVj
-STRIPE_SECRET_KEY=sk_test_51SDc1sLe5z8vTWFih4TVw2lNZebHxgRoCQgcNqcaJsDirzDAlXFGVEt8UDl1n0YSOG2IhC3nke0wYNHB4v2tRG3w00tLsIETPD
-EXPO_PUBLIC_API_URL=http://localhost:8081
-```
+This guide previously included Braintree-specific env var examples and test instructions. Those legacy details have been moved to `docs/braintree-legacy.md`.
+
+See: docs/braintree-legacy.md
 
 ### Step 2: Start the App Correctly
 
@@ -88,11 +85,11 @@ npx expo start --tunnel
 2. Restart the dev server
 3. Clear cache: `npx expo start --clear`
 
-### Issue 3: Stripe payment fails
-**Cause:** Backend can't access Stripe API or secret key is missing
+### Issue 3: Braintree payment fails
+**Cause:** Backend can't access Braintree API or secret key is missing
 **Solution:**
-1. Verify `STRIPE_SECRET_KEY` is in `.env`
-2. Check console for `[Env Config] STRIPE_SECRET_KEY available: true`
+1. Verify `BRAINTREE_SECRET_KEY` is in `.env`
+2. Check console for `[Env Config] BRAINTREE_SECRET_KEY available: true`
 3. Make sure you're using test keys (start with `sk_test_`)
 
 ## Verification Checklist
@@ -135,19 +132,11 @@ If the API routes still return HTML:
    npx expo start --clear --tunnel
    ```
 
-## Testing Stripe After Fix
+## Testing Payments (legacy Braintree notes archived)
 
-Once the API is working:
+Legacy Braintree testing instructions were here and are now archived to `docs/braintree-legacy.md`.
 
-1. Sign in to the app
-2. Go to Home → Select a guard → Create booking
-3. Fill in booking details
-4. On payment screen, use test card:
-   - Card: `4242 4242 4242 4242`
-   - Expiry: Any future date
-   - CVC: Any 3 digits
-5. Click "Pay"
-6. Payment should succeed
+See: docs/braintree-legacy.md
 
 ## Need More Help?
 

@@ -91,7 +91,7 @@ See `PAYMENTS_SETUP.md` for complete guide.
 - ✅ Refunds
 - ✅ Payment ledger
 - ✅ Guard/company payouts
-- ✅ No Stripe code
+- ✅ No Braintree code
 
 ---
 

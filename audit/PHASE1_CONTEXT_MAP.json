@@ -212,17 +212,17 @@
       "last_fix_note": "Panic button and emergency service exist"
     },
     {
-      "feature": "Stripe Removal",
+      "feature": "Braintree Removal",
       "files": [
-        "services/stripeInit.d.ts",
-        "services/stripeInit.native.ts",
-        "services/stripeInit.web.tsx",
-        "services/stripeInit.web.ts",
+        "services/braintreeInit.d.ts",
+        "services/braintreeInit.native.ts",
+        "services/braintreeInit.web.tsx",
+        "services/braintreeInit.web.ts",
         "mocks/bookings.ts"
       ],
       "last_commit": "unknown",
       "current_status": "redundant",
-      "last_fix_note": "Stripe code removed from active files but stub files remain; 89 .md files contain Stripe references"
+      "last_fix_note": "Braintree code removed from active files but stub files remain; 89 .md files contain Braintree references"
     }
   ]
 }

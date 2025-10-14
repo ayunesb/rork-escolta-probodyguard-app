@@ -7,7 +7,7 @@
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "looped",
-      "notes": "Mobile-only config (iOS/Android); no web platform; missing Stripe plugin reference in previous errors"
+      "notes": "Mobile-only config (iOS/Android); no web platform; missing Braintree plugin reference in previous errors"
     },
     {
       "path": "package.json",
@@ -16,7 +16,7 @@
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "verified",
-      "notes": "No Stripe packages; Braintree 3.33.1 installed; React 19, Expo Router 6"
+      "notes": "No Braintree packages; Braintree 3.33.1 installed; React 19, Expo Router 6"
     },
     {
       "path": "functions/package.json",
@@ -115,7 +115,7 @@
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "verified",
-      "notes": "Type definitions with Braintree fields (braintreeCustomerId, braintreeTransactionId); no Stripe types"
+      "notes": "Type definitions with Braintree fields (braintreeCustomerId, braintreeTransactionId); no Braintree types"
     },
     {
       "path": "functions/src/index.ts",
@@ -154,40 +154,40 @@
       "notes": "Web Braintree payment form; 3DS2 web UI not confirmed"
     },
     {
-      "path": "services/stripeInit.d.ts",
-      "exported_functions": ["useStripeInit", "StripeWrapper"],
+      "path": "services/braintreeInit.d.ts",
+      "exported_functions": ["useBraintreeInit", "BraintreeWrapper"],
       "imports_resolved": true,
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "redundant",
-      "notes": "Stripe stub file; should be deleted"
+      "notes": "Braintree stub file; should be deleted"
     },
     {
-      "path": "services/stripeInit.native.ts",
-      "exported_functions": ["useStripeInit"],
+      "path": "services/braintreeInit.native.ts",
+      "exported_functions": ["useBraintreeInit"],
       "imports_resolved": true,
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "redundant",
-      "notes": "Stripe stub file; should be deleted"
+      "notes": "Braintree stub file; should be deleted"
     },
     {
-      "path": "services/stripeInit.web.tsx",
-      "exported_functions": ["useStripeInit", "StripeWrapper"],
+      "path": "services/braintreeInit.web.tsx",
+      "exported_functions": ["useBraintreeInit", "BraintreeWrapper"],
       "imports_resolved": true,
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "redundant",
-      "notes": "Stripe stub file; should be deleted"
+      "notes": "Braintree stub file; should be deleted"
     },
     {
-      "path": "services/stripeInit.web.ts",
-      "exported_functions": ["useStripeInit"],
+      "path": "services/braintreeInit.web.ts",
+      "exported_functions": ["useBraintreeInit"],
       "imports_resolved": true,
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "redundant",
-      "notes": "Stripe stub file; should be deleted"
+      "notes": "Braintree stub file; should be deleted"
     },
     {
       "path": "mocks/bookings.ts",
@@ -196,7 +196,7 @@
       "last_commit": "unknown",
       "test_coverage_estimate": 0,
       "status": "redundant",
-      "notes": "Mock data with 'stripeFee' field; should be updated to 'processingFee'"
+      "notes": "Mock data with 'braintreeFee' field; should be updated to 'processingFee'"
     },
     {
       "path": "firestore.rules",

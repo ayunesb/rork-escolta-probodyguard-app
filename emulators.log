@@ -147,3 +147,18 @@ i  functions: Finished "us-central1-api" in 895.03075ms
 i  functions: Beginning execution of "us-central1-api"
 >  [PaymentMethod] Braintree create failed; returning mock token because test-mode is active
 i  functions: Finished "us-central1-api" in 516.232917ms
+ 
+i  emulators: Received SIGHUP for the first time. Starting a clean shutdown.
+i  emulators: Please wait for a clean shutdown or send the SIGHUP signal again to stop right now.
+i  emulators: Shutting down emulators.
+i  ui: Stopping Emulator UI
+i  functions: Stopping Functions Emulator
+i  database: Stopping Database Emulator
+i  firestore: Stopping Firestore Emulator
+i  pubsub: Stopping Pub/Sub Emulator
+i  auth: Stopping Authentication Emulator
+i  storage: Stopping Storage Emulator
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

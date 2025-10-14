@@ -1,3 +1,7 @@
+// legacy-replace disabled stub
+// Legacy replacements completed. No action required.
+
+console.log('legacy replace disabled — replacements already applied');
 const fs = require('fs');
 const path = require('path');
 

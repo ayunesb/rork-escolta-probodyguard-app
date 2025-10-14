@@ -2,3 +2,7 @@
 13:50:52.389 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
 13:51:02.373 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - escolta-pro-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 74ms, init: 0ms
 13:51:02.440 [NamespaceSystem-blocking-namespace-operation-dispatcher-6] INFO com.firebase.core.namespace.StateManager - Namespace escolta-pro-default-rtdb status Active to Active
+14:35:32.329 [Thread-0] INFO com.firebase.server.forge.App$ - Attempting graceful shutdown.
+14:35:32.425 [NamespaceSystem-akka.actor.default-dispatcher-11] INFO com.firebase.core.namespace.Terminator$Terminator - 1 actors left to terminate: escolta-pro-default-rtdb
+14:35:32.441 [NamespaceSystem-akka.actor.default-dispatcher-11] INFO com.firebase.core.namespace.NamespaceActor - stopped namespace actor for escolta-pro-default-rtdb
+14:35:32.453 [Thread-0] INFO com.firebase.server.forge.App$ - Graceful shutdown complete.

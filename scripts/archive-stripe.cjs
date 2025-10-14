@@ -1,3 +1,7 @@
+// legacy-archive disabled stub (cjs)
+// Legacy documentation archival completed; see docs/braintree-legacy.md
+
+console.log('legacy archive (cjs) disabled — see docs/braintree-legacy.md');
 const fs = require('fs');
 const path = require('path');
 

@@ -1,38 +1,24 @@
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db as getDbInstance } from '@/lib/firebase';
-import { Booking } from '@/types';
 import analytics from '@react-native-firebase/analytics';
 import { Platform } from 'react-native';
 
-// Analytics Events for tracking
 export enum AnalyticsEvent {
-  // User Events
-  USER_SIGN_UP = 'user_sign_up',
-  USER_SIGN_IN = 'user_sign_in',
-  USER_SIGN_OUT = 'user_sign_out',
-  PROFILE_UPDATE = 'profile_update',
-  
-  // Booking Events
+  USER_SIGNUP = 'user_signup',
+  USER_LOGIN = 'user_login',
+  USER_LOGOUT = 'user_logout',
   BOOKING_STARTED = 'booking_started',
   BOOKING_COMPLETED = 'booking_completed',
   BOOKING_CANCELLED = 'booking_cancelled',
-  GUARD_SELECTED = 'guard_selected',
-  
-  // Payment Events
   PAYMENT_INITIATED = 'payment_initiated',
   PAYMENT_COMPLETED = 'payment_completed',
   PAYMENT_FAILED = 'payment_failed',
-  PAYMENT_METHOD_ADDED = 'payment_method_added',
-  
-  // Performance Events
+  EMERGENCY_TRIGGERED = 'emergency_triggered',
   SCREEN_VIEW = 'screen_view',
-  API_CALL = 'api_call',
+  API_ERROR = 'api_error',
 }
 
-// Firebase Analytics Helper
 class FirebaseAnalyticsHelper {
   private static instance: FirebaseAnalyticsHelper;
-  private isEnabled = true;
+  private initialized = false;
 
   static getInstance() {
     if (!FirebaseAnalyticsHelper.instance) {
@@ -41,535 +27,68 @@ class FirebaseAnalyticsHelper {
     return FirebaseAnalyticsHelper.instance;
   }
 
-  async initialize() {
+  async initialize(): Promise<void> {
     try {
-      this.isEnabled = await analytics().isEnabled();
+      await analytics().setAnalyticsCollectionEnabled(true);
       await analytics().setDefaultEventParameters({
         platform: Platform.OS,
         app_version: '1.0.0',
       });
-      console.log('[Analytics] Firebase Analytics initialized');
+      this.initialized = true;
+      console.log('Firebase Analytics initialized successfully');
     } catch (error) {
-      console.error('[Analytics] Initialization failed:', error);
-      this.isEnabled = false;
+      console.error('Failed to initialize Firebase Analytics:', error);
     }
   }
 
-  async logEvent(event: AnalyticsEvent, params?: Record<string, any>) {
-    if (!this.isEnabled) return;
-    
+  async logEvent(
+    event: AnalyticsEvent,
+    parameters?: Record<string, string | number | boolean>
+  ): Promise<void> {
+    if (!this.initialized) {
+      console.warn('Analytics not initialized');
+      return;
+    }
+
     try {
-      await analytics().logEvent(event, params);
-      console.log(`[Analytics] Event logged: ${event}`, params);
+      await analytics().logEvent(event, parameters);
     } catch (error) {
-      console.error(`[Analytics] Failed to log event ${event}:`, error);
+      console.error('Failed to log event:', error);
     }
   }
 
-  async setUserId(userId: string) {
-    if (!this.isEnabled) return;
-    
+  async setUserId(userId: string): Promise<void> {
+    if (!this.initialized) return;
     try {
       await analytics().setUserId(userId);
     } catch (error) {
-      console.error('[Analytics] Failed to set user ID:', error);
+      console.error('Failed to set user ID:', error);
     }
   }
 
-  async setUserProperties(properties: Record<string, string>) {
-    if (!this.isEnabled) return;
-    
-    try {
-      for (const [key, value] of Object.entries(properties)) {
-        await analytics().setUserProperty(key, value);
-      }
-    } catch (error) {
-      console.error('[Analytics] Failed to set user properties:', error);
-    }
-  }
-
-  async trackScreenView(screenName: string) {
-    await this.logEvent(AnalyticsEvent.SCREEN_VIEW, {
-      screen_name: screenName,
+  async trackUserSignup(method: string, userType: string): Promise<void> {
+    await this.logEvent(AnalyticsEvent.USER_SIGNUP, {
+      method,
+      user_type: userType,
+      timestamp: Date.now(),
     });
   }
 
-  async trackBookingEvent(event: AnalyticsEvent, bookingData: any) {
-    await this.logEvent(event, bookingData);
+  async trackBookingCompleted(bookingId: string, amount: number): Promise<void> {
+    await this.logEvent(AnalyticsEvent.BOOKING_COMPLETED, {
+      booking_id: bookingId,
+      amount,
+      timestamp: Date.now(),
+    });
   }
 
-  async trackPaymentEvent(event: AnalyticsEvent, paymentData: any) {
-    await this.logEvent(event, paymentData);
+  async trackPaymentCompleted(transactionId: string, amount: number): Promise<void> {
+    await this.logEvent(AnalyticsEvent.PAYMENT_COMPLETED, {
+      transaction_id: transactionId,
+      amount,
+      timestamp: Date.now(),
+    });
   }
 }
 
-export const firebaseAnalytics = FirebaseAnalyticsHelper.getInstance();
-
-export interface BookingAnalytics {
-  totalBookings: number;
-  completedBookings: number;
-  cancelledBookings: number;
-  activeBookings: number;
-  totalRevenue: number;
-  averageBookingValue: number;
-  bookingsByStatus: Record<string, number>;
-  bookingsByType: Record<string, number>;
-  revenueByMonth: []{ month: string; revenue: number }>;
-  topGuards: []{ guardId: string; guardName: string; bookings: number; revenue: number }>;
-}
-
-export interface GuardAnalytics {
-  guardId: string;
-  totalBookings: number;
-  completedBookings: number;
-  cancelledBookings: number;
-  totalEarnings: number;
-  averageRating: number;
-  totalReviews: number;
-  acceptanceRate: number;
-  completionRate: number;
-  responseTime: number;
-  bookingsByMonth: []{ month: string; bookings: number }>;
-  earningsByMonth: []{ month: string; earnings: number }>;
-}
-
-export interface ClientAnalytics {
-  clientId: string;
-  totalBookings: number;
-  completedBookings: number;
-  totalSpent: number;
-  averageBookingValue: number;
-  favoriteGuards: []{ guardId: string; guardName: string; bookings: number }>;
-  bookingsByMonth: []{ month: string; bookings: number }>;
-  spendingByMonth: []{ month: string; spent: number }>;
-}
-
-export interface PlatformAnalytics {
-  totalUsers: number;
-  totalClients: number;
-  totalGuards: number;
-  totalCompanies: number;
-  activeUsers: number;
-  totalBookings: number;
-  totalRevenue: number;
-  platformRevenue: number;
-  averageBookingValue: number;
-  userGrowth: []{ month: string; users: number }>;
-  revenueGrowth: []{ month: string; revenue: number }>;
-  topPerformingGuards: []{ guardId: string; guardName: string; rating: number; bookings: number }>;
-  bookingTrends: []{ date: string; bookings: number }>;
-}
-
-export const analyticsService = {
-  async getBookingAnalytics(
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<BookingAnalytics> {
-    try {
-      let bookingsQuery = query(collection(getDbInstance(), 'bookings'));
-
-      if (startDate && endDate) {
-        bookingsQuery = query(
-          collection(getDbInstance(), 'bookings'),
-          where('createdAt', '>=', startDate.toISOString()),
-          where('createdAt', '<=', endDate.toISOString())
-        );
-      }
-
-      const snapshot = await getDocs(bookingsQuery);
-      const bookings: Booking[] = [];
-
-      snapshot.forEach((doc) => {
-        bookings.push({
-          id: doc.id,
-          ...doc.data(),
-        } as Booking);
-      });
-
-      const totalBookings = bookings.length;
-      const completedBookings = bookings.filter((b) => b.status === 'completed').length;
-      const cancelledBookings = bookings.filter((b) => b.status === 'cancelled').length;
-      const activeBookings = bookings.filter((b) =>
-        ['confirmed', 'accepted', 'en_route', 'active'].includes(b.status)
-      ).length;
-
-      const totalRevenue = bookings
-        .filter((b) => b.status === 'completed')
-        .reduce((sum, b) => sum + b.totalAmount, 0);
-
-      const averageBookingValue = totalRevenue / (completedBookings || 1);
-
-      const bookingsByStatus: Record<string, number> = {};
-      bookings.forEach((b) => {
-        bookingsByStatus[b.status] = (bookingsByStatus[b.status] || 0) + 1;
-      });
-
-      const bookingsByType: Record<string, number> = {};
-      bookings.forEach((b) => {
-        bookingsByType[b.bookingType] = (bookingsByType[b.bookingType] || 0) + 1;
-      });
-
-      const revenueByMonth = this.calculateRevenueByMonth(bookings);
-      const topGuards = await this.getTopGuards(bookings);
-
-      return {
-        totalBookings,
-        completedBookings,
-        cancelledBookings,
-        activeBookings,
-        totalRevenue,
-        averageBookingValue,
-        bookingsByStatus,
-        bookingsByType,
-        revenueByMonth,
-        topGuards,
-      };
-    } catch (error) {
-      console.error('[Analytics] Error getting booking analytics:', error);
-      throw error;
-    }
-  },
-
-  async getGuardAnalytics(guardId: string): Promise<GuardAnalytics> {
-    try {
-      const bookingsQuery = query(
-        collection(getDbInstance(), 'bookings'),
-        where('guardId', '==', guardId)
-      );
-
-      const snapshot = await getDocs(bookingsQuery);
-      const bookings: Booking[] = [];
-
-      snapshot.forEach((doc) => {
-        bookings.push({
-          id: doc.id,
-          ...doc.data(),
-        } as Booking);
-      });
-
-      const totalBookings = bookings.length;
-      const completedBookings = bookings.filter((b) => b.status === 'completed').length;
-      const cancelledBookings = bookings.filter((b) => b.status === 'cancelled').length;
-
-      const totalEarnings = bookings
-        .filter((b) => b.status === 'completed')
-        .reduce((sum, b) => sum + b.guardPayout, 0);
-
-      const ratings = bookings
-        .filter((b) => b.rating)
-        .map((b) => b.rating!);
-      const averageRating = ratings.length > 0
-        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-        : 0;
-
-      const acceptedBookings = bookings.filter((b) =>
-        ['accepted', 'en_route', 'active', 'completed'].includes(b.status)
-      ).length;
-      const acceptanceRate = (acceptedBookings / totalBookings) * 100;
-
-      const completionRate = (completedBookings / acceptedBookings) * 100;
-
-      const bookingsByMonth = this.calculateBookingsByMonth(bookings);
-      const earningsByMonth = this.calculateEarningsByMonth(bookings);
-
-      return {
-        guardId,
-        totalBookings,
-        completedBookings,
-        cancelledBookings,
-        totalEarnings,
-        averageRating,
-        totalReviews: ratings.length,
-        acceptanceRate,
-        completionRate,
-        responseTime: 0,
-        bookingsByMonth,
-        earningsByMonth,
-      };
-    } catch (error) {
-      console.error('[Analytics] Error getting guard analytics:', error);
-      throw error;
-    }
-  },
-
-  async getClientAnalytics(clientId: string): Promise<ClientAnalytics> {
-    try {
-      const bookingsQuery = query(
-        collection(getDbInstance(), 'bookings'),
-        where('clientId', '==', clientId)
-      );
-
-      const snapshot = await getDocs(bookingsQuery);
-      const bookings: Booking[] = [];
-
-      snapshot.forEach((doc) => {
-        bookings.push({
-          id: doc.id,
-          ...doc.data(),
-        } as Booking);
-      });
-
-      const totalBookings = bookings.length;
-      const completedBookings = bookings.filter((b) => b.status === 'completed').length;
-
-      const totalSpent = bookings
-        .filter((b) => b.status === 'completed')
-        .reduce((sum, b) => sum + b.totalAmount, 0);
-
-      const averageBookingValue = totalSpent / (completedBookings || 1);
-
-      const guardCounts: Record<string, number> = {};
-      bookings.forEach((b) => {
-        if (b.guardId) {
-          guardCounts[b.guardId] = (guardCounts[b.guardId] || 0) + 1;
-        }
-      });
-
-      const favoriteGuards = Object.entries(guardCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 5)
-        .map(([guardId, bookings]) => ({
-          guardId,
-          guardName: 'Guard',
-          bookings,
-        }));
-
-      const bookingsByMonth = this.calculateBookingsByMonth(bookings);
-      const spendingByMonth = this.calculateSpendingByMonth(bookings);
-
-      return {
-        clientId,
-        totalBookings,
-        completedBookings,
-        totalSpent,
-        averageBookingValue,
-        favoriteGuards,
-        bookingsByMonth,
-        spendingByMonth,
-      };
-    } catch (error) {
-      console.error('[Analytics] Error getting client analytics:', error);
-      throw error;
-    }
-  },
-
-  async getPlatformAnalytics(): Promise<PlatformAnalytics> {
-    try {
-      const usersSnapshot = await getDocs(collection(getDbInstance(), 'users'));
-      const users: any[] = [];
-
-      usersSnapshot.forEach((doc) => {
-        users.push({
-          id: doc.id,
-          ...doc.data(),
-        });
-      });
-
-      const totalUsers = users.length;
-      const totalClients = users.filter((u) => u.role === 'client').length;
-      const totalGuards = users.filter((u) => u.role === 'guard').length;
-      const totalCompanies = users.filter((u) => u.role === 'company').length;
-      const activeUsers = users.filter((u) => u.availability).length;
-
-      const bookingsSnapshot = await getDocs(collection(getDbInstance(), 'bookings'));
-      const bookings: Booking[] = [];
-
-      bookingsSnapshot.forEach((doc) => {
-        bookings.push({
-          id: doc.id,
-          ...doc.data(),
-        } as Booking);
-      });
-
-      const totalBookings = bookings.length;
-
-      const completedBookings = bookings.filter((b) => b.status === 'completed');
-      const totalRevenue = completedBookings.reduce((sum, b) => sum + b.totalAmount, 0);
-      const platformRevenue = completedBookings.reduce((sum, b) => sum + b.platformCut, 0);
-      const averageBookingValue = totalRevenue / (completedBookings.length || 1);
-
-      const userGrowth = this.calculateUserGrowth(users);
-      const revenueGrowth = this.calculateRevenueByMonth(bookings);
-      const topPerformingGuards = await this.getTopPerformingGuards();
-      const bookingTrends = this.calculateBookingTrends(bookings);
-
-      return {
-        totalUsers,
-        totalClients,
-        totalGuards,
-        totalCompanies,
-        activeUsers,
-        totalBookings,
-        totalRevenue,
-        platformRevenue,
-        averageBookingValue,
-        userGrowth,
-        revenueGrowth,
-        topPerformingGuards,
-        bookingTrends,
-      };
-    } catch (error) {
-      console.error('[Analytics] Error getting platform analytics:', error);
-      throw error;
-    }
-  },
-
-  calculateRevenueByMonth(bookings: Booking[]): []{ month: string; revenue: number }> {
-    const revenueByMonth: Record<string, number> = {};
-
-    bookings
-      .filter((b) => b.status === 'completed')
-      .forEach((booking) => {
-        const date = new Date(booking.completedAt || booking.createdAt);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + booking.totalAmount;
-      });
-
-    return Object.entries(revenueByMonth)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, revenue]) => ({ month, revenue }));
-  },
-
-  calculateBookingsByMonth(bookings: Booking[]): []{ month: string; bookings: number }> {
-    const bookingsByMonth: Record<string, number> = {};
-
-    bookings.forEach((booking) => {
-      const date = new Date(booking.createdAt);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      bookingsByMonth[monthKey] = (bookingsByMonth[monthKey] || 0) + 1;
-    });
-
-    return Object.entries(bookingsByMonth)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, bookings]) => ({ month, bookings }));
-  },
-
-  calculateEarningsByMonth(bookings: Booking[]): []{ month: string; earnings: number }> {
-    const earningsByMonth: Record<string, number> = {};
-
-    bookings
-      .filter((b) => b.status === 'completed')
-      .forEach((booking) => {
-        const date = new Date(booking.completedAt || booking.createdAt);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        earningsByMonth[monthKey] = (earningsByMonth[monthKey] || 0) + booking.guardPayout;
-      });
-
-    return Object.entries(earningsByMonth)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, earnings]) => ({ month, earnings }));
-  },
-
-  calculateSpendingByMonth(bookings: Booking[]): []{ month: string; spent: number }> {
-    const spendingByMonth: Record<string, number> = {};
-
-    bookings
-      .filter((b) => b.status === 'completed')
-      .forEach((booking) => {
-        const date = new Date(booking.completedAt || booking.createdAt);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        spendingByMonth[monthKey] = (spendingByMonth[monthKey] || 0) + booking.totalAmount;
-      });
-
-    return Object.entries(spendingByMonth)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, spent]) => ({ month, spent }));
-  },
-
-  calculateUserGrowth(users: any[]): []{ month: string; users: number }> {
-    const usersByMonth: Record<string, number> = {};
-
-    users.forEach((user) => {
-      const date = new Date(user.createdAt);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      usersByMonth[monthKey] = (usersByMonth[monthKey] || 0) + 1;
-    });
-
-    return Object.entries(usersByMonth)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, users]) => ({ month, users }));
-  },
-
-  calculateBookingTrends(bookings: Booking[]): []{ date: string; bookings: number }> {
-    const bookingsByDate: Record<string, number> = {};
-
-    bookings.forEach((booking) => {
-      const date = new Date(booking.createdAt);
-      const dateKey = date.toISOString().split('T')[0];
-      bookingsByDate[dateKey] = (bookingsByDate[dateKey] || 0) + 1;
-    });
-
-    return Object.entries(bookingsByDate)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-30)
-      .map(([date, bookings]) => ({ date, bookings }));
-  },
-
-  async getTopGuards(
-    bookings: Booking[]
-  ): Promise<[]{ guardId: string; guardName: string; bookings: number; revenue: number }>> {
-    const guardStats: Record<string, { bookings: number; revenue: number }> = {};
-
-    bookings
-      .filter((b) => b.status === 'completed' && b.guardId)
-      .forEach((booking) => {
-        const guardId = booking.guardId!;
-        if (!guardStats[guardId]) {
-          guardStats[guardId] = { bookings: 0, revenue: 0 };
-        }
-        guardStats[guardId].bookings += 1;
-        guardStats[guardId].revenue += booking.totalAmount;
-      });
-
-    return Object.entries(guardStats)
-      .sort(([, a], [, b]) => b.revenue - a.revenue)
-      .slice(0, 10)
-      .map(([guardId, stats]) => ({
-        guardId,
-        guardName: 'Guard',
-        ...stats,
-      }));
-  },
-
-  async getTopPerformingGuards(): Promise<
-    []{ guardId: string; guardName: string; rating: number; bookings: number }>
-  > {
-    try {
-      const guardsQuery = query(
-        collection(getDbInstance(), 'users'),
-        where('role', '==', 'guard'),
-        orderBy('rating', 'desc')
-      );
-
-      const snapshot = await getDocs(guardsQuery);
-      const guards: any[] = [];
-
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        guards.push({
-          guardId: doc.id,
-          guardName: `${data.firstName} ${data.lastName}`,
-          rating: data.rating || 0,
-          bookings: data.completedJobs || 0,
-        });
-      });
-
-      return guards.slice(0, 10);
-    } catch (error) {
-      console.error('[Analytics] Error getting top performing guards:', error);
-      return [];
-    }
-  },
-
-  formatCurrency(amount: number): string {
-    return `$${amount.toFixed(2)} MXN`;
-  },
-
-  formatPercentage(value: number): string {
-    return `${value.toFixed(1)}%`;
-  },
-
-  formatNumber(value: number): string {
-    return value.toLocaleString();
-  },
-};
+export const analyticsService = FirebaseAnalyticsHelper.getInstance();

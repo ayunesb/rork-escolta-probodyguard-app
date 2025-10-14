@@ -9,9 +9,29 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
 import { RorkErrorBoundary as RootErrorBoundary } from "@/components/ErrorBoundary";
 import { initSentry, SentryErrorBoundary } from "@/services/sentryService";
+import { analyticsService } from "@/services/analyticsService";
+import { appCheckService } from "@/services/appCheckService";
 
-// Initialize Sentry
-initSentry();
+// Initialize monitoring services
+const initializeMonitoring = async () => {
+  try {
+    // Initialize Sentry for error tracking
+    initSentry();
+    
+    // Initialize Firebase Analytics
+    await analyticsService.initialize();
+    
+    // Initialize App Check for security
+    await appCheckService.initialize();
+    
+    console.log('All monitoring services initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize monitoring services:', error);
+  }
+};
+
+// Initialize monitoring on app start
+initializeMonitoring();
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -151,7 +151,7 @@ export default function BookingDetailScreen() {
         {
           text: 'Reject',
           style: 'destructive',
-          onPress: async (reason) => {
+          onPress: async (reason: string | undefined) => {
             if (!reason?.trim()) {
               Alert.alert('Error', 'Please provide a reason for rejection.');
               return;
@@ -213,7 +213,7 @@ export default function BookingDetailScreen() {
         {
           text: 'Confirm Cancellation',
           style: 'destructive',
-          onPress: async (reason) => {
+          onPress: async (reason: string | undefined) => {
             if (!reason?.trim()) {
               Alert.alert('Error', 'Please provide a reason for cancellation.');
               return;

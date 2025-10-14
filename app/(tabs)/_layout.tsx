@@ -37,21 +37,21 @@ export default function TabLayout() {
           name="home"
           options={{
             title: "Book",
-            tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Shield size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="bookings"
           options={{
             title: "Bookings",
-            tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Calendar size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color }) => <User size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <User size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen name="company-home" options={{ href: null }} />
@@ -81,21 +81,21 @@ export default function TabLayout() {
           name="home"
           options={{
             title: "Jobs",
-            tabBarIcon: ({ color }) => <Briefcase size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Briefcase size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="bookings"
           options={{
             title: "History",
-            tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Calendar size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Settings size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen name="company-home" options={{ href: null }} />
@@ -125,28 +125,28 @@ export default function TabLayout() {
           name="company-home"
           options={{
             title: "Dashboard",
-            tabBarIcon: ({ color }) => <LayoutDashboard size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <LayoutDashboard size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="company-guards"
           options={{
             title: "Guards",
-            tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Shield size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="bookings"
           options={{
             title: "Bookings",
-            tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Calendar size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color }) => <User size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <User size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen name="home" options={{ href: null }} />
@@ -175,35 +175,35 @@ export default function TabLayout() {
           name="admin-home"
           options={{
             title: "Dashboard",
-            tabBarIcon: ({ color }) => <LayoutDashboard size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <LayoutDashboard size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="admin-kyc"
           options={{
             title: "KYC",
-            tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <FileText size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="admin-users"
           options={{
             title: "Users",
-            tabBarIcon: ({ color }) => <UsersIcon size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <UsersIcon size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="bookings"
           options={{
             title: "Bookings",
-            tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <Calendar size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color }) => <User size={24} color={color} />,
+            tabBarIcon: ({ color }: { color?: string }) => <User size={24} color={color ?? Colors.textSecondary} />,
           }}
         />
         <Tabs.Screen name="home" options={{ href: null }} />

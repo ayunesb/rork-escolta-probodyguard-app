@@ -150,7 +150,7 @@ export default function AdminAnalyticsScreen() {
             {summary.topRatedGuards.length === 0 ? (
               <Text style={styles.emptyText}>No ratings yet</Text>
             ) : (
-              summary.topRatedGuards.slice(0, 5).map((guard, index) => (
+              summary.topRatedGuards.slice(0, 5).map((guard: any, index: number) => (
                 <View key={guard.guardId} style={styles.guardRow}>
                   <View style={styles.guardRank}>
                     <Text style={styles.guardRankText}>#{index + 1}</Text>
@@ -175,7 +175,7 @@ export default function AdminAnalyticsScreen() {
             {summary.revenueByMonth.length === 0 ? (
               <Text style={styles.emptyText}>No revenue data yet</Text>
             ) : (
-              summary.revenueByMonth.slice(-6).map((item) => (
+              summary.revenueByMonth.slice(-6).map((item: { month: string; revenue: number }) => (
                 <View key={item.month} style={styles.revenueRow}>
                   <Text style={styles.revenueMonth}>{item.month}</Text>
                   <Text style={styles.revenueAmount}>${item.revenue.toFixed(2)}</Text>

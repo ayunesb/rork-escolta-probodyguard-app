@@ -1,4 +1,4 @@
-import createContextHook from "@nkzw/create-context-hook";
+import createContextHook from "../shims/create-context-hook.cjs";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { User, UserRole } from "@/types";
 import { auth as getAuthInstance, db as getDbInstance } from "@/lib/firebase";

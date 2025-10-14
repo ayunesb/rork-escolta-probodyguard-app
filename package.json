@@ -66,6 +66,7 @@
     "@babel/core": "^7.25.2",
     "@expo/ngrok": "^4.1.0",
     "@types/braintree": "^3.4.0",
+    "@types/jest": "^29.5.14",
     "@types/node-fetch": "^2.6.13",
     "@types/react": "~19.1.10",
     "eslint": "^9.31.0",
@@ -74,6 +75,7 @@
     "typescript": "~5.9.2"
   },
   "private": true,
+  "type": "module",
   "engines": {
     "node": "20"
   }

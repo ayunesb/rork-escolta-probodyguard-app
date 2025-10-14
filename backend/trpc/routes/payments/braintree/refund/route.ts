@@ -40,31 +40,37 @@ export const braintreeRefundProcedure = protectedProcedure
       const refundAmount = input.amount ? input.amount.toFixed(2) : undefined;
       const result = await gateway.transaction.refund(input.transactionId, refundAmount);
 
-      if (!result.success) {
-        console.error('[Braintree] Refund failed:', result.message);
-        throw new Error(result.message || 'Refund failed');
+      if (!result || !result.success) {
+        console.error('[Braintree] Refund failed:', result?.message);
+        throw new Error(result?.message || 'Refund failed');
       }
 
-      console.log('[Braintree] Refund successful:', result.transaction.id);
+      const transaction = result.transaction;
+      if (!transaction) {
+        console.error('[Braintree] Refund result missing transaction');
+        throw new Error('Refund response missing transaction');
+      }
+
+      console.log('[Braintree] Refund successful:', transaction.id);
 
       await updateDoc(doc(firestore, 'payments', paymentDoc.id), {
         status: 'refunded',
         refundedAt: serverTimestamp(),
-        refundTransactionId: result.transaction.id,
-        refundAmount: input.amount || paymentData.amount,
+        refundTransactionId: transaction.id,
+        refundAmount: input.amount || (paymentData as any).amount,
         refundReason: input.reason || 'Customer requested refund',
         updatedAt: serverTimestamp(),
       });
 
       const refundRecord = {
         originalTransactionId: input.transactionId,
-        refundTransactionId: result.transaction.id,
+        refundTransactionId: transaction.id,
         originalPaymentId: paymentDoc.id,
         userId: ctx.userId,
-        amount: input.amount || paymentData.amount,
-        currency: paymentData.currency,
+        amount: input.amount || (paymentData as any).amount,
+        currency: (paymentData as any).currency,
         reason: input.reason || 'Customer requested refund',
-        status: result.transaction.status,
+        status: (transaction as any).status,
         createdAt: serverTimestamp(),
       };
 
@@ -72,10 +78,10 @@ export const braintreeRefundProcedure = protectedProcedure
       console.log('[Braintree] Refund record created:', refundRef.id);
 
       return {
-        id: result.transaction.id,
-        status: result.transaction.status,
-        amount: input.amount || paymentData.amount,
-        currency: paymentData.currency,
+        id: transaction.id,
+        status: (transaction as any).status,
+        amount: input.amount || (paymentData as any).amount,
+        currency: (paymentData as any).currency,
         refundRecordId: refundRef.id,
       };
     } catch (error: any) {

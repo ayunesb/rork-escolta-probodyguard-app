@@ -138,7 +138,7 @@ export default function AdminRefundsScreen() {
             >
               <View style={styles.refundHeader}>
                 <View style={styles.refundInfo}>
-                  <Text style={styles.refundId}>#{refund.bookingId.slice(0, 12)}</Text>
+                  <Text style={styles.refundId}>#{(refund.bookingId || '').slice(0, 12)}</Text>
                   <Text style={styles.refundDate}>
                     {new Date(refund.createdAt).toLocaleDateString()}
                   </Text>
@@ -189,7 +189,7 @@ export default function AdminRefundsScreen() {
             
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Booking ID</Text>
-              <Text style={styles.detailValue}>#{selectedRefund.bookingId}</Text>
+              <Text style={styles.detailValue}>#{selectedRefund.bookingId || ''}</Text>
             </View>
 
             <View style={styles.detailRow}>

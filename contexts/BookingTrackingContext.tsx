@@ -1,4 +1,4 @@
-import createContextHook from '@nkzw/create-context-hook';
+import createContextHook from '../shims/create-context-hook.cjs';
 import { useState, useMemo, useCallback } from 'react';
 import type { Booking } from '@/types';
 

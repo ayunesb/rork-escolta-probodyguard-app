@@ -135,6 +135,10 @@ export interface Booking {
   clientReview?: string;
   extensionCount?: number;
   originalDuration?: number;
+  // helper fields used in some contexts
+  isScheduled?: boolean;
+  isCrossCity?: boolean;
+  estimatedArrivalTime?: string;
 }
 
 export interface ChatMessage {
@@ -229,4 +233,41 @@ export interface Document {
   uploadedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
+}
+
+export interface Refund {
+  id: string;
+  paymentId: string;
+  bookingId: string;
+  amount: number;
+  reason?: string;
+  status: 'pending' | 'completed' | 'failed';
+  createdAt: string;
+  processedAt?: string;
+  requestedBy?: string;
+  processedBy?: string;
+  completedAt?: string;
+}
+
+export interface GuardReassignment {
+  id: string;
+  bookingId: string;
+  fromGuardId?: string;
+  toGuardId?: string;
+  originalGuardId?: string;
+  newGuardId?: string;
+  reason?: string;
+  status?: string;
+  requestedAt: string;
+  completedAt?: string;
+}
+
+export interface CompanySettings {
+  id?: string;
+  companyId: string;
+  timezone?: string;
+  currency?: string;
+  handlesPayouts?: boolean;
+  defaultHourlyRate?: number;
+  payoutMethod?: string;
 }

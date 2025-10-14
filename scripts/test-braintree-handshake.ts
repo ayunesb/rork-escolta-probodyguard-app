@@ -1,11 +1,11 @@
-import fetch from "node-fetch";
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://api.yourdomain.com";
 
 async function testBraintree() {
   console.log("🔍 Testing Braintree client token request…");
 
   try {
+    // dynamic import to avoid ESM/CommonJS interop
+    const { default: fetch } = await import('node-fetch');
     // Call the same endpoint your app uses in braintreeService.ts
     const response = await fetch(`${API_URL}/api/trpc/payments.braintree.clientToken`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

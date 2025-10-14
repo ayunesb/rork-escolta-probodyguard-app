@@ -37,6 +37,7 @@ export const mockGuards: Guard[] = [
     availability: true,
     latitude: 40.7580,
     longitude: -73.9855,
+    outfitPhotos: [],
   },
   {
     id: 'guard-2',
@@ -74,6 +75,7 @@ export const mockGuards: Guard[] = [
     availability: true,
     latitude: 40.7489,
     longitude: -73.9680,
+    outfitPhotos: [],
   },
   {
     id: 'guard-3',
@@ -112,6 +114,7 @@ export const mockGuards: Guard[] = [
     availability: true,
     latitude: 40.7614,
     longitude: -73.9776,
+    outfitPhotos: [],
   },
   {
     id: 'guard-4',
@@ -149,5 +152,6 @@ export const mockGuards: Guard[] = [
     availability: true,
     latitude: 40.7549,
     longitude: -73.9840,
+    outfitPhotos: [],
   },
 ];

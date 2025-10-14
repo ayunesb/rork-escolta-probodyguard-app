@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
     "target": "esnext",
-  "module": "Node16",
+  "module": "esnext",
     "jsx": "react-native",
     "lib": [
-      "esnext"
+      "esnext",
+      "dom"
     ],
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "strict": true,
-  "moduleResolution": "Node16",
+  "skipLibCheck": true,
+  "strict": true,
+  "types": ["node", "jest"],
+  "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,

@@ -11,7 +11,7 @@ const gateway = new braintree.BraintreeGateway({
 async function sendSampleWebhook() {
   try {
     // ✅ Use string literal instead of WebhookNotification.Kind enum
-    const sample = await gateway.webhookTesting.sampleNotification(
+    const sample = await (gateway as any).webhookTesting.sampleNotification(
       "subscription_went_past_due", // ← use the literal string
       "test-subscription-id"
     );

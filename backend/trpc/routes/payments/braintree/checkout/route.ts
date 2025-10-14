@@ -42,12 +42,16 @@ export const braintreeCheckoutProcedure = protectedProcedure
 
       const result = await gateway.transaction.sale(saleRequest);
 
-      if (!result.success) {
-        console.error('[Braintree] Transaction failed:', result.message);
-        throw new Error(result.message || 'Transaction failed');
+      if (!result || !result.success) {
+        console.error('[Braintree] Transaction failed:', result?.message);
+        throw new Error(result?.message || 'Transaction failed');
       }
 
       const transaction = result.transaction;
+      if (!transaction) {
+        console.error('[Braintree] Transaction object missing in result');
+        throw new Error('Transaction response missing from gateway');
+      }
       console.log('[Braintree] Transaction successful:', transaction.id);
 
       const amountCents = Math.round(input.amount * 100);
@@ -56,14 +60,14 @@ export const braintreeCheckoutProcedure = protectedProcedure
       const companyPayoutCents = amountCents - platformFeeCents - guardPayoutCents;
 
       const paymentRecord = {
-        transactionId: transaction.id,
+  transactionId: transaction.id,
         userId: ctx.userId,
         bookingId: input.bookingId || null,
         amount: input.amount,
         amountCents,
         currency: input.currency || PAYMENTS_CURRENCY,
-        status: transaction.status,
-        paymentMethod: transaction.paymentInstrumentType,
+  status: (transaction as any).status,
+  paymentMethod: (transaction as any).paymentInstrumentType,
         platformFeeCents,
         guardPayoutCents,
         companyPayoutCents,
@@ -78,7 +82,7 @@ export const braintreeCheckoutProcedure = protectedProcedure
 
       return {
         id: transaction.id,
-        status: transaction.status,
+        status: (transaction as any).status,
         amount: input.amount,
         currency: input.currency || PAYMENTS_CURRENCY,
         paymentRecordId: paymentRef.id,

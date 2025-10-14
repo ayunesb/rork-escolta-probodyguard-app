@@ -14,7 +14,7 @@ app.use("*", cors({
   credentials: true,
 }));
 
-app.use("*", async (c, next) => {
+app.use("*", async (c: any, next: any) => {
   const url = new URL(c.req.url);
   console.log(`[Backend] ${c.req.method} ${url.pathname}`);
   try {
@@ -26,7 +26,7 @@ app.use("*", async (c, next) => {
   }
 });
 
-app.get('/api/health', (c) => {
+app.get('/api/health', (c: any) => {
   console.log('[Backend] Health check called');
   return c.json({ 
     status: 'ok', 
@@ -35,7 +35,7 @@ app.get('/api/health', (c) => {
   });
 });
 
-app.get('/api/test', (c) => {
+app.get('/api/test', (c: any) => {
   console.log('[Backend] Test endpoint called');
   return c.json({ 
     message: 'Test endpoint working',
@@ -54,7 +54,7 @@ app.use(
   })
 );
 
-app.notFound((c) => {
+app.notFound((c: any) => {
   console.log('[Backend] Route not found:', c.req.url);
   return c.json({ error: 'Not found' }, 404);
 });

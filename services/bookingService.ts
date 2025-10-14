@@ -236,6 +236,132 @@ export const bookingService = {
     }
   },
 
+  // --- Compatibility wrappers ---
+  async getPendingBookingsForGuard(guardId: string): Promise<Booking[]> {
+    const all = await this.getAllBookings();
+    return all.filter((b) => b.status === 'pending' && (!b.guardId || b.guardId === guardId));
+  },
+
+  async acceptBooking(bookingId: string, guardId: string): Promise<void> {
+    await this.updateBookingStatus(bookingId, 'accepted');
+    // assign guard
+    const bookings = await this.getAllBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx !== -1) {
+      bookings[idx].guardId = guardId;
+      await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+      const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
+      await update(bookingsRef, cleanUndefined(bookings[idx]));
+    }
+  },
+
+  async rejectBooking(bookingId: string, reason?: string): Promise<void> {
+    await this.updateBookingStatus(bookingId, 'rejected', reason);
+  },
+
+  async cancelBooking(bookingId: string, cancelledByOrReason?: string, maybeReason?: string): Promise<void> {
+    // Signature compatibility: cancelBooking(bookingId, reason?) OR cancelBooking(bookingId, 'client'|'guard', reason)
+    let cancelledBy: 'client' | 'guard' | undefined;
+    let reason: string | undefined;
+
+    if (maybeReason !== undefined) {
+      // called with (id, cancelledBy, reason)
+      cancelledBy = (cancelledByOrReason as 'client' | 'guard') || undefined;
+      reason = maybeReason;
+    } else {
+      // called with (id, reason)
+      reason = cancelledByOrReason;
+    }
+
+    try {
+      const bookings = await this.getAllBookings();
+      const idx = bookings.findIndex((b) => b.id === bookingId);
+      if (idx === -1) return;
+      const b = bookings[idx];
+      b.status = 'cancelled';
+      b.cancelledAt = new Date().toISOString();
+      if (cancelledBy) b.cancelledBy = cancelledBy as any;
+      if (reason) b.cancellationReason = reason;
+
+      await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+
+      try {
+        const bookingRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
+        await update(bookingRef, cleanUndefined(b));
+        console.log('[Booking] Synced cancellation to Firebase');
+        await notificationService.notifyBookingStatusChange(bookingId, 'cancelled', cancelledBy as any, reason);
+      } catch {
+        console.error('[Booking] Firebase sync error (non-critical)');
+      }
+    } catch (error) {
+      console.error('[Booking] Error cancelling booking:', error);
+      throw error;
+    }
+  },
+
+  async extendBooking(bookingId: string, extraHours: number): Promise<void> {
+    const bookings = await this.getAllBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return;
+    bookings[idx].extensionCount = (bookings[idx].extensionCount || 0) + 1;
+    bookings[idx].duration = (bookings[idx].duration || 0) + extraHours;
+    await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
+    await update(bookingsRef, cleanUndefined(bookings[idx]));
+  },
+
+  async rateBooking(
+    bookingId: string,
+    rating: number,
+    ratingBreakdown?: { professionalism: number; punctuality: number; communication: number; languageClarity: number } | null,
+    review?: string
+  ): Promise<void> {
+    const bookings = await this.getAllBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return;
+    bookings[idx].rating = rating;
+    if (ratingBreakdown) bookings[idx].ratingBreakdown = ratingBreakdown as any;
+    bookings[idx].review = review;
+    await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
+    await update(bookingsRef, cleanUndefined(bookings[idx]));
+  },
+
+  async reassignGuard(bookingId: string, guardId: string): Promise<void> {
+    const bookings = await this.getAllBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return;
+    bookings[idx].guardId = guardId;
+    await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
+    await update(bookingsRef, cleanUndefined(bookings[idx]));
+  },
+
+  shouldShowGuardLocation(booking: Booking): boolean {
+    return _shouldShowGuardLocationByRule(booking);
+  },
+
+  getMinutesUntilStart(booking: Booking): number {
+    const scheduledDateTime = new Date(`${booking.scheduledDate}T${booking.scheduledTime}`);
+    const now = new Date();
+    return Math.max(0, Math.floor((scheduledDateTime.getTime() - now.getTime()) / (1000 * 60)));
+  },
+
+  async verifyStartCode(bookingId: string, code: string, userId?: string): Promise<boolean> {
+    const booking = await this.getBookingById(bookingId);
+    if (!booking) return false;
+    return booking.startCode === code;
+  },
+
+  getBookingTypeLabel(bookingType: BookingType): string {
+    switch (bookingType) {
+      case 'instant': return 'Instant';
+      case 'scheduled': return 'Scheduled';
+      case 'cross-city': return 'Cross-city';
+      default: return 'Unknown';
+    }
+  },
+
   async getBookingById(id: string): Promise<Booking | null> {
     try {
       const bookings = await this.getAllBookings();

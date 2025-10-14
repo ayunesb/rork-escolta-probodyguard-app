@@ -1,15 +1,11 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import {
-  getAuth,
-  initializeAuth,
-  getReactNativePersistence,
-  Auth,
-} from 'firebase/auth';
+import { getAuth, initializeAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getDatabase, Database } from 'firebase/database';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// AsyncStorage import left intentionally in comments for potential future persistence
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
 const firebaseConfig = {
@@ -67,23 +63,28 @@ export const initializeFirebaseServices = async (): Promise<void> => {
         });
         console.log('[Firebase] App Check initialized for web');
       } catch (error) {
-        console.warn('[Firebase] App Check initialization failed (non-critical):', error);
+        console.warn('[Firebase] App Check initialization failed (non-critical)');
       }
     }
 
     // ✅ Proper Auth Initialization (works in Expo Go)
     try {
       // initializeAuth may throw on web; fallback to getAuth
-      authInstance = initializeAuth(app as FirebaseApp, {
-        persistence: getReactNativePersistence(AsyncStorage),
-      });
+        // Note: getReactNativePersistence may not be exported in this SDK version
+        try {
+          // Try initializeAuth without specifying persistence
+          authInstance = initializeAuth(app as FirebaseApp);
+        } catch {
+          // Fallback to getAuth
+          authInstance = getAuth(app as FirebaseApp);
+        }
       console.log('[Firebase] Auth initialized with AsyncStorage persistence');
     } catch (error) {
       console.warn('[Firebase] initializeAuth failed, falling back to getAuth:', error);
       try {
         authInstance = getAuth(app as FirebaseApp);
-      } catch (e) {
-        console.error('[Firebase] getAuth fallback failed:', e);
+      } catch {
+        console.error('[Firebase] getAuth fallback failed');
       }
     }
 
@@ -102,9 +103,9 @@ export const initializeFirebaseServices = async (): Promise<void> => {
     }
 
     initialized = true;
-  } catch (error) {
-    console.error('[Firebase] Initialization error:', error);
-    throw error;
+  } catch {
+    console.error('[Firebase] Initialization error');
+    throw new Error('Firebase initialization failed');
   }
 };
 

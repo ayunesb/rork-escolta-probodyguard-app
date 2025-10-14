@@ -1,4 +1,4 @@
-import createContextHook from '@nkzw/create-context-hook';
+import createContextHook from '../shims/create-context-hook.cjs';
 import { useState, useCallback, useMemo } from 'react';
 import { analyticsService, AnalyticsEvent, AnalyticsSummary } from '@/utils/analytics';
 import { useAuth } from './AuthContext';

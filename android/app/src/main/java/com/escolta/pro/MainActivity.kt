@@ -1,4 +1,4 @@
-package com.ayunesb.escoltapro
+package com.escolta.pro
 
 import android.os.Build
 import android.os.Bundle

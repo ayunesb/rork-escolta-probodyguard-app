@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Escolta Pro Bodyguard App</string>
+    <string>Escolta Pro</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -27,8 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>escoltapro</string>
-          <string>com.ayunesb.escoltapro</string>
+          <string>com.escolta.pro</string>
         </array>
       </dict>
     </array>

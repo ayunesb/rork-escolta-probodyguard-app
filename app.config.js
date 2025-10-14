@@ -15,8 +15,9 @@ export default {
     },
     assetBundlePatterns: ['**/*'],
     ios: {
-      supportsTablet: true
-    },
+  supportsTablet: true,
+  bundleIdentifier: "com.escolta.pro"
+},
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',

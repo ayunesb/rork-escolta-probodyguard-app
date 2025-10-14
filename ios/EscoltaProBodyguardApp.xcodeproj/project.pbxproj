@@ -369,8 +369,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ayunesb.escoltapro;
-				PRODUCT_NAME = EscoltaProBodyguardApp;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.escolta.pro";
+				PRODUCT_NAME = "EscoltaPro";
 				SWIFT_OBJC_BRIDGING_HEADER = "EscoltaProBodyguardApp/EscoltaProBodyguardApp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -400,8 +400,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ayunesb.escoltapro;
-				PRODUCT_NAME = EscoltaProBodyguardApp;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.escolta.pro";
+				PRODUCT_NAME = "EscoltaPro";
 				SWIFT_OBJC_BRIDGING_HEADER = "EscoltaProBodyguardApp/EscoltaProBodyguardApp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -27,7 +27,11 @@ export async function registerForPushNotificationsAsync() {
     console.log("[Notifications] Push token obtained:", token.data);
     return token.data;
   } catch (err: any) {
-    console.error("[Notifications] Failed to register:", err);
+    // Helpful guidance: Expo Go on Android no longer supports remote push tokens on SDK 53
+    if (err?.message && err.message.includes('No projectId found')) {
+      console.warn('[Notifications] getExpoPushTokenAsync failed: No projectId found. Ensure EAS build or provide EXPO_PUBLIC_EAS_PROJECT_ID');
+    }
+    console.error('[Notifications] Failed to register:', err);
     return null;
   }
 }

@@ -24,10 +24,10 @@ export const paymentService = {
     console.log('[Payment] Requesting client token for user:', userId);
     
     try {
-      const response = await fetch(`${ENV.API_URL}/payments/client-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
+      const url = new URL(`${ENV.API_URL}/payments/client-token`);
+      if (userId) url.searchParams.set('userId', userId);
+      const response = await fetch(url.toString(), {
+        method: 'GET',
       });
 
       if (!response.ok) {

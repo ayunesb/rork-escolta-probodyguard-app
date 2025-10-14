@@ -1,0 +1,91 @@
+{
+  "generatedAt": "2025-10-14T00:00:00Z",
+  "summary": "Candidate files and folders flagged for cleanup. Review before executing scripts/cleanup.sh or scripts/clean.js",
+  "items": [
+    {
+      "path": "api/handlepaymentwebhook.js",
+      "reason": "Duplicate HTTP server: webhook and payments endpoints are handled in functions/src/index.ts. Only referenced by Dockerfile; safe to remove if Docker deployment not required."
+    },
+    {
+      "path": "Dockerfile",
+      "reason": "Container startup image used to run api/handlepaymentwebhook.js; repo now uses Firebase Functions. Remove if not using custom Cloud Run or Docker deployment."
+    },
+    {
+      "path": "functions/lib",
+      "reason": "Compiled TypeScript output. These are build artifacts and should be regenerated from src. Keep src and tsconfig; delete lib and add to .gitignore if desired."
+    },
+    {
+      "path": ".expo/web/cache",
+      "reason": "Expo web cache directory (derived). Safe to delete to reclaim space."
+    },
+    {
+      "path": "ios/build",
+      "reason": "iOS derived build artifacts. Safe to delete (recreated by Xcode/EAS)."
+    },
+    {
+      "path": "android/build",
+      "reason": "Android Gradle build artifacts. Safe to delete (recreated by Gradle/EAS)."
+    },
+    {
+      "path": "node_modules/.cache",
+      "reason": "Local cache (Metro/Babel/etc.). Safe to delete; dependencies remain in node_modules."
+    },
+    {
+      "path": "api",
+      "reason": "Folder contains a standalone webhook server duplicate of Cloud Functions code. Move or remove if you rely on Firebase functions instead of Docker/Cloud Run."
+    },
+    {
+      "path": "services/stripeInit.d.ts",
+      "reason": "Stripe stub/type file (obsolete). Project migrated to Braintree — remove Stripe stub files."
+    },
+    {
+      "path": "services/stripeInit.native.ts",
+      "reason": "Stripe stub file — no active Stripe usage."
+    },
+    {
+      "path": "services/stripeInit.web.ts",
+      "reason": "Stripe stub file — no active Stripe usage."
+    },
+    {
+      "path": "services/stripeInit.web.tsx",
+      "reason": "Stripe stub file — no active Stripe usage."
+    },
+    {
+      "path": "services/stripeService.d.ts",
+      "reason": "Stripe service types stub — obsolete after Braintree migration."
+    },
+    {
+      "path": "STRIPE_FLOW_DIAGRAM.md",
+      "reason": "Legacy Stripe docs referencing removed Stripe flow. Archive or delete if Braintree-only project desired."
+    },
+    {
+      "path": "docs/archive",
+      "reason": "Legacy archive docs (many Stripe and migration guides). Consider moving to an external archive or compressing and removing from the repo to reduce footprint."
+    }
+    ,
+    {
+      "path": "VERIFICATION_CHECKLIST.md",
+      "reason": "No internal references found; legacy verification checklist — archive if not needed in repo root."
+    },
+    {
+      "path": "TROUBLESHOOTING_QUICK_GUIDE.md",
+      "reason": "No internal references found; legacy troubleshooting quick guide."
+    },
+    {
+      "path": "FIX_SUMMARY.md",
+      "reason": "No internal references found; likely a duplicate or outdated summary. Archive for safety."
+    },
+    {
+      "path": "FINAL_COMPREHENSIVE_AUDIT_REPORT.md",
+      "reason": "No internal references found; archive if not needed in main repo."
+    },
+    {
+      "path": "CLEANUP_COMPLETE.md",
+      "reason": "No internal references found; housekeeping doc. Archive to reduce clutter."
+    },
+    {
+      "path": "BRAINTREE_ONLY_VERIFICATION.md",
+      "reason": "No internal references found; Braintree-specific verification doc — archive if Braintree is confirmed."
+    }
+  ]
+}

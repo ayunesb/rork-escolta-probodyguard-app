@@ -1,29 +1,48 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { 
-  getAuth, 
-  initializeAuth, 
-  getReactNativePersistence, 
-  Auth 
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+  Auth,
 } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getDatabase, Database } from 'firebase/database';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes",
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "escolta-pro-fe90e.firebaseapp.com",
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "escolta-pro-fe90e",
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "escolta-pro-fe90e.firebasestorage.app",
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "919834684647",
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "1:919834684647:web:60dad6457ad0f92b068642"
+  apiKey:
+    process.env.EXPO_PUBLIC_FIREBASE_API_KEY ||
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_API_KEY ||
+    'AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes',
+  authDomain:
+    process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ||
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ||
+    'escolta-pro-fe90e.firebaseapp.com',
+  projectId:
+    process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ||
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_PROJECT_ID ||
+    'escolta-pro-fe90e',
+  storageBucket:
+    process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    'escolta-pro-fe90e.firebasestorage.app',
+  messagingSenderId:
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
+    '919834684647',
+  appId:
+    process.env.EXPO_PUBLIC_FIREBASE_APP_ID ||
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_APP_ID ||
+    '1:919834684647:web:60dad6457ad0f92b068642',
 };
 
-let app: FirebaseApp;
-let authInstance: Auth;
-let dbInstance: Firestore;
-let realtimeDbInstance: Database;
+let app: FirebaseApp | undefined;
+let authInstance: Auth | undefined;
+let dbInstance: Firestore | undefined;
+let realtimeDbInstance: Database | undefined;
 let initialized = false;
 
 export const initializeFirebaseServices = async (): Promise<void> => {
@@ -33,11 +52,11 @@ export const initializeFirebaseServices = async (): Promise<void> => {
   }
 
   try {
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     console.log('[Firebase] App initialized');
 
     // Enable App Check for web
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  if (Platform.OS === 'web' && typeof globalThis !== 'undefined' && typeof (globalThis as any).window !== 'undefined') {
       try {
         initializeAppCheck(app, {
           provider: new ReCaptchaV3Provider(
@@ -54,20 +73,33 @@ export const initializeFirebaseServices = async (): Promise<void> => {
 
     // ✅ Proper Auth Initialization (works in Expo Go)
     try {
-      authInstance = initializeAuth(app, {
+      // initializeAuth may throw on web; fallback to getAuth
+      authInstance = initializeAuth(app as FirebaseApp, {
         persistence: getReactNativePersistence(AsyncStorage),
       });
       console.log('[Firebase] Auth initialized with AsyncStorage persistence');
     } catch (error) {
-      console.warn('[Firebase] Fallback to getAuth (web):', error);
-      authInstance = getAuth(app);
+      console.warn('[Firebase] initializeAuth failed, falling back to getAuth:', error);
+      try {
+        authInstance = getAuth(app as FirebaseApp);
+      } catch (e) {
+        console.error('[Firebase] getAuth fallback failed:', e);
+      }
     }
 
-    dbInstance = getFirestore(app);
-    console.log('[Firebase] Firestore initialized');
+    try {
+      dbInstance = getFirestore(app as FirebaseApp);
+      console.log('[Firebase] Firestore initialized');
+    } catch (_e) {
+      console.error('[Firebase] Firestore init error:', _e);
+    }
 
-    realtimeDbInstance = getDatabase(app);
-    console.log('[Firebase] Realtime Database initialized');
+    try {
+      realtimeDbInstance = getDatabase(app as FirebaseApp);
+      console.log('[Firebase] Realtime Database initialized');
+    } catch (_e) {
+      console.error('[Firebase] Realtime DB init error:', _e);
+    }
 
     initialized = true;
   } catch (error) {
@@ -78,24 +110,36 @@ export const initializeFirebaseServices = async (): Promise<void> => {
 
 // Export singletons
 export const auth = (): Auth => {
-  if (!authInstance) {
-    throw new Error('[Firebase] Auth not initialized. Call initializeFirebaseServices() first.');
+  if (authInstance) return authInstance;
+  try {
+    const fallback = getAuth(getApp());
+    console.warn('[Firebase] auth was not initialized via initializeFirebaseServices(); returning getAuth() fallback');
+    return fallback;
+  } catch (e) {
+    throw new Error('[Firebase] Auth not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
-  return authInstance;
 };
 
 export const db = (): Firestore => {
-  if (!dbInstance) {
-    throw new Error('[Firebase] Firestore not initialized. Call initializeFirebaseServices() first.');
+  if (dbInstance) return dbInstance;
+  try {
+    const fallback = getFirestore(getApp());
+    console.warn('[Firebase] Firestore was not initialized via initializeFirebaseServices(); returning getFirestore() fallback');
+    return fallback;
+  } catch (e) {
+    throw new Error('[Firebase] Firestore not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
-  return dbInstance;
 };
 
 export const realtimeDb = (): Database => {
-  if (!realtimeDbInstance) {
-    throw new Error('[Firebase] Realtime Database not initialized. Call initializeFirebaseServices() first.');
+  if (realtimeDbInstance) return realtimeDbInstance;
+  try {
+    const fallback = getDatabase(getApp());
+    console.warn('[Firebase] Realtime DB was not initialized via initializeFirebaseServices(); returning getDatabase() fallback');
+    return fallback;
+  } catch (e) {
+    throw new Error('[Firebase] Realtime Database not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
-  return realtimeDbInstance;
 };
 
 // Auto initialize when imported

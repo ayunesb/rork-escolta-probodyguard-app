@@ -4,6 +4,7 @@ import { ref, set, onValue, off, update } from 'firebase/database';
 import { realtimeDb as getRealtimeDb } from '@/lib/firebase';
 import { notificationService } from './notificationService';
 import { rateLimitService } from './rateLimitService';
+import { AppState, AppStateStatus } from 'react-native';
 
 const BOOKINGS_KEY = '@escolta_bookings';
 
@@ -22,6 +23,7 @@ const pollingConfig: PollingConfig = {
 };
 
 let pollingTimer: ReturnType<typeof setTimeout> | null = null;
+let appStateSubscription: { remove: () => void } | null = null;
 
 function generateStartCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -48,7 +50,7 @@ function determineBookingType(
   return 'scheduled';
 }
 
-function shouldShowGuardLocationByRule(booking: Booking): boolean {
+export function _shouldShowGuardLocationByRule(booking: Booking): boolean {
   if (booking.status === 'active') return true;
 
   if (booking.status !== 'accepted' && booking.status !== 'en_route') return false;
@@ -116,12 +118,29 @@ export const bookingService = {
       }
     };
 
+    // Listen to AppState to switch polling interval dynamically
+    if (!appStateSubscription) {
+      appStateSubscription = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+        const isActive = nextState === 'active';
+        this.setPollingActive(isActive);
+      }) as unknown as { remove: () => void };
+    }
+
+    // Start initial poll
     poll();
 
     return () => {
       if (pollingTimer) {
         clearTimeout(pollingTimer);
         pollingTimer = null;
+      }
+      if (appStateSubscription) {
+        try {
+          appStateSubscription.remove();
+        } catch (e) {
+          // ignore
+        }
+        appStateSubscription = null;
       }
       console.log('[Booking] Stopped polling');
     };
@@ -251,7 +270,7 @@ export const bookingService = {
         if (status === 'accepted') b.acceptedAt = new Date().toISOString();
         if (status === 'rejected') {
           b.rejectedAt = new Date().toISOString();
-          b.rejectionReason = rejectionReason ?? null;
+          b.rejectionReason = rejectionReason ?? undefined;
         }
         if (status === 'active') b.startedAt = new Date().toISOString();
         if (status === 'completed') b.completedAt = new Date().toISOString();
@@ -263,8 +282,8 @@ export const bookingService = {
           await update(bookingRef, cleanUndefined(b));
           console.log('[Booking] Synced status update to Firebase');
           await notificationService.notifyBookingStatusChange(id, status, undefined, rejectionReason);
-        } catch (firebaseError) {
-          console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+        } catch {
+          console.error('[Booking] Firebase sync error (non-critical)');
         }
 
         console.log('[Booking] Updated booking status:', id, status);

@@ -125,8 +125,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
               const token = await registerForPushNotificationsAsync();
               if (token && firebaseUser?.uid) {
                 console.log("[Auth] Expo Push Token:", token);
-                // Optional: store in Firestore or backend
-                // await pushNotificationService.registerDevice(firebaseUser.uid, token);
+                // Store the Expo push token in device registry for push notifications
+                try {
+                  const { pushNotificationService } = await import('@/services/pushNotificationService');
+                  if (token && firebaseUser?.uid) {
+                    await pushNotificationService.registerDevice(firebaseUser.uid, 'client');
+                  }
+                } catch (regErr) {
+                  console.warn('[Auth] Failed to register device for push notifications:', regErr);
+                }
               }
             } else {
               console.error(

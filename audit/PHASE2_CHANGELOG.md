@@ -143,6 +143,29 @@
 
 ---
 
+## Environment & Deployment Guidance
+
+Set the following environment variables in your Cloud Functions or Cloud Run service before deploying:
+
+- BRAINTREE_ENV=sandbox
+- BRAINTREE_MERCHANT_ID=yourSandboxMerchantId
+- BRAINTREE_PUBLIC_KEY=yourSandboxPublicKey
+- BRAINTREE_PRIVATE_KEY=yourSandboxPrivateKey
+- NODE_ENV=production
+
+For Firebase Functions set them via `firebase functions:config:set` or using the Cloud Console (recommended for Cloud Run). Redeploy after setting variables.
+
+## Phase 3 Validation Plan (steps)
+
+1. Ensure backend env vars present in Cloud Console.
+2. Deploy functions: `firebase deploy --only functions`.
+3. Verify endpoint: `curl -X GET "$FUNCTIONS_URL/payments/client-token"` (with optional userId).
+4. Run mobile app pointing `EXPO_PUBLIC_API_URL` to your backend and test payment flow.
+5. Confirm webhooks: send test webhook payload via Braintree sandbox to `/handlePaymentWebhook`.
+6. Run security checks: App Check, Firestore rules test via emulator or manual checks.
+
+---
+
 ## 🎯 PRODUCTION READINESS
 
 **Current Status:** 85/100

@@ -18,14 +18,15 @@ const gateway = new braintree.BraintreeGateway({
   privateKey: process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed663393d6e4e2976',
 });
 
-app.post('/client-token', async (req: Request, res: Response) => {
+// === Payments routes (mobile expects /payments/*) ===
+app.get('/payments/client-token', async (req: Request, res: Response) => {
   try {
-    const { userId } = req.body;
-    
+    const userId = (req.query.userId as string) || req.body?.userId;
+
     const result = await gateway.clientToken.generate({
       customerId: userId,
     });
-    
+
     res.json({ clientToken: result.clientToken });
   } catch (error) {
     console.error('[ClientToken] Error:', error);
@@ -33,7 +34,7 @@ app.post('/client-token', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/process', async (req: Request, res: Response) => {
+app.post('/payments/process', async (req: Request, res: Response) => {
   try {
     const { nonce, amount, saveCard } = req.body;
     
@@ -68,7 +69,7 @@ app.post('/process', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/refund', async (req: Request, res: Response) => {
+app.post('/payments/refund', async (req: Request, res: Response) => {
   try {
     const { transactionId, amount } = req.body;
     
@@ -94,7 +95,7 @@ app.post('/refund', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/methods/:userId', async (req: Request, res: Response) => {
+app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     
@@ -115,7 +116,7 @@ app.get('/methods/:userId', async (req: Request, res: Response) => {
   }
 });
 
-app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
+app.delete('/payments/methods/:userId/:token', async (req: Request, res: Response) => {
   try {
     const { token } = req.params;
     
@@ -130,7 +131,8 @@ app.delete('/methods/:userId/:token', async (req: Request, res: Response) => {
 
 export const api = onRequest(app);
 
-export const handlePaymentWebhook = onRequest(async (req: Request, res: Response) => {
+// === Webhook route moved into Express app to avoid separate Cloud Run service ===
+app.post('/webhooks/braintree', async (req: Request, res: Response) => {
   try {
     console.log('[Webhook] Received request');
     console.log('[Webhook] Headers:', req.headers);

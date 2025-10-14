@@ -58,9 +58,11 @@ service cloud.firestore {
         (hasRole('company') && get(/databases/$(database)/documents/users/$(resource.data.guardId)).data.companyId == request.auth.uid)
       );
       
+      // Allow creation if authenticated client or company and required fields exist
       allow create: if isAuthenticated() && (
         hasRole('client') || hasRole('company')
-      ) && request.resource.data.clientId == request.auth.uid;
+      ) && request.resource.data.clientId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['clientId', 'status', 'createdAt']);
       
       allow update: if isAuthenticated() && (
         resource.data.clientId == request.auth.uid ||

@@ -108,6 +108,10 @@ export default function StartCodeInput({
                 selectTextOnFocus
                 editable={!loading}
                 testID={`start-code-input-${index}`}
+                accessible={true}
+                accessibilityLabel={`Start code digit ${index + 1}`}
+                accessibilityHint={`Enter digit ${index + 1} of 6`}
+                accessibilityRole="keyboardkey"
               />
             ))}
           </View>
@@ -124,6 +128,10 @@ export default function StartCodeInput({
               style={styles.cancelButton}
               onPress={handleCancel}
               disabled={loading}
+                accessible={true}
+                accessibilityLabel="Cancel start code entry"
+                accessibilityHint="Closes the start code dialog"
+                accessibilityRole="button"
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -134,6 +142,10 @@ export default function StartCodeInput({
               ]}
               onPress={() => handleSubmit(code.join(''))}
               disabled={loading || code.some(d => !d)}
+                accessible={true}
+                accessibilityLabel="Verify start code"
+                accessibilityHint="Submits the 6-digit start code to verify"
+                accessibilityRole="button"
             >
               <Text style={styles.submitButtonText}>Verify</Text>
             </TouchableOpacity>

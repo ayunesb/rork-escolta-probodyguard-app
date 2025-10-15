@@ -45,10 +45,13 @@ export default function PaymentSheet({
   const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
+    console.log('[PaymentSheet] Visibility changed:', visible);
     if (visible) {
+      console.log('[PaymentSheet] Loading payment sheet for user:', userId, 'booking:', bookingId);
       loadSavedCards();
     }
-  }, [visible]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, userId, bookingId]);
 
   const loadSavedCards = async () => {
     try {

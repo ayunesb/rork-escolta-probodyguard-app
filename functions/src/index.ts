@@ -27,8 +27,8 @@ const gateway = new braintree.BraintreeGateway({
 // === Payments routes (mobile expects /payments/*) ===
 app.get('/payments/client-token', async (req: Request, res: Response) => {
   try {
-    // Ensure Braintree credentials are present
-    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
+    // Ensure Braintree credentials are present (check fallback values too)
+    if (!privateKey || !merchantId) {
       throw new Error('Braintree credentials missing');
     }
 
@@ -58,10 +58,18 @@ app.get('/payments/client-token', async (req: Request, res: Response) => {
       return;
     }
 
-    const userId = (req.query.userId as string) || req.body?.userId;
-
-    const result = await gateway.clientToken.generate({
-      customerId: userId,
+    // Use promise wrapper for Braintree callback
+    const result = await new Promise((resolve, reject) => {
+      // Don't pass customerId unless we have a valid Braintree customer
+      (gateway.clientToken.generate as any)({
+        // customerId: userId, // Remove this - we don't need to specify a customer for token generation
+      }, (err: any, result: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
     });
 
     const clientToken = (result as any)?.clientToken;
@@ -95,8 +103,8 @@ app.post('/payments/process', async (req: Request, res: Response) => {
       return;
     }
 
-    // Ensure Braintree credentials are present
-    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
+    // Ensure Braintree credentials are present (check fallback values too)
+    if (!privateKey || !merchantId) {
       throw new Error('Braintree credentials missing');
     }
     

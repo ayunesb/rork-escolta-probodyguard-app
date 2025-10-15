@@ -105,16 +105,23 @@ export default function CreateBookingScreen() {
   };
 
   const handleBooking = async () => {
+    console.log('[Booking] Proceed to Payment button pressed!');
+    console.log('[Booking] Current user:', user?.id);
+    console.log('[Booking] Pickup address:', pickupAddress);
+    
     if (!pickupAddress) {
+      console.log('[Booking] Missing pickup address');
       Alert.alert('Missing Information', 'Please enter a pickup address');
       return;
     }
 
     if (!user?.id) {
+      console.log('[Booking] User not logged in');
       Alert.alert('Error', 'You must be logged in to book');
       return;
     }
 
+    console.log('[Booking] Starting booking creation...');
     try {
       const booking = await bookingService.createBooking({
         clientId: user.id,
@@ -138,11 +145,13 @@ export default function CreateBookingScreen() {
         guardPayout: breakdown.guardPayout,
       });
 
+      console.log('[Booking] Booking creation successful:', booking.id);
       setTempBookingId(booking.id);
 
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
+      console.log('[Booking] Showing payment sheet...');
       setShowPayment(true);
     } catch (error) {
       console.error('[Booking] Error creating booking:', error);

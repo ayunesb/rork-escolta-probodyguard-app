@@ -46,8 +46,7 @@
       "rules": "storage.rules"
     },
     "ui": {
-      "enabled": true,
-      "port": 4000
+      "enabled": false
     }
   }
 }

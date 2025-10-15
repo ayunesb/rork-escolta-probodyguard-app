@@ -10,14 +10,14 @@
     "test": "jest --runInBand"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
     "braintree": "^3.33.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "firebase-admin": "^12.7.0",
-    "firebase-functions": "^4.5.0"
+    "firebase-functions": "^6.5.0"
   },
   "devDependencies": {
     "@types/braintree": "^3.4.0",

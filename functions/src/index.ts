@@ -69,6 +69,18 @@ app.post('/payments/process', async (req: Request, res: Response) => {
   try {
     const { nonce, amount, saveCard } = req.body;
     
+    // Early return for test mode to avoid Braintree API calls
+    if (isTestMode()) {
+      console.warn('[ProcessPayment] Test mode active, returning mock payment result');
+      res.json({
+        success: true,
+        transactionId: `mock-transaction-${Date.now()}`,
+        status: 'settled',
+        amount: amount,
+      });
+      return;
+    }
+    
     const saleRequest: braintree.TransactionRequest = {
       amount: amount.toString(),
       paymentMethodNonce: nonce,
@@ -145,6 +157,13 @@ export async function handleCreatePaymentMethod(req: Request, res: Response) {
       return res.status(400).json({ success: false, error: 'payment_method_nonce or token is required' });
     }
 
+    // Early return for test mode to avoid Braintree API calls
+    if (isTestMode()) {
+      console.warn('[PaymentMethod] Test mode active, returning mock payment method token');
+      res.json({ success: true, token: `mock-pm-${Date.now()}` });
+      return;
+    }
+
     const createParams: any = { customerId: userId };
     if (payment_method_nonce) createParams.paymentMethodNonce = payment_method_nonce;
     if (token) createParams.token = token;
@@ -190,6 +209,19 @@ app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
 
+    // Early return for test mode to avoid Braintree API calls
+    if (isTestMode()) {
+      console.warn('[ListPaymentMethods] Test mode active, returning mock payment methods');
+      res.json({ 
+        success: true, 
+        paymentMethods: [
+          { token: 'mock-pm-1', type: 'CreditCard', default: true, cardType: 'Visa', maskedNumber: '****1111' },
+          { token: 'mock-pm-2', type: 'CreditCard', default: false, cardType: 'MasterCard', maskedNumber: '****4444' }
+        ]
+      });
+      return;
+    }
+
     // Use gateway.customer.find to retrieve customer + payment methods
     const customerResult = await (gateway.customer as any).find(userId);
     if (!customerResult) {
@@ -217,6 +249,13 @@ app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
 app.delete('/payments/methods/:userId/:token', async (req: Request, res: Response) => {
   try {
     const { token } = req.params;
+    
+    // Early return for test mode to avoid Braintree API calls
+    if (isTestMode()) {
+      console.warn('[DeleteMethod] Test mode active, returning mock success');
+      res.json({ success: true });
+      return;
+    }
     
     await gateway.paymentMethod.delete(token);
     

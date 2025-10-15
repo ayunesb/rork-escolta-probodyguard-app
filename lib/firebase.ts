@@ -61,8 +61,8 @@ export const initializeFirebaseServices = async (): Promise<void> => {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     console.log('[Firebase] App initialized');
 
-    // Enable App Check for web
-  if (Platform.OS === 'web' && typeof globalThis !== 'undefined' && typeof (globalThis as any).window !== 'undefined') {
+    // Enable App Check for web (only in production)
+  if (!__DEV__ && Platform.OS === 'web' && typeof globalThis !== 'undefined' && typeof (globalThis as any).window !== 'undefined') {
       try {
         initializeAppCheck(app, {
           provider: new ReCaptchaV3Provider(
@@ -75,6 +75,8 @@ export const initializeFirebaseServices = async (): Promise<void> => {
       } catch {
         console.warn('[Firebase] App Check initialization failed (non-critical)');
       }
+    } else if (__DEV__) {
+      console.log('[AppCheck] Skipped in web development mode');
     }
 
     // ✅ Proper Auth Initialization (works in Expo Go)

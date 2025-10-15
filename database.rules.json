@@ -10,7 +10,7 @@
     "bookings": {
       "$bookingId": {
         ".read": "auth != null && (data.child('clientId').val() === auth.uid || data.child('guardId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && root.child('users').child(data.child('guardId').val()).child('companyId').val() === auth.uid))",
-        ".write": "auth != null && (data.child('clientId').val() === auth.uid || data.child('guardId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && root.child('users').child(data.child('guardId').val()).child('companyId').val() === auth.uid))",
+        ".write": "auth != null && (newData.child('clientId').val() === auth.uid || newData.child('guardId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && root.child('users').child(newData.child('guardId').val()).child('companyId').val() === auth.uid))",
         ".indexOn": ["clientId", "guardId", "status", "scheduledDateTime"]
       }
     },

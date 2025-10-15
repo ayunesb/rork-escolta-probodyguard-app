@@ -12,24 +12,24 @@ export interface RateLimitConfig {
 
 export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   login: {
-    maxAttempts: 5,
+    maxAttempts: __DEV__ ? 50 : 5,
     windowMs: 15 * 60 * 1000,
-    blockDurationMs: 30 * 60 * 1000,
+    blockDurationMs: __DEV__ ? 5 * 60 * 1000 : 30 * 60 * 1000,
   },
   startCode: {
-    maxAttempts: 3,
+    maxAttempts: __DEV__ ? 20 : 3,
     windowMs: 5 * 60 * 1000,
-    blockDurationMs: 15 * 60 * 1000,
+    blockDurationMs: __DEV__ ? 60 * 1000 : 15 * 60 * 1000,
   },
   chat: {
-    maxAttempts: 30,
+    maxAttempts: __DEV__ ? 100 : 30,
     windowMs: 60 * 1000,
     blockDurationMs: 5 * 60 * 1000,
   },
   booking: {
-    maxAttempts: 10,
-    windowMs: 60 * 60 * 1000,
-    blockDurationMs: 60 * 60 * 1000,
+    maxAttempts: __DEV__ ? 100 : 10,
+    windowMs: __DEV__ ? 60 * 1000 : 60 * 60 * 1000,
+    blockDurationMs: __DEV__ ? 60 * 1000 : 60 * 60 * 1000,
   },
 };
 

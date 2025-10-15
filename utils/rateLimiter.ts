@@ -13,10 +13,10 @@ interface RateLimitConfig {
 }
 
 const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
-  booking_create: { maxRequests: 5, windowMs: 60000 },
-  message_send: { maxRequests: 30, windowMs: 60000 },
-  payment_attempt: { maxRequests: 3, windowMs: 300000 },
-  guard_search: { maxRequests: 20, windowMs: 60000 },
+  booking_create: { maxRequests: __DEV__ ? 50 : 5, windowMs: __DEV__ ? 60000 : 60000 },
+  message_send: { maxRequests: __DEV__ ? 100 : 30, windowMs: 60000 },
+  payment_attempt: { maxRequests: __DEV__ ? 20 : 3, windowMs: __DEV__ ? 60000 : 300000 },
+  guard_search: { maxRequests: __DEV__ ? 100 : 20, windowMs: 60000 },
 };
 
 class RateLimiter {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { braintreeService } from '@/services/braintreeService';
+import { directBraintreeService } from '@/services/directBraintreeService';
 
 interface BraintreePaymentFormProps {
   amount: number;
@@ -89,12 +89,12 @@ export function BraintreePaymentForm({
     setLoading(true);
 
     try {
-      await braintreeService.getClientToken(customerId);
+      await directBraintreeService.getClientToken(customerId);
       console.log('[BraintreePaymentForm] Client token received');
 
       const mockNonce = `fake-valid-nonce-${Date.now()}`;
 
-      const result = await braintreeService.processPayment({
+      const result = await directBraintreeService.processPayment({
         nonce: mockNonce,
         amount,
         currency,

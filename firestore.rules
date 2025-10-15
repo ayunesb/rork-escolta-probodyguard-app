@@ -62,7 +62,10 @@ service cloud.firestore {
       allow create: if isAuthenticated() && (
         hasRole('client') || hasRole('company')
       ) && request.resource.data.clientId == request.auth.uid &&
-        request.resource.data.keys().hasAll(['clientId', 'status', 'createdAt']);
+        request.resource.data.keys().hasAll(['clientId', 'guardId', 'status', 'createdAt']) &&
+        request.resource.data.status is string &&
+        request.resource.data.clientId is string &&
+        request.resource.data.guardId is string;
       
       allow update: if isAuthenticated() && (
         resource.data.clientId == request.auth.uid ||

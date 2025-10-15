@@ -8,6 +8,9 @@ import { Platform } from 'react-native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
+// Import React Native Firebase app for native features
+import '@react-native-firebase/app';
+
 const firebaseConfig = {
   apiKey:
     process.env.EXPO_PUBLIC_FIREBASE_API_KEY ||
@@ -62,7 +65,7 @@ export const initializeFirebaseServices = async (): Promise<void> => {
           isTokenAutoRefreshEnabled: true
         });
         console.log('[Firebase] App Check initialized for web');
-      } catch (error) {
+      } catch {
         console.warn('[Firebase] App Check initialization failed (non-critical)');
       }
     }
@@ -116,7 +119,7 @@ export const auth = (): Auth => {
     const fallback = getAuth(getApp());
     console.warn('[Firebase] auth was not initialized via initializeFirebaseServices(); returning getAuth() fallback');
     return fallback;
-  } catch (e) {
+  } catch {
     throw new Error('[Firebase] Auth not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
 };
@@ -127,7 +130,7 @@ export const db = (): Firestore => {
     const fallback = getFirestore(getApp());
     console.warn('[Firebase] Firestore was not initialized via initializeFirebaseServices(); returning getFirestore() fallback');
     return fallback;
-  } catch (e) {
+  } catch {
     throw new Error('[Firebase] Firestore not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
 };
@@ -138,7 +141,7 @@ export const realtimeDb = (): Database => {
     const fallback = getDatabase(getApp());
     console.warn('[Firebase] Realtime DB was not initialized via initializeFirebaseServices(); returning getDatabase() fallback');
     return fallback;
-  } catch (e) {
+  } catch {
     throw new Error('[Firebase] Realtime Database not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
 };

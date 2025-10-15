@@ -20,7 +20,34 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "*"
+        "./*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/services/*": [
+        "./services/*"
+      ],
+      "@/contexts/*": [
+        "./contexts/*"
+      ],
+      "@/hooks/*": [
+        "./hooks/*"
+      ],
+      "@/types/*": [
+        "./types/*"
+      ],
+      "@/utils/*": [
+        "./utils/*"
+      ],
+      "@/constants/*": [
+        "./constants/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/config/*": [
+        "./config/*"
       ]
     }
   },

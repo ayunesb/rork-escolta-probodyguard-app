@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, initializeAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getDatabase, Database } from 'firebase/database';
+import { getAuth, initializeAuth, Auth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getDatabase, Database, connectDatabaseEmulator } from 'firebase/database';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { Platform } from 'react-native';
 // AsyncStorage import left intentionally in comments for potential future persistence
@@ -110,6 +110,30 @@ export const initializeFirebaseServices = async (): Promise<void> => {
       console.log('[Firebase] Realtime Database initialized');
     } catch (_e) {
       console.error('[Firebase] Realtime DB init error:', _e);
+    }
+
+    // Connect to emulators in development
+    if (__DEV__ && authInstance && dbInstance && realtimeDbInstance) {
+      try {
+        connectAuthEmulator(authInstance, 'http://127.0.0.1:9099');
+        console.log('[Firebase] Connected to Auth emulator');
+      } catch {
+        console.log('[Firebase] Auth emulator already connected or unavailable');
+      }
+
+      try {
+        connectFirestoreEmulator(dbInstance, '127.0.0.1', 8080);
+        console.log('[Firebase] Connected to Firestore emulator');
+      } catch {
+        console.log('[Firebase] Firestore emulator already connected or unavailable');
+      }
+
+      try {
+        connectDatabaseEmulator(realtimeDbInstance, '127.0.0.1', 9000);
+        console.log('[Firebase] Connected to Realtime Database emulator');
+      } catch {
+        console.log('[Firebase] Database emulator already connected or unavailable');
+      }
     }
 
     initialized = true;

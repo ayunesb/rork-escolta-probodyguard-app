@@ -11,11 +11,17 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
+const merchantId = process.env.BRAINTREE_MERCHANT_ID || '8jbpcm9yj7df7w4h';
+const publicKey = process.env.BRAINTREE_PUBLIC_KEY || 'sandbox_p2dkbpfh_8jbpcm9yj7df7w4h';
+const privateKey = process.env.BRAINTREE_PRIVATE_KEY || '93d6e4e2976c96f93d2d472395ed6633';
+
+console.log('[Braintree] Using credentials:', { merchantId, publicKey, privateKey: privateKey.substring(0, 8) + '...' });
+
 const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MERCHANT_ID || '8jbcpm9yj7df7w4h',
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY || 'fnjq66rkd6vbkmxt',
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed663393d6e4e2976',
+  merchantId,
+  publicKey,
+  privateKey,
 });
 
 // Helper to decide whether to use local test-mode fallbacks. Prefer explicit
@@ -28,6 +34,13 @@ function isTestMode() {
 // === Payments routes (mobile expects /payments/*) ===
 app.get('/payments/client-token', async (req: Request, res: Response) => {
   try {
+    // Early return for test mode to avoid Braintree API calls
+    if (isTestMode()) {
+      console.warn('[ClientToken] Test mode active, returning mock client token');
+      res.json({ clientToken: 'mock-client-token-for-testing' });
+      return;
+    }
+
     const userId = (req.query.userId as string) || req.body?.userId;
 
     const result = await gateway.clientToken.generate({

@@ -1,5 +1,12 @@
-import appCheck from '@react-native-firebase/app-check';
 import { Platform } from 'react-native';
+
+// Conditional import to handle Expo Go compatibility
+let appCheck: any = null;
+try {
+  appCheck = require('@react-native-firebase/app-check').default;
+} catch (error) {
+  console.warn('[AppCheck] React Native Firebase App Check not available in Expo Go');
+}
 
 // App Check Service for advanced security
 class AppCheckService {
@@ -17,6 +24,13 @@ class AppCheckService {
     if (this.isInitialized) return;
 
     try {
+      // Skip initialization if App Check is not available (Expo Go)
+      if (!appCheck) {
+        console.warn('[AppCheck] Skipped - not available in Expo Go environment');
+        this.isInitialized = true;
+        return;
+      }
+
       // Initialize App Check with appropriate provider
       const rnfbProvider = appCheck().newReactNativeFirebaseAppCheckProvider();
       rnfbProvider.configure({

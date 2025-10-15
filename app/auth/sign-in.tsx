@@ -19,10 +19,10 @@ import Colors from '@/constants/colors';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, user, isLoading: authLoading } = useAuth();
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('client@demo.com'); // Pre-fill demo credentials
+  const [password, setPassword] = useState('demo123'); // Pre-fill demo credentials
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
@@ -31,6 +31,27 @@ export default function SignInScreen() {
   useEffect(() => {
     checkBiometric();
   }, []);
+
+  // Handle navigation when user logs in successfully
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('[SignIn] User logged in, navigating based on role:', user.role);
+      switch (user.role) {
+        case 'client':
+        case 'guard':
+          router.replace('/(tabs)/home');
+          break;
+        case 'company':
+          router.replace('/(tabs)/company-home');
+          break;
+        case 'admin':
+          router.replace('/(tabs)/admin-home');
+          break;
+        default:
+          router.replace('/(tabs)/home');
+      }
+    }
+  }, [user, authLoading, router]);
 
   const checkBiometric = async () => {
     const available = await biometricService.isAvailable();
@@ -55,7 +76,11 @@ export default function SignInScreen() {
     try {
       const result = await signIn(trimmedEmail, trimmedPassword);
 
-      if (!result.success) {
+      if (result.success) {
+        console.log('[SignIn] Login successful, navigating...');
+        // Don't set loading to false here, let the auth state change handle navigation
+        // The index.tsx will handle the navigation based on user role
+      } else {
         setError(result.error || 'Failed to sign in');
         setIsLoading(false);
       }

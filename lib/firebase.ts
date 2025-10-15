@@ -8,8 +8,15 @@ import { Platform } from 'react-native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
-// Import React Native Firebase app for native features
-import '@react-native-firebase/app';
+// Conditionally import React Native Firebase only in production builds
+if (Platform.OS !== 'web' && !__DEV__) {
+  try {
+    // Dynamic import for React Native Firebase in production builds only
+    import('@react-native-firebase/app');
+  } catch {
+    console.log('React Native Firebase not available in development mode');
+  }
+}
 
 const firebaseConfig = {
   apiKey:

@@ -8,7 +8,14 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function Index() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  
+  // Add debugging for the auth context
+  console.log('[Index] Attempting to get auth context...');
+  const authContext = useAuth();
+  console.log('[Index] Auth context:', authContext);
+  
+  const user = authContext?.user;
+  const isLoading = authContext?.isLoading ?? true;
 
   useEffect(() => {
     if (isLoading) return;

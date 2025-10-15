@@ -1,5 +1,17 @@
-import analytics from '@react-native-firebase/analytics';
 import { Platform } from 'react-native';
+
+// Conditionally import React Native Firebase Analytics
+let analytics: any = null;
+if (Platform.OS !== 'web' && !__DEV__) {
+  try {
+    // Dynamic import for React Native Firebase in production builds only
+    import('@react-native-firebase/analytics').then((module) => {
+      analytics = module.default;
+    });
+  } catch {
+    console.log('React Native Firebase Analytics not available in development mode');
+  }
+}
 
 export enum AnalyticsEvent {
   USER_SIGNUP = 'user_signup',
@@ -29,6 +41,12 @@ class FirebaseAnalyticsHelper {
 
   async initialize(): Promise<void> {
     try {
+      if (!analytics) {
+        console.log('Analytics not available in development mode');
+        this.initialized = true;
+        return;
+      }
+      
       await analytics().setAnalyticsCollectionEnabled(true);
       await analytics().setDefaultEventParameters({
         platform: Platform.OS,
@@ -50,6 +68,11 @@ class FirebaseAnalyticsHelper {
       return;
     }
 
+    if (!analytics) {
+      console.log(`[Dev] Analytics event: ${event}`, parameters);
+      return;
+    }
+
     try {
       await analytics().logEvent(event, parameters);
     } catch (error) {
@@ -59,6 +82,10 @@ class FirebaseAnalyticsHelper {
 
   async setUserId(userId: string): Promise<void> {
     if (!this.initialized) return;
+    if (!analytics) {
+      console.log(`[Dev] Analytics user ID: ${userId}`);
+      return;
+    }
     try {
       await analytics().setUserId(userId);
     } catch (error) {

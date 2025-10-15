@@ -11,9 +11,9 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-const merchantId = process.env.BRAINTREE_MERCHANT_ID || '8jbpcm9yj7df7w4h';
-const publicKey = process.env.BRAINTREE_PUBLIC_KEY || 'sandbox_p2dkbpfh_8jbpcm9yj7df7w4h';
-const privateKey = process.env.BRAINTREE_PRIVATE_KEY || '93d6e4e2976c96f93d2d472395ed6633';
+const merchantId = process.env.BRAINTREE_MERCHANT_ID || '8jbcpm9yj7df7w4h';
+const publicKey = process.env.BRAINTREE_PUBLIC_KEY || 'fnjq66rkd6vbkmxt';
+const privateKey = process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed663393d6e4e2976';
 
 console.log('[Braintree] Using credentials:', { merchantId, publicKey, privateKey: privateKey.substring(0, 8) + '...' });
 
@@ -24,20 +24,37 @@ const gateway = new braintree.BraintreeGateway({
   privateKey,
 });
 
-// Helper to decide whether to use local test-mode fallbacks. Prefer explicit
-// NODE_ENV==='test' so CI/Jest runs behave predictably. Keep legacy
-// BRAINTREE_EMULATE_LOCAL for local dev convenience but prefer test-mode.
-function isTestMode() {
-  return process.env.NODE_ENV === 'test' || process.env.BRAINTREE_EMULATE_LOCAL === 'true';
-}
-
 // === Payments routes (mobile expects /payments/*) ===
 app.get('/payments/client-token', async (req: Request, res: Response) => {
   try {
-    // Early return for test mode to avoid Braintree API calls
-    if (isTestMode()) {
-      console.warn('[ClientToken] Test mode active, returning mock client token');
+    // Ensure Braintree credentials are present
+    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
+      throw new Error('Braintree credentials missing');
+    }
+
+    // Only use mock in explicit Jest test environment
+    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+      console.warn('[ClientToken] Jest test mode active, returning mock client token');
       res.json({ clientToken: 'mock-client-token-for-testing' });
+      return;
+    }
+
+    // Use mock for development when BRAINTREE_EMULATE_LOCAL is true or when credentials are invalid
+    if (process.env.BRAINTREE_EMULATE_LOCAL === 'true') {
+      console.warn('[ClientToken] Development mode active, returning sandbox-style mock client token');
+      res.json({ clientToken: 'sandbox_mock_' + Buffer.from(JSON.stringify({
+        authorizationFingerprint: 'mock_auth_fingerprint_' + Date.now(),
+        configUrl: 'https://api.sandbox.braintreegateway.com/merchants/mock/client_api/v1/configuration',
+        challenges: [],
+        environment: 'sandbox',
+        clientApiUrl: 'https://api.sandbox.braintreegateway.com:443/merchants/mock/client_api',
+        assetsUrl: 'https://assets.braintreegateway.com',
+        authUrl: 'https://auth.venmo.sandbox.braintreegateway.com',
+        analytics: { url: 'https://origin-analytics-sand.sandbox.braintree-api.com/mock' },
+        threeDSecureEnabled: false,
+        paypalEnabled: true,
+        paypal: { displayName: 'Mock Company', clientId: null, assetsUrl: 'https://checkout.paypal.com' }
+      })).toString('base64') });
       return;
     }
 
@@ -49,18 +66,21 @@ app.get('/payments/client-token', async (req: Request, res: Response) => {
 
     const clientToken = (result as any)?.clientToken;
 
-    // Local/test fallback: return a mock client token only in explicit test
-    // mode or when BRAINTREE_EMULATE_LOCAL is set. This prevents accidental
-    // mock tokens in production while preserving local dev convenience.
-    if (!clientToken && isTestMode()) {
-      console.warn('[ClientToken] Missing clientToken from Braintree; returning mock token because test-mode is active');
-      res.json({ clientToken: 'mock-client-token' });
-      return;
+    if (!clientToken) {
+      throw new Error('Failed to generate client token from Braintree');
     }
 
     res.json({ clientToken });
   } catch (error) {
     console.error('[ClientToken] Error:', error);
+    
+    // If Braintree authentication fails, fall back to mock for development
+    if ((error as any)?.type === 'authenticationError' && process.env.BRAINTREE_EMULATE_LOCAL === 'true') {
+      console.warn('[ClientToken] Braintree auth failed, falling back to mock token');
+      res.json({ clientToken: 'sandbox_mock_fallback_' + Date.now() });
+      return;
+    }
+    
     res.status(500).json({ error: 'Failed to generate client token' });
   }
 });
@@ -69,9 +89,20 @@ app.post('/payments/process', async (req: Request, res: Response) => {
   try {
     const { nonce, amount, saveCard } = req.body;
     
-    // Early return for test mode to avoid Braintree API calls
-    if (isTestMode()) {
-      console.warn('[ProcessPayment] Test mode active, returning mock payment result');
+    // Validate required parameters
+    if (!nonce || !amount) {
+      res.status(400).json({ error: 'Missing required parameters: nonce and amount' });
+      return;
+    }
+
+    // Ensure Braintree credentials are present
+    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
+      throw new Error('Braintree credentials missing');
+    }
+    
+    // Only use mock in explicit Jest test environment
+    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+      console.warn('[ProcessPayment] Jest test mode active, returning mock payment result');
       res.json({
         success: true,
         transactionId: `mock-transaction-${Date.now()}`,
@@ -140,7 +171,7 @@ app.post('/payments/refund', async (req: Request, res: Response) => {
 
 // POST creates (vaults) a payment method for a user. Use verifyCard and
 // failOnDuplicatePaymentMethod to reduce fraud and duplicates.
-export async function handleCreatePaymentMethod(req: Request, res: Response) {
+export async function handleCreatePaymentMethod(req: Request, res: Response): Promise<void> {
   try {
     const { userId } = req.params;
     const {
@@ -154,12 +185,18 @@ export async function handleCreatePaymentMethod(req: Request, res: Response) {
     } = req.body || {};
 
     if (!payment_method_nonce && !token) {
-      return res.status(400).json({ success: false, error: 'payment_method_nonce or token is required' });
+      res.status(400).json({ success: false, error: 'payment_method_nonce or token is required' });
+      return;
     }
 
-    // Early return for test mode to avoid Braintree API calls
-    if (isTestMode()) {
-      console.warn('[PaymentMethod] Test mode active, returning mock payment method token');
+    // Ensure Braintree credentials are present
+    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
+      throw new Error('Braintree credentials missing');
+    }
+
+    // Only use mock in explicit Jest test environment
+    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+      console.warn('[PaymentMethod] Jest test mode active, returning mock payment method token');
       res.json({ success: true, token: `mock-pm-${Date.now()}` });
       return;
     }
@@ -185,19 +222,12 @@ export async function handleCreatePaymentMethod(req: Request, res: Response) {
       return;
     }
 
-    if (isTestMode()) {
-      console.warn('[PaymentMethod] Braintree create failed; returning mock token because test-mode is active');
-      res.json({ success: true, token: `mock-pm-${Date.now()}` });
-      return;
-    }
-
     console.error('[PaymentMethod] create failed:', (result as any)?.message || result);
     res.status(400).json({ success: false, error: (result as any)?.message || 'Failed to create payment method' });
   } catch (error) {
     console.error('[PaymentMethod] Error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
-  return;
 }
 
 // Register the exported function as the route handler
@@ -209,9 +239,14 @@ app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
 
-    // Early return for test mode to avoid Braintree API calls
-    if (isTestMode()) {
-      console.warn('[ListPaymentMethods] Test mode active, returning mock payment methods');
+    // Ensure Braintree credentials are present
+    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
+      throw new Error('Braintree credentials missing');
+    }
+
+    // Only use mock in explicit Jest test environment
+    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+      console.warn('[ListPaymentMethods] Jest test mode active, returning mock payment methods');
       res.json({ 
         success: true, 
         paymentMethods: [
@@ -250,9 +285,14 @@ app.delete('/payments/methods/:userId/:token', async (req: Request, res: Respons
   try {
     const { token } = req.params;
     
-    // Early return for test mode to avoid Braintree API calls
-    if (isTestMode()) {
-      console.warn('[DeleteMethod] Test mode active, returning mock success');
+    // Ensure Braintree credentials are present
+    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
+      throw new Error('Braintree credentials missing');
+    }
+    
+    // Only use mock in explicit Jest test environment
+    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+      console.warn('[DeleteMethod] Jest test mode active, returning mock success');
       res.json({ success: true });
       return;
     }

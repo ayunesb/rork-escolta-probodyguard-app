@@ -73,7 +73,7 @@ class DirectBraintreeService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          paymentMethodNonce: params.nonce,
+          nonce: params.nonce,
           amount: params.amount,
           currency: params.currency || 'MXN',
           userId: params.customerId,

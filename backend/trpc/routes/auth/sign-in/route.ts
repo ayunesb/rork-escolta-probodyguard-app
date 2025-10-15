@@ -29,7 +29,19 @@ export default publicProcedure
       const userCredential = await signInWithEmailAndPassword(getAuthInstance(), email, password);
       const user = userCredential.user;
 
+      // Check email verification (allow unverified in development)
+      const allowUnverified = process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN === '1';
+      if (!user.emailVerified && !allowUnverified) {
+        console.log('[Auth] Email not verified for:', email);
+        throw new Error('Please verify your email before signing in');
+      }
+
       const userDoc = await getDoc(doc(getDbInstance(), 'users', user.uid));
+      if (!userDoc.exists()) {
+        console.log('[Auth] User document not found for:', user.uid);
+        throw new Error('Invalid email or password');
+      }
+      
       const userData = userDoc.data();
 
       const token = await user.getIdToken();

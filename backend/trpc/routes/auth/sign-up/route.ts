@@ -2,7 +2,7 @@ import { publicProcedure } from "@/backend/trpc/create-context";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { auth as getAuthInstance, db as getDbInstance } from "@/lib/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default publicProcedure
@@ -25,6 +25,7 @@ export default publicProcedure
       const userCredential = await createUserWithEmailAndPassword(getAuthInstance(), email, password);
       const user = userCredential.user;
 
+      // Create user document in Firestore
       await setDoc(doc(getDbInstance(), 'users', user.uid), {
         email,
         firstName,
@@ -34,6 +35,15 @@ export default publicProcedure
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      // Send email verification (but don't require it for development)
+      try {
+        await sendEmailVerification(user);
+        console.log('[Auth] Verification email sent to:', email);
+      } catch (emailError) {
+        console.warn('[Auth] Failed to send verification email:', emailError);
+        // Don't fail the signup if email verification fails
+      }
 
       const token = await user.getIdToken();
 

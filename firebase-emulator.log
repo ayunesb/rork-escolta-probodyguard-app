@@ -98,3 +98,56 @@ i  functions: Beginning execution of "us-central1-api"
 i  functions: Finished "us-central1-api" in 682.369459ms
 i  functions: Beginning execution of "us-central1-api"
 i  functions: Finished "us-central1-api" in 870.124542ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 3147.563667ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 809.695292ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 1409.784083ms
+ 
+i  emulators: Received SIGTERM for the first time. Starting a clean shutdown.
+i  emulators: Please wait for a clean shutdown or send the SIGTERM signal again to stop right now.
+i  emulators: Shutting down emulators.
+i  extensions: Stopping Extensions Emulator
+i  functions: Stopping Functions Emulator
+i  database: Stopping Database Emulator
+⚠  firestore: Fatal error occurred: 
+   Firestore Emulator has exited with code: 143, 
+   stopping all running emulators
+i  database: Stopping Database Emulator
+⚠  pubsub: Fatal error occurred: 
+   Pub/Sub Emulator has exited with code: 143, 
+   stopping all running emulators
+i  database: Stopping Database Emulator
+i  firestore: Stopping Firestore Emulator
+i  firestore: Stopping Firestore Emulator
+i  firestore: Stopping Firestore Emulator
+i  pubsub: Stopping Pub/Sub Emulator
+i  pubsub: Stopping Pub/Sub Emulator
+i  pubsub: Stopping Pub/Sub Emulator
+i  auth: Stopping Authentication Emulator
+i  auth: Stopping Authentication Emulator
+i  auth: Stopping Authentication Emulator
+i  storage: Stopping Storage Emulator
+i  storage: Stopping Storage Emulator
+i  storage: Stopping Storage Emulator
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

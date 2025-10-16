@@ -51,3 +51,239 @@ Serving at port 8086
 [90m└─────────────────────────[39m[90m┴───────────────┘[39m
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
+i  functions: Loaded environment variables from .env.
+>  [Braintree] Using credentials: {
+>    merchantId: '8jbcpm9yj7df7w4h',
+>    publicKey: 'fnjq66rkd6vbkmxt',
+>    privateKey: 'c96f93d2...'
+>  }
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 1054.068583ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 858.86825ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 150.949083ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 25.673166ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 1638.99325ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 890.181792ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 592.945666ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 749.841625ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 367.616292ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 503.851333ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 888.354958ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 1048.057541ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 261.508333ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 584.990292ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 660.515625ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 312.884458ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 670.040209ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 962.341ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 493.347958ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 587.743917ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 297.017583ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 645.405042ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 966.638708ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 829.925166ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 516.189959ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 357.29025ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 338.7575ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 1262.880666ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 485.095667ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 919.04075ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 554.05975ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 525.000292ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 542.38925ms
+i  functions: Beginning execution of "us-central1-api"
+>  [ListPaymentMethods] Error: Error [notFoundError]: Not Found
+>      at Object.NotFoundError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
+>      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:33:27)
+>      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
+>      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
+>      at IncomingMessage.emit (node:events:536:35)
+>      at endReadableNT (node:internal/streams/readable:1698:12)
+>      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+>    type: 'notFoundError'
+>  }
+i  functions: Finished "us-central1-api" in 625.681833ms
+i  functions: Beginning execution of "us-central1-api"
+i  functions: Finished "us-central1-api" in 387.899375ms

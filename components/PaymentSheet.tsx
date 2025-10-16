@@ -128,9 +128,12 @@ export default function PaymentSheet({
 
   const handleWebViewMessage = async (event: any) => {
     try {
+      console.log('[PaymentSheet] Received message from WebView:', event.nativeEvent.data);
       const data = JSON.parse(event.nativeEvent.data);
+      console.log('[PaymentSheet] Parsed message:', data);
       
       if (data.type === 'payment_nonce') {
+        console.log('[PaymentSheet] Processing payment nonce...');
         setLoading(true);
         const result = await paymentService.processPayment(
           data.nonce,
@@ -140,24 +143,37 @@ export default function PaymentSheet({
           data.saveCard || false
         );
 
+        console.log('[PaymentSheet] Payment result:', { success: result.success, requiresAction: result.requiresAction });
+
         if (result.success && result.transactionId) {
+          console.log('[PaymentSheet] Payment successful! Transaction ID:', result.transactionId);
           onSuccess(result.transactionId);
         } else if (result.requiresAction && result.actionUrl) {
+          console.log('[PaymentSheet] 3DS required, URL:', result.actionUrl);
           if (webViewRef.current) {
             webViewRef.current.injectJavaScript(`
               window.location.href = '${result.actionUrl}';
             `);
           }
         } else {
+          console.error('[PaymentSheet] Payment failed:', result.error);
           Alert.alert('Payment Failed', result.error || 'Please try again');
           setLoading(false);
         }
       } else if (data.type === 'payment_error') {
+        console.error('[PaymentSheet] Payment error from WebView:', data.message);
         Alert.alert('Error', data.message || 'Payment failed');
         setLoading(false);
+      } else if (data.type === 'test_message') {
+        console.log('[PaymentSheet] ✅ TEST MESSAGE RECEIVED:', data.message);
+      } else if (data.type === 'debug_message') {
+        console.log('[PaymentSheet] 🔍 DEBUG:', data.message);
+      } else {
+        console.warn('[PaymentSheet] Unknown message type:', data.type);
       }
     } catch (error) {
       console.error('[PaymentSheet] WebView message error:', error);
+      console.error('[PaymentSheet] Raw message:', event.nativeEvent.data);
       setLoading(false);
     }
   };
@@ -202,54 +218,127 @@ export default function PaymentSheet({
           <button id="pay-button" class="pay-button" disabled>Pay ${paymentService.formatMXN(breakdown.total)}</button>
           
           <script>
+            console.log('[WebView] Starting Braintree initialization...');
+            
+            // Add error logging
+            window.onerror = function(msg, url, line, col, error) {
+              console.error('[WebView] Error:', msg, 'at', url, line, col);
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'payment_error',
+                  message: 'JavaScript error: ' + msg
+                }));
+              }
+              return false;
+            };
+
             var button = document.querySelector('#pay-button');
             var clientToken = '${clientToken}';
+            
+            console.log('[WebView] Client token length:', clientToken.length);
+            console.log('[WebView] Button found:', !!button);
+            console.log('[WebView] ReactNativeWebView available:', !!window.ReactNativeWebView);
 
+            // Test message immediately
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'test_message',
+                message: 'WebView JavaScript is running!'
+              }));
+            } else {
+              alert('ReactNativeWebView not found!');
+            }
+
+            console.log('[WebView] About to call braintree.dropin.create...');
+            
             braintree.dropin.create({
               authorization: clientToken,
               container: '#dropin-container',
               locale: 'es_MX',
               card: {
                 cardholderName: {
+                  required: false
+                },
+                cvv: {
+                  required: true
+                },
+                expirationDate: {
+                  required: true
+                },
+                postalCode: {
                   required: true
                 }
-              },
-              threeDSecure: true,
-              vaultManager: true
+              }
             }, function (createErr, instance) {
+              console.log('[WebView] Dropin create callback called');
+              
               if (createErr) {
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                  type: 'payment_error',
-                  message: createErr.message
-                }));
+                console.error('[WebView] Dropin creation error:', createErr);
+                console.error('[WebView] Error name:', createErr.name);
+                console.error('[WebView] Error message:', createErr.message);
+                console.error('[WebView] Error code:', createErr.code);
+                
+                if (window.ReactNativeWebView) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'payment_error',
+                    message: 'Braintree error: ' + (createErr.message || createErr.code || 'Unknown error')
+                  }));
+                }
                 return;
               }
 
+              console.log('[WebView] Dropin created successfully');
+              console.log('[WebView] Instance object:', typeof instance);
               button.disabled = false;
+              console.log('[WebView] Pay button enabled');
 
               button.addEventListener('click', function () {
+                console.log('[WebView] Pay button clicked!');
                 button.disabled = true;
                 button.textContent = 'Processing...';
 
+                // Send immediate message to confirm button click
+                if (window.ReactNativeWebView) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'debug_message',
+                    message: 'Button clicked, calling requestPaymentMethod...'
+                  }));
+                }
+
                 instance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
+                  console.log('[WebView] Payment method callback called');
+                  
                   if (requestPaymentMethodErr) {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                      type: 'payment_error',
-                      message: requestPaymentMethodErr.message
-                    }));
+                    console.error('[WebView] Payment method error:', requestPaymentMethodErr);
+                    if (window.ReactNativeWebView) {
+                      window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'payment_error',
+                        message: requestPaymentMethodErr.message || 'Payment failed'
+                      }));
+                    }
                     button.disabled = false;
                     button.textContent = 'Pay ${paymentService.formatMXN(breakdown.total)}';
                     return;
                   }
 
-                  window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'payment_nonce',
-                    nonce: payload.nonce,
-                    saveCard: payload.vaulted || false
-                  }));
+                  console.log('[WebView] Payment nonce received:', payload.nonce.substring(0, 20) + '...');
+                  console.log('[WebView] Sending message to React Native...');
+                  
+                  if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                      type: 'payment_nonce',
+                      nonce: payload.nonce,
+                      saveCard: payload.vaulted || false
+                    }));
+                    console.log('[WebView] Message sent successfully');
+                  } else {
+                    console.error('[WebView] ReactNativeWebView not available!');
+                  }
                 });
               });
             });
+            
+            console.log('[WebView] Initialization script completed');
           </script>
         </body>
       </html>
@@ -343,6 +432,19 @@ export default function PaymentSheet({
                       javaScriptEnabled
                       domStorageEnabled
                       startInLoadingState
+                      onError={(syntheticEvent) => {
+                        const { nativeEvent } = syntheticEvent;
+                        console.error('[PaymentSheet] WebView error:', nativeEvent);
+                      }}
+                      onHttpError={(syntheticEvent) => {
+                        const { nativeEvent } = syntheticEvent;
+                        console.error('[PaymentSheet] WebView HTTP error:', nativeEvent);
+                      }}
+                      onLoadStart={() => console.log('[PaymentSheet] WebView load started')}
+                      onLoadEnd={() => console.log('[PaymentSheet] WebView load completed')}
+                      onContentProcessDidTerminate={() => {
+                        console.error('[PaymentSheet] WebView process terminated');
+                      }}
                       renderLoading={() => (
                         <ActivityIndicator
                           size="large"

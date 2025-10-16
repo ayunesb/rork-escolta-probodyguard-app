@@ -1,8 +1,4 @@
-12:59:16.540 [NamespaceSystem-akka.actor.default-dispatcher-6] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
-12:59:16.655 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
-12:59:29.244 [NamespaceSystem-akka.actor.default-dispatcher-6] INFO com.firebase.core.namespace.NamespaceActor - escolta-pro-fe90e-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 82ms, init: 0ms
-12:59:29.337 [NamespaceSystem-blocking-namespace-operation-dispatcher-8] INFO com.firebase.core.namespace.StateManager - Namespace escolta-pro-fe90e-default-rtdb status Active to Active
-12:59:34.467 [Thread-0] INFO com.firebase.server.forge.App$ - Attempting graceful shutdown.
-12:59:34.511 [NamespaceSystem-akka.actor.default-dispatcher-6] INFO com.firebase.core.namespace.Terminator$Terminator - 1 actors left to terminate: escolta-pro-fe90e-default-rtdb
-12:59:34.531 [NamespaceSystem-akka.actor.default-dispatcher-9] INFO com.firebase.core.namespace.NamespaceActor - stopped namespace actor for escolta-pro-fe90e-default-rtdb
-12:59:34.544 [Thread-0] INFO com.firebase.server.forge.App$ - Graceful shutdown complete.
+14:30:04.156 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+14:30:04.263 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
+14:30:15.778 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - escolta-pro-fe90e-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 78ms, init: 0ms
+14:30:15.849 [NamespaceSystem-blocking-namespace-operation-dispatcher-6] INFO com.firebase.core.namespace.StateManager - Namespace escolta-pro-fe90e-default-rtdb status Active to Active

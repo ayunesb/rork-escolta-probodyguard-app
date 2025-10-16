@@ -148,3 +148,246 @@ Dev App Server is now running.
 
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
+[debug] [2025-10-16T19:29:58.741Z] ----------------------------------------------------------------------
+[debug] [2025-10-16T19:29:58.742Z] Command:       /Users/abrahamyunes/.nvm/versions/node/v20.19.5/bin/node /opt/homebrew/bin/firebase emulators:start
+[debug] [2025-10-16T19:29:58.743Z] CLI Version:   14.18.0
+[debug] [2025-10-16T19:29:58.743Z] Platform:      darwin
+[debug] [2025-10-16T19:29:58.743Z] Node Version:  v20.19.5
+[debug] [2025-10-16T19:29:58.743Z] Time:          Thu Oct 16 2025 14:29:58 GMT-0500 (Eastern Standard Time)
+[debug] [2025-10-16T19:29:58.743Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-16T19:29:58.889Z] Object "/emulators/storage" in "firebase.json" has unknown property: {"additionalProperty":"rules"}
+[debug] [2025-10-16T19:29:58.892Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-16T19:29:58.892Z] > authorizing via signed-in user (natasha.imrie@gmail.com)
+[debug] [2025-10-16T19:29:59.104Z] openjdk version "21.0.4" 2024-07-16 LTS
+
+[debug] [2025-10-16T19:29:59.105Z] OpenJDK Runtime Environment Temurin-21.0.4+7 (build 21.0.4+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.4+7 (build 21.0.4+7-LTS, mixed mode)
+
+[debug] [2025-10-16T19:29:59.107Z] Parsed Java major version: 21
+[info] i  emulators: Starting emulators: auth, functions, firestore, database, pubsub, storage, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore, database, pubsub, storage, extensions"}}
+[debug] [2025-10-16T19:29:59.109Z] Checked if tokens are valid: false, expires at: 1760642711170
+[debug] [2025-10-16T19:29:59.109Z] Checked if tokens are valid: false, expires at: 1760642711170
+[debug] [2025-10-16T19:29:59.109Z] > refreshing access token with scopes: []
+[debug] [2025-10-16T19:29:59.110Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-16T19:29:59.110Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-16T19:29:59.416Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-16T19:29:59.416Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-16T19:29:59.425Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/escolta-pro-fe90e [none]
+[debug] [2025-10-16T19:30:00.283Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/escolta-pro-fe90e 200
+[debug] [2025-10-16T19:30:00.285Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/escolta-pro-fe90e {"projectNumber":"919834684647","projectId":"escolta-pro-fe90e","lifecycleState":"ACTIVE","name":"Escolta Pro","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-10-01T22:19:50.361013Z"}
+[debug] [2025-10-16T19:30:01.236Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.236Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.236Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.236Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.236Z] [database] Database Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.236Z] [pubsub] Pub/Sub Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.236Z] [storage] Storage Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.236Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"database":[{"address":"127.0.0.1","family":"IPv4","port":9000}],"pubsub":[{"address":"127.0.0.1","family":"IPv4","port":8085}],"storage":[{"address":"127.0.0.1","family":"IPv4","port":9199}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-10-16T19:30:01.240Z] Emulator locator file path: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/hub-escolta-pro-fe90e.json
+[warn] ⚠  emulators: It seems that you are running multiple instances of the emulator suite for project escolta-pro-fe90e. This may result in unexpected behavior. 
+[debug] [2025-10-16T19:30:01.241Z] [hub] writing locator at /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/hub-escolta-pro-fe90e.json
+[debug] [2025-10-16T19:30:01.244Z] [Extensions] Started Extensions emulator, this is a noop.
+[debug] [2025-10-16T19:30:01.490Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.490Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.490Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T19:30:01.490Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"database":[{"address":"127.0.0.1","family":"IPv4","port":9000}],"pubsub":[{"address":"127.0.0.1","family":"IPv4","port":8085}],"storage":[{"address":"127.0.0.1","family":"IPv4","port":9199}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, hosting, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, hosting, dataconnect"}}
+[debug] [2025-10-16T19:30:01.497Z] defaultcredentials: writing to file /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json
+[debug] [2025-10-16T19:30:01.497Z] Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json"}}
+[debug] [2025-10-16T19:30:01.498Z] Checked if tokens are valid: true, expires at: 1760646598416
+[debug] [2025-10-16T19:30:01.498Z] Checked if tokens are valid: true, expires at: 1760646598416
+[debug] [2025-10-16T19:30:01.498Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e/adminSdkConfig [none]
+[debug] [2025-10-16T19:30:02.294Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e/adminSdkConfig 200
+[debug] [2025-10-16T19:30:02.294Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e/adminSdkConfig {"projectId":"escolta-pro-fe90e","databaseURL":"https://escolta-pro-fe90e-default-rtdb.firebaseio.com","storageBucket":"escolta-pro-fe90e.firebasestorage.app"}
+[debug] [2025-10-16T19:30:02.321Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-16T19:30:02.321Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2025-10-16T19:30:02.321Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/Users/abrahamyunes/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","escolta-pro-fe90e","--rules","/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/firestore.rules","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/Users/abrahamyunes/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"escolta-pro-fe90e\",\"--rules\",\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/firestore.rules\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to firestore-debug.log"}}
+[debug] [2025-10-16T19:30:03.094Z] Oct 16, 2025 2:30:03 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+INFO: Started WebSocket server on ws://127.0.0.1:9150
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 16, 2025 2:30:03 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://127.0.0.1:9150\n"}}
+[debug] [2025-10-16T19:30:03.112Z] API endpoint: http://127.0.0.1:8080 {"metadata":{"emulator":{"name":"firestore"},"message":"API endpoint: http://127.0.0.1:8080"}}
+[debug] [2025-10-16T19:30:03.112Z] 
+If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
+
+   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+
+If you are running a Firestore in Datastore Mode project, run:
+
+   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080
+
+Note: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.
+Dev App Server is now running.
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\n\n   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080\n\nIf you are running a Firestore in Datastore Mode project, run:\n\n   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080\n\nNote: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.\nDev App Server is now running.\n\n"}}
+[info] ✔  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
+[debug] [2025-10-16T19:30:03.136Z] Checked if tokens are valid: true, expires at: 1760646598416
+[debug] [2025-10-16T19:30:03.136Z] Checked if tokens are valid: true, expires at: 1760646598416
+[debug] [2025-10-16T19:30:03.136Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e [none]
+[debug] [2025-10-16T19:30:03.384Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e 200
+[debug] [2025-10-16T19:30:03.384Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e {"projectId":"escolta-pro-fe90e","projectNumber":"919834684647","displayName":"Escolta Pro","name":"projects/escolta-pro-fe90e","resources":{"hostingSite":"escolta-pro-fe90e","realtimeDatabaseInstance":"escolta-pro-fe90e-default-rtdb"},"state":"ACTIVE","etag":"1_0805b20c-df20-4ea5-8b7c-68e1ff9b68ce"}
+[debug] [2025-10-16T19:30:03.385Z] database rules config:  [{"instance":"escolta-pro-fe90e-default-rtdb","rules":"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/database.rules.json"}]
+[debug] [2025-10-16T19:30:03.387Z] Ignoring unsupported arg: projectId {"metadata":{"emulator":{"name":"database"},"message":"Ignoring unsupported arg: projectId"}}
+[debug] [2025-10-16T19:30:03.388Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"database"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-16T19:30:03.388Z] Ignoring unsupported arg: rules {"metadata":{"emulator":{"name":"database"},"message":"Ignoring unsupported arg: rules"}}
+[debug] [2025-10-16T19:30:03.388Z] Starting Database Emulator with command {"binary":"java","args":["-Duser.language=en","-jar","/Users/abrahamyunes/.cache/firebase/emulators/firebase-database-emulator-v4.11.2.jar","--host","127.0.0.1","--port",9000,"--single_project_mode","Warning","--functions_emulator_host","127.0.0.1","--functions_emulator_port",5001],"optionalArgs":["port","host","functions_emulator_port","functions_emulator_host","single_project_mode"],"joinArgs":false,"shell":false,"port":9000} {"metadata":{"emulator":{"name":"database"},"message":"Starting Database Emulator with command {\"binary\":\"java\",\"args\":[\"-Duser.language=en\",\"-jar\",\"/Users/abrahamyunes/.cache/firebase/emulators/firebase-database-emulator-v4.11.2.jar\",\"--host\",\"127.0.0.1\",\"--port\",9000,\"--single_project_mode\",\"Warning\",\"--functions_emulator_host\",\"127.0.0.1\",\"--functions_emulator_port\",5001],\"optionalArgs\":[\"port\",\"host\",\"functions_emulator_port\",\"functions_emulator_host\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":9000}"}}
+[info] i  database: Database Emulator logging to database-debug.log {"metadata":{"emulator":{"name":"database"},"message":"Database Emulator logging to database-debug.log"}}
+[debug] [2025-10-16T19:30:04.157Z] 14:30:04.156 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+ {"metadata":{"emulator":{"name":"database"},"message":"14:30:04.156 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started\n"}}
+[debug] [2025-10-16T19:30:04.263Z] 14:30:04.263 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
+ {"metadata":{"emulator":{"name":"database"},"message":"14:30:04.263 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000\n"}}
+[debug] [2025-10-16T19:30:08.758Z] Ignoring unsupported arg: projectId {"metadata":{"emulator":{"name":"pubsub"},"message":"Ignoring unsupported arg: projectId"}}
+[debug] [2025-10-16T19:30:08.758Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"pubsub"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-16T19:30:08.758Z] Starting Pub/Sub Emulator with command {"binary":"/Users/abrahamyunes/.cache/firebase/emulators/pubsub-emulator-0.8.14/pubsub-emulator/bin/cloud-pubsub-emulator","args":["--host=127.0.0.1","--port=8085"],"optionalArgs":["port","host"],"joinArgs":true,"shell":true,"port":8085} {"metadata":{"emulator":{"name":"pubsub"},"message":"Starting Pub/Sub Emulator with command {\"binary\":\"/Users/abrahamyunes/.cache/firebase/emulators/pubsub-emulator-0.8.14/pubsub-emulator/bin/cloud-pubsub-emulator\",\"args\":[\"--host=127.0.0.1\",\"--port=8085\"],\"optionalArgs\":[\"port\",\"host\"],\"joinArgs\":true,\"shell\":true,\"port\":8085}"}}
+[info] i  pubsub: Pub/Sub Emulator logging to pubsub-debug.log {"metadata":{"emulator":{"name":"pubsub"},"message":"Pub/Sub Emulator logging to pubsub-debug.log"}}
+[debug] [2025-10-16T19:30:08.944Z] This is the Google Pub/Sub fake.
+Implementation may be incomplete or differ from the real system.
+ {"metadata":{"emulator":{"name":"pubsub"},"message":"This is the Google Pub/Sub fake.\nImplementation may be incomplete or differ from the real system.\n"}}
+[debug] [2025-10-16T19:30:08.977Z] Oct 16, 2025 2:30:08 PM com.google.cloud.pubsub.testing.v1.Main main
+INFO: IAM integration is disabled. IAM policy methods and ACL checks are not supported
+ {"metadata":{"emulator":{"name":"pubsub"},"message":"Oct 16, 2025 2:30:08 PM com.google.cloud.pubsub.testing.v1.Main main\nINFO: IAM integration is disabled. IAM policy methods and ACL checks are not supported\n"}}
+[debug] [2025-10-16T19:30:09.076Z] SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+ {"metadata":{"emulator":{"name":"pubsub"},"message":"SLF4J: Failed to load class \"org.slf4j.impl.StaticLoggerBinder\".\nSLF4J: Defaulting to no-operation (NOP) logger implementation\n"}}
+[debug] [2025-10-16T19:30:09.076Z] SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+ {"metadata":{"emulator":{"name":"pubsub"},"message":"SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.\n"}}
+[debug] [2025-10-16T19:30:09.323Z] Oct 16, 2025 2:30:09 PM com.google.cloud.pubsub.testing.v1.Main main
+INFO: Server started, listening on 8085
+ {"metadata":{"emulator":{"name":"pubsub"},"message":"Oct 16, 2025 2:30:09 PM com.google.cloud.pubsub.testing.v1.Main main\nINFO: Server started, listening on 8085\n"}}
+[debug] [2025-10-16T19:30:09.366Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"storage"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-10-16T19:30:09.948Z] Temp file directory for storage emulator: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/firebase/storage/blobs {"metadata":{"emulator":{"name":"storage"},"message":"Temp file directory for storage emulator: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/firebase/storage/blobs"}}
+[warn] ⚠  emulators: The Emulator UI is not starting because none of the running emulators have a UI component. {"metadata":{"emulator":{"name":"hub"},"message":"The Emulator UI is not starting because none of the running emulators have a UI component."}}
+[debug] [2025-10-16T19:30:09.952Z] [Extensions] Connecting Extensions emulator, this is a noop.
+[info] i  functions: Watching "/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions\" for Cloud Functions..."}}
+[debug] [2025-10-16T19:30:09.959Z] Validating nodejs source
+[debug] [2025-10-16T19:30:10.974Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/jest": "^29.5.4",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "jest": "^29.6.1",
+    "node-mocks-http": "^1.11.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-16T19:30:10.975Z] Building nodejs source
+[debug] [2025-10-16T19:30:10.976Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[info] ✔  functions: Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2025-10-16T19:30:10.981Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-16T19:30:10.989Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8086
+
+[info] [Braintree] Using credentials: {
+  merchantId: '8jbcpm9yj7df7w4h',
+  publicKey: 'fnjq66rkd6vbkmxt',
+  privateKey: 'c96f93d2...'
+}
+
+[debug] [2025-10-16T19:30:11.323Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[debug] [2025-10-16T19:30:15.361Z] defaultcredentials: writing to file /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json
+[debug] [2025-10-16T19:30:15.362Z] Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json"}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[info] ✔  functions[us-central1-api]: http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/api). {"metadata":{"emulator":{"name":"functions"},"message":"http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/api)."}}
+[debug] [2025-10-16T19:30:15.368Z] addPubsubTrigger {"eventTrigger":{"eventType":"pubsub","resource":""}}
+[debug] [2025-10-16T19:30:15.368Z] [pubsub] addTrigger(firebase-schedule-processPayouts, us-central1-processPayouts-0, http)
+[debug] [2025-10-16T19:30:15.370Z] [pubsub] Creating topic: firebase-schedule-processPayouts
+[debug] [2025-10-16T19:30:15.460Z] Oct 16, 2025 2:30:15 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"pubsub"},"message":"Oct 16, 2025 2:30:15 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2025-10-16T19:30:15.536Z] [pubsub] Creating sub for topic: firebase-schedule-processPayouts
+[info] ✔  functions[us-central1-processPayouts]: pubsub function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"pubsub function initialized."}}
+[info] ✔  functions[us-central1-generateInvoice]: http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/generateInvoice). {"metadata":{"emulator":{"name":"functions"},"message":"http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/generateInvoice)."}}
+[debug] [2025-10-16T19:30:15.557Z] addPubsubTrigger {"eventTrigger":{"eventType":"pubsub","resource":""}}
+[debug] [2025-10-16T19:30:15.557Z] [pubsub] addTrigger(firebase-schedule-recordUsageMetrics, us-central1-recordUsageMetrics-0, http)
+[debug] [2025-10-16T19:30:15.557Z] [pubsub] Creating topic: firebase-schedule-recordUsageMetrics
+[debug] [2025-10-16T19:30:15.564Z] [pubsub] Creating sub for topic: firebase-schedule-recordUsageMetrics
+[info] ✔  functions[us-central1-recordUsageMetrics]: pubsub function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"pubsub function initialized."}}
+[debug] [2025-10-16T19:30:15.568Z] >>> [apiv2][query] PUT http://127.0.0.1:9000/.settings/rules.json ns=escolta-pro-fe90e-default-rtdb
+[debug] [2025-10-16T19:30:15.568Z] >>> [apiv2][body] PUT http://127.0.0.1:9000/.settings/rules.json "{\n  \"rules\": {\n    \"guardLocations\": {\n      \"$guardId\": {\n        \".read\": \"auth != null && (auth.uid === $guardId || root.child('users').child(auth.uid).child('role').val() === 'admin')\",\n        \".write\": \"auth != null && $guardId === auth.uid\",\n        \".indexOn\": [\"timestamp\"]\n      }\n    },\n    \"bookings\": {\n      \"$bookingId\": {\n        \".read\": \"auth != null && (data.child('clientId').val() === auth.uid || data.child('guardId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && root.child('users').child(data.child('guardId').val()).child('companyId').val() === auth.uid))\",\n        \".write\": \"auth != null && (newData.child('clientId').val() === auth.uid || newData.child('guardId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && root.child('users').child(newData.child('guardId').val()).child('companyId').val() === auth.uid))\",\n        \".indexOn\": [\"clientId\", \"guardId\", \"status\", \"scheduledDateTime\"]\n      }\n    },\n    \"users\": {\n      \"$userId\": {\n        \".read\": \"auth != null && ($userId === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && data.child('companyId').val() === auth.uid))\",\n        \".write\": \"auth != null && ($userId === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')\",\n        \".indexOn\": [\"role\", \"companyId\"]\n      }\n    },\n    \"chats\": {\n      \"$chatId\": {\n        \".read\": \"auth != null\",\n        \".write\": \"auth != null\",\n        \".indexOn\": [\"bookingId\", \"timestamp\"]\n      }\n    }\n  }\n}\n"
+[debug] [2025-10-16T19:30:15.778Z] 14:30:15.778 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - escolta-pro-fe90e-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 78ms, init: 0ms
+ {"metadata":{"emulator":{"name":"database"},"message":"14:30:15.778 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - escolta-pro-fe90e-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 78ms, init: 0ms\n"}}
+[debug] [2025-10-16T19:30:15.849Z] 14:30:15.849 [NamespaceSystem-blocking-namespace-operation-dispatcher-6] INFO com.firebase.core.namespace.StateManager - Namespace escolta-pro-fe90e-default-rtdb status Active to Active
+ {"metadata":{"emulator":{"name":"database"},"message":"14:30:15.849 [NamespaceSystem-blocking-namespace-operation-dispatcher-6] INFO com.firebase.core.namespace.StateManager - Namespace escolta-pro-fe90e-default-rtdb status Active to Active\n"}}
+[debug] [2025-10-16T19:30:15.869Z] <<< [apiv2][status] PUT http://127.0.0.1:9000/.settings/rules.json 200
+[debug] [2025-10-16T19:30:15.869Z] <<< [apiv2][body] PUT http://127.0.0.1:9000/.settings/rules.json {"status":"ok"}
+[debug] [2025-10-16T19:30:15.870Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────────┬────────────────┐
+│ Emulator       │ Host:Port      │
+├────────────────┼────────────────┤
+│ Authentication │ 127.0.0.1:9099 │
+├────────────────┼────────────────┤
+│ Functions      │ 127.0.0.1:5001 │
+├────────────────┼────────────────┤
+│ Firestore      │ 127.0.0.1:8080 │
+├────────────────┼────────────────┤
+│ Database       │ 127.0.0.1:9000 │
+├────────────────┼────────────────┤
+│ Pub/Sub        │ 127.0.0.1:8085 │
+├────────────────┼────────────────┤
+│ Storage        │ 127.0.0.1:9199 │
+├────────────────┼────────────────┤
+│ Extensions     │ 127.0.0.1:5001 │
+└────────────────┴────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500, 9150
+┌─────────────────────────┬───────────────┐
+│ Extension Instance Name │ Extension Ref │
+└─────────────────────────┴───────────────┘
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2025-10-16T19:37:32.613Z] Oct 16, 2025 2:37:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 16, 2025 2:37:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-10-16T19:37:35.673Z] Functions emulator received unknown request at path /
+[debug] [2025-10-16T19:37:46.221Z] >>> [apiv2][query] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast [none]
+[debug] [2025-10-16T19:37:46.221Z] >>> [apiv2][body] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast {"eventId":"b9795fd2-cbab-48fc-b7dd-bb1c9d75e8de","eventType":"providers/firebase.auth/eventTypes/user.create","resource":{"name":"projects/escolta-pro-fe90e","service":"firebaseauth.googleapis.com"},"params":{},"timestamp":"2025-10-16T19:37:46.220Z","data":{"uid":"jTcSgWOn7HYYA4uLvX2ocjmVGfLG","email":"client@demo.com","emailVerified":true,"displayName":"Demo Client","metadata":{"creationTime":"2025-10-16T19:37:46.218Z","lastSignInTime":"2025-10-16T19:37:46.218Z"},"customClaims":{},"providerData":[{"rawId":"client@demo.com","providerId":"password","displayName":"Demo Client","email":"client@demo.com","federatedId":"client@demo.com"}]}}
+[debug] [2025-10-16T19:37:46.236Z] <<< [apiv2][status] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast 200
+[debug] [2025-10-16T19:37:46.236Z] <<< [apiv2][body] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast {"status":"multicast_acknowledged"}
+[debug] [2025-10-16T19:37:46.437Z] Oct 16, 2025 2:37:46 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 16, 2025 2:37:46 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2025-10-16T19:37:47.289Z] >>> [apiv2][query] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast [none]
+[debug] [2025-10-16T19:37:47.289Z] >>> [apiv2][body] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast {"eventId":"fe3d51e7-352d-4302-821d-674eee615b60","eventType":"providers/firebase.auth/eventTypes/user.create","resource":{"name":"projects/escolta-pro-fe90e","service":"firebaseauth.googleapis.com"},"params":{},"timestamp":"2025-10-16T19:37:47.288Z","data":{"uid":"3dbaQP01KvZ9U8qa0CRpSn73U20J","email":"guard1@demo.com","emailVerified":true,"displayName":"Demo Guard","metadata":{"creationTime":"2025-10-16T19:37:47.288Z","lastSignInTime":"2025-10-16T19:37:47.288Z"},"customClaims":{},"providerData":[{"rawId":"guard1@demo.com","providerId":"password","displayName":"Demo Guard","email":"guard1@demo.com","federatedId":"guard1@demo.com"}]}}
+[debug] [2025-10-16T19:37:47.291Z] <<< [apiv2][status] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast 200
+[debug] [2025-10-16T19:37:47.291Z] <<< [apiv2][body] POST http://127.0.0.1:5001/functions/projects/escolta-pro-fe90e/trigger_multicast {"status":"multicast_acknowledged"}

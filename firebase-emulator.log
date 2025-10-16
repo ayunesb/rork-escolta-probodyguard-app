@@ -1,4 +1,5 @@
 i  emulators: Starting emulators: auth, functions, firestore, database, pubsub, storage, extensions
+⚠  emulators: It seems that you are running multiple instances of the emulator suite for project escolta-pro-fe90e. This may result in unexpected behavior.
 ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, hosting, dataconnect
 i  firestore: Firestore Emulator logging to firestore-debug.log
 ✔  firestore: Firestore Emulator UI websocket is running on 9150.
@@ -8,7 +9,7 @@ i  pubsub: Pub/Sub Emulator logging to pubsub-debug.log
 i  functions: Watching "/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions" for Cloud Functions...
 ✔  functions: Using node@20 from host.
 i  functions: Loaded environment variables from .env.
-Serving at port 8187
+Serving at port 8086
 
 [Braintree] Using credentials: {
   merchantId: '8jbcpm9yj7df7w4h',
@@ -50,18 +51,3 @@ Serving at port 8187
 [90m└─────────────────────────[39m[90m┴───────────────┘[39m
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
- 
-i  emulators: Received SIGTERM for the first time. Starting a clean shutdown.
-i  emulators: Please wait for a clean shutdown or send the SIGTERM signal again to stop right now.
-i  emulators: Shutting down emulators.
-i  extensions: Stopping Extensions Emulator
-i  functions: Stopping Functions Emulator
-i  database: Stopping Database Emulator
-i  firestore: Stopping Firestore Emulator
-i  pubsub: Stopping Pub/Sub Emulator
-i  auth: Stopping Authentication Emulator
-i  storage: Stopping Storage Emulator
-i  eventarc: Stopping Eventarc Emulator
-i  tasks: Stopping Cloud Tasks Emulator
-i  hub: Stopping emulator hub
-i  logging: Stopping Logging Emulator

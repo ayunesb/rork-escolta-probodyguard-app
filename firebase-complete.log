@@ -2,18 +2,16 @@ i  emulators: Starting emulators: auth, functions, firestore
 ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, hosting, pubsub, storage, dataconnect
 i  firestore: Firestore Emulator logging to firestore-debug.log
 ✔  firestore: Firestore Emulator UI websocket is running on 9150.
+⚠  emulators: The Emulator UI is not starting because none of the running emulators have a UI component.
 i  functions: Watching "/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions" for Cloud Functions...
-⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory.
-⚠  functions: Please note that there will be breaking changes when you upgrade.
-⚠  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host.
+✔  functions: Using node@20 from host.
 i  functions: Loaded environment variables from .env.
-i  functions: You are using a version of firebase-functions SDK (4.9.0) that does not have support for the newest Firebase Extensions features. Please update firebase-functions SDK to >=5.1.0 to use them correctly
-Serving at port 8100
+Serving at port 8806
 
 [Braintree] Using credentials: {
-  merchantId: '8jbpcm9yj7df7w4h',
-  publicKey: 'sandbox_p2dkbpfh_8jbpcm9yj7df7w4h',
-  privateKey: '93d6e4e2...'
+  merchantId: '8jbcpm9yj7df7w4h',
+  publicKey: 'fnjq66rkd6vbkmxt',
+  privateKey: 'c96f93d2...'
 }
 
 ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics.
@@ -24,71 +22,19 @@ i  functions[us-central1-recordUsageMetrics]: function ignored because the pubsu
 
 [90m┌─────────────────────────────────────────────────────────────┐[39m
 [90m│[39m ✔  All emulators ready! It is now safe to connect your app. [90m│[39m
-[90m│[39m i  View Emulator UI at http://127.0.0.1:4000/               [90m│[39m
 [90m└─────────────────────────────────────────────────────────────┘[39m
 
-[90m┌────────────────[39m[90m┬────────────────[39m[90m┬─────────────────────────────────┐[39m
-[90m│[39m[33m Emulator       [39m[90m│[39m[33m Host:Port      [39m[90m│[39m[33m View in Emulator UI             [39m[90m│[39m
-[90m├────────────────[39m[90m┼────────────────[39m[90m┼─────────────────────────────────┤[39m
-[90m│[39m Authentication [90m│[39m 127.0.0.1:9099 [90m│[39m http://127.0.0.1:4000/auth      [90m│[39m
-[90m├────────────────[39m[90m┼────────────────[39m[90m┼─────────────────────────────────┤[39m
-[90m│[39m Functions      [90m│[39m 127.0.0.1:5001 [90m│[39m http://127.0.0.1:4000/functions [90m│[39m
-[90m├────────────────[39m[90m┼────────────────[39m[90m┼─────────────────────────────────┤[39m
-[90m│[39m Firestore      [90m│[39m 127.0.0.1:8080 [90m│[39m http://127.0.0.1:4000/firestore [90m│[39m
-[90m└────────────────[39m[90m┴────────────────[39m[90m┴─────────────────────────────────┘[39m
+[90m┌────────────────[39m[90m┬────────────────┐[39m
+[90m│[39m[33m Emulator       [39m[90m│[39m[33m Host:Port      [39m[90m│[39m
+[90m├────────────────[39m[90m┼────────────────┤[39m
+[90m│[39m Authentication [90m│[39m 127.0.0.1:9099 [90m│[39m
+[90m├────────────────[39m[90m┼────────────────┤[39m
+[90m│[39m Functions      [90m│[39m 127.0.0.1:5001 [90m│[39m
+[90m├────────────────[39m[90m┼────────────────┤[39m
+[90m│[39m Firestore      [90m│[39m 127.0.0.1:8080 [90m│[39m
+[90m└────────────────[39m[90m┴────────────────┘[39m
   Emulator Hub host: 127.0.0.1 port: 4400
   Other reserved ports: 4500, 9150
 
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
-i  functions: Loaded environment variables from .env.
->  [Braintree] Using credentials: {
->    merchantId: '8jbpcm9yj7df7w4h',
->    publicKey: 'sandbox_p2dkbpfh_8jbpcm9yj7df7w4h',
->    privateKey: '93d6e4e2...'
->  }
-i  functions: Beginning execution of "us-central1-api"
->  [ClientToken] Error: Error [authenticationError]: Authentication Error
->      at Object.AuthenticationError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
->      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:29:27)
->      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
->      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
->      at IncomingMessage.emit (node:events:536:35)
->      at endReadableNT (node:internal/streams/readable:1698:12)
->      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
->    type: 'authenticationError'
->  }
-i  functions: Finished "us-central1-api" in 563.354375ms
-i  functions: Beginning execution of "us-central1-api"
->  [ClientToken] Error: Error [authenticationError]: Authentication Error
->      at Object.AuthenticationError (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/exceptions.js:7:15)
->      at Http.checkHttpStatus (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:29:27)
->      at Http.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/@braintree/wrap-promise/dist/wrap-promise.js:22:59)
->      at IncomingMessage.<anonymous> (/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/braintree/lib/braintree/http.js:118:28)
->      at IncomingMessage.emit (node:events:536:35)
->      at endReadableNT (node:internal/streams/readable:1698:12)
->      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
->    type: 'authenticationError'
->  }
-i  functions: Finished "us-central1-api" in 251.890042ms
- 
-i  emulators: Received SIGTERM for the first time. Starting a clean shutdown.
-i  emulators: Please wait for a clean shutdown or send the SIGTERM signal again to stop right now.
-i  emulators: Shutting down emulators.
-i  ui: Stopping Emulator UI
-i  functions: Stopping Functions Emulator
-i  firestore: Stopping Firestore Emulator
-⚠  firestore: Fatal error occurred: 
-   Firestore Emulator has exited with code: 143, 
-   stopping all running emulators
-i  firestore: Stopping Firestore Emulator
-i  auth: Stopping Authentication Emulator
-i  auth: Stopping Authentication Emulator
-i  eventarc: Stopping Eventarc Emulator
-i  eventarc: Stopping Eventarc Emulator
-i  tasks: Stopping Cloud Tasks Emulator
-i  tasks: Stopping Cloud Tasks Emulator
-i  hub: Stopping emulator hub
-i  hub: Stopping emulator hub
-i  logging: Stopping Logging Emulator
-i  logging: Stopping Logging Emulator

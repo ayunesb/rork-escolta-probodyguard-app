@@ -1,0 +1,150 @@
+[debug] [2025-10-16T18:25:01.401Z] ----------------------------------------------------------------------
+[debug] [2025-10-16T18:25:01.429Z] Command:       /Users/abrahamyunes/.nvm/versions/node/v20.19.5/bin/node /opt/homebrew/bin/firebase emulators:start --only auth,firestore,functions
+[debug] [2025-10-16T18:25:01.430Z] CLI Version:   14.18.0
+[debug] [2025-10-16T18:25:01.430Z] Platform:      darwin
+[debug] [2025-10-16T18:25:01.430Z] Node Version:  v20.19.5
+[debug] [2025-10-16T18:25:01.430Z] Time:          Thu Oct 16 2025 13:25:01 GMT-0500 (Eastern Standard Time)
+[debug] [2025-10-16T18:25:01.431Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-16T18:25:02.046Z] Object "/emulators/storage" in "firebase.json" has unknown property: {"additionalProperty":"rules"}
+[debug] [2025-10-16T18:25:02.070Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-16T18:25:02.071Z] > authorizing via signed-in user (natasha.imrie@gmail.com)
+[debug] [2025-10-16T18:25:03.275Z] openjdk version "21.0.4" 2024-07-16 LTS
+
+[debug] [2025-10-16T18:25:03.277Z] OpenJDK Runtime Environment Temurin-21.0.4+7 (build 21.0.4+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.4+7 (build 21.0.4+7-LTS, mixed mode)
+
+[debug] [2025-10-16T18:25:03.284Z] Parsed Java major version: 21
+[info] i  emulators: Starting emulators: auth, functions, firestore {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore"}}
+[debug] [2025-10-16T18:25:07.764Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T18:25:07.805Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T18:25:07.806Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T18:25:07.806Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T18:25:07.809Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-10-16T18:25:07.953Z] Emulator locator file path: /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/hub-escolta-pro-fe90e.json
+[debug] [2025-10-16T18:25:07.958Z] [hub] writing locator at /var/folders/9g/3bss2cbs1q77f5g16lsctgjm0000gn/T/hub-escolta-pro-fe90e.json
+[debug] [2025-10-16T18:25:11.419Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T18:25:11.420Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T18:25:11.420Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-16T18:25:11.420Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, hosting, pubsub, storage, dataconnect"}}
+[debug] [2025-10-16T18:25:11.694Z] defaultcredentials: writing to file /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json
+[debug] [2025-10-16T18:25:11.778Z] Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/abrahamyunes/.config/firebase/natasha_imrie_gmail.com_application_default_credentials.json"}}
+[debug] [2025-10-16T18:25:11.781Z] Checked if tokens are valid: false, expires at: 1760638641460
+[debug] [2025-10-16T18:25:11.781Z] Checked if tokens are valid: false, expires at: 1760638641460
+[debug] [2025-10-16T18:25:11.781Z] > refreshing access token with scopes: []
+[debug] [2025-10-16T18:25:11.804Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-16T18:25:11.804Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-16T18:25:12.170Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-16T18:25:12.170Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-16T18:25:12.359Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e/adminSdkConfig [none]
+[debug] [2025-10-16T18:25:12.875Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e/adminSdkConfig 200
+[debug] [2025-10-16T18:25:12.876Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/escolta-pro-fe90e/adminSdkConfig {"projectId":"escolta-pro-fe90e","databaseURL":"https://escolta-pro-fe90e-default-rtdb.firebaseio.com","storageBucket":"escolta-pro-fe90e.firebasestorage.app"}
+[debug] [2025-10-16T18:25:12.977Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-16T18:25:12.978Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2025-10-16T18:25:12.978Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/Users/abrahamyunes/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","escolta-pro-fe90e","--rules","/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/firestore.rules","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/Users/abrahamyunes/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"escolta-pro-fe90e\",\"--rules\",\"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/firestore.rules\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to firestore-debug.log"}}
+[debug] [2025-10-16T18:25:19.223Z] Oct 16, 2025 1:25:19 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+INFO: Started WebSocket server on ws://127.0.0.1:9150
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 16, 2025 1:25:19 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://127.0.0.1:9150\n"}}
+[debug] [2025-10-16T18:25:19.300Z] API endpoint: http://127.0.0.1:8080
+If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
+
+   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+
+If you are running a Firestore in Datastore Mode project, run:
+
+   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080
+
+Note: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.
+Dev App Server is now running.
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"API endpoint: http://127.0.0.1:8080\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\n\n   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080\n\nIf you are running a Firestore in Datastore Mode project, run:\n\n   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080\n\nNote: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.\nDev App Server is now running.\n\n"}}
+[info] ✔  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
+[warn] ⚠  emulators: The Emulator UI is not starting because none of the running emulators have a UI component. {"metadata":{"emulator":{"name":"hub"},"message":"The Emulator UI is not starting because none of the running emulators have a UI component."}}
+[info] i  functions: Watching "/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions\" for Cloud Functions..."}}
+[debug] [2025-10-16T18:25:46.361Z] Validating nodejs source
+[debug] [2025-10-16T18:25:48.798Z] > [functions] package.json contents: {
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Escolta Pro",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "braintree": "^3.33.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/braintree": "^3.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/jest": "^29.5.4",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "jest": "^29.6.1",
+    "node-mocks-http": "^1.11.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "~5.8.3"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+[debug] [2025-10-16T18:25:48.799Z] Building nodejs source
+[debug] [2025-10-16T18:25:48.801Z] Failed to find version of module node: reached end of search path /Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules
+[info] ✔  functions: Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2025-10-16T18:25:48.815Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-16T18:25:48.855Z] Found firebase-functions binary at '/Users/abrahamyunes/blindado/rork-escolta-probodyguard-app/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8806
+
+[info] [Braintree] Using credentials: {
+  merchantId: '8jbcpm9yj7df7w4h',
+  publicKey: 'fnjq66rkd6vbkmxt',
+  privateKey: 'c96f93d2...'
+}
+
+[debug] [2025-10-16T18:25:54.232Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"api"},"processPayouts":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every monday 09:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"processPayouts"},"generateInvoice":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateInvoice"},"recordUsageMetrics":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:00","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetrySeconds":null,"minBackoffSeconds":null,"maxBackoffSeconds":null},"timeZone":null},"entryPoint":"recordUsageMetrics"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: api, processPayouts, generateInvoice, recordUsageMetrics."}}
+[info] ✔  functions[us-central1-api]: http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/api). {"metadata":{"emulator":{"name":"functions"},"message":"http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/api)."}}
+[info] i  functions[us-central1-processPayouts]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] ✔  functions[us-central1-generateInvoice]: http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/generateInvoice). {"metadata":{"emulator":{"name":"functions"},"message":"http function initialized (http://127.0.0.1:5001/escolta-pro-fe90e/us-central1/generateInvoice)."}}
+[info] i  functions[us-central1-recordUsageMetrics]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[debug] [2025-10-16T18:25:58.498Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────────┬────────────────┐
+│ Emulator       │ Host:Port      │
+├────────────────┼────────────────┤
+│ Authentication │ 127.0.0.1:9099 │
+├────────────────┼────────────────┤
+│ Functions      │ 127.0.0.1:5001 │
+├────────────────┼────────────────┤
+│ Firestore      │ 127.0.0.1:8080 │
+└────────────────┴────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500, 9150
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 

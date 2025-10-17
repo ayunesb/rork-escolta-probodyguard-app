@@ -80,21 +80,25 @@ export default function BookingPaymentScreen() {
           {
             text: 'View Booking',
             onPress: () => {
-              router.replace({
-                pathname: '/booking-active',
-                params: {
-                  bookingId,
-                  guardId: params.guardId,
-                  guardName: params.guardName,
-                  guardPhoto: params.guardPhoto,
-                  startCode,
-                  date: params.date,
-                  time: params.time,
-                  duration: params.duration,
-                  pickupAddress: params.pickupAddress,
-                  transactionId: result.id,
-                },
-              } as any);
+              // Add delay to ensure alert is fully dismissed before navigation
+              // This prevents UIKit view controller presentation conflicts
+              setTimeout(() => {
+                router.replace({
+                  pathname: '/booking-active',
+                  params: {
+                    bookingId,
+                    guardId: params.guardId,
+                    guardName: params.guardName,
+                    guardPhoto: params.guardPhoto,
+                    startCode,
+                    date: params.date,
+                    time: params.time,
+                    duration: params.duration,
+                    pickupAddress: params.pickupAddress,
+                    transactionId: result.id,
+                  },
+                } as any);
+              }, 300);
             },
           },
         ]

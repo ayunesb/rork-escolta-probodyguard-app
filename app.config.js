@@ -60,7 +60,10 @@ export default {
       eas: {
         projectId: '7cee6c31-9a1c-436d-9baf-57fc8a43b651'
       }
-    }
+    },
+    plugins: [
+      'expo-web-browser'
+    ]
   }
   ,
   scheme: 'nobodyguard'

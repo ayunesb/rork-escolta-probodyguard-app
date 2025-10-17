@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,13 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  Linking,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
 import { CreditCard, X, Check } from 'lucide-react-native';
 import { paymentService, PaymentBreakdown } from '@/services/paymentService';
 import { SavedPaymentMethod } from '@/types';
 import Colors from '@/constants/colors';
+import { ENV } from '@/config/env';
 
 const TEXT_COLOR = Colors.textPrimary;
 
@@ -42,7 +43,6 @@ export default function PaymentSheet({
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
   const [clientToken, setClientToken] = useState<string | null>(null);
-  const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
     console.log('[PaymentSheet] Visibility changed:', visible);
@@ -52,6 +52,57 @@ export default function PaymentSheet({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, userId, bookingId]);
+
+  // Set up deep link listener for payment returns
+  useEffect(() => {
+    const handleDeepLink = async ({ url }: { url: string }) => {
+      console.log('[PaymentSheet] Deep link received:', url);
+      
+      if (url.includes('payment/success')) {
+        try {
+          const urlObj = new URL(url);
+          const nonce = urlObj.searchParams.get('nonce');
+          
+          if (nonce) {
+            console.log('[PaymentSheet] Processing payment with nonce:', nonce);
+            setLoading(true);
+            
+            const result = await paymentService.processPayment(
+              nonce,
+              breakdown.total,
+              bookingId,
+              userId,
+              false // Don't save card for now
+            );
+            
+            if (result.success && result.transactionId) {
+              console.log('[PaymentSheet] Payment successful! Transaction ID:', result.transactionId);
+              onSuccess(result.transactionId);
+            } else {
+              console.error('[PaymentSheet] Payment failed:', result.error);
+              Alert.alert('Pago Fallido', result.error || 'Por favor intenta de nuevo');
+            }
+          } else {
+            Alert.alert('Error', 'No se recibió el token de pago');
+          }
+        } catch (error) {
+          console.error('[PaymentSheet] Error processing payment:', error);
+          Alert.alert('Error', 'Error al procesar el pago');
+        } finally {
+          setLoading(false);
+        }
+      } else if (url.includes('payment/cancel')) {
+        console.log('[PaymentSheet] Payment cancelled by user');
+        setLoading(false);
+      }
+    };
+    
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    
+    return () => {
+      subscription.remove();
+    };
+  }, [breakdown.total, bookingId, userId, onSuccess]);
 
   const loadSavedCards = async () => {
     try {
@@ -80,6 +131,32 @@ export default function PaymentSheet({
       Alert.alert('Error', 'Failed to initialize payment. Please try again.');
     } finally {
       setLoadingToken(false);
+    }
+  };
+
+  const openHostedPaymentPage = async () => {
+    if (!clientToken) {
+      Alert.alert('Error', 'Payment not initialized. Please try again.');
+      return;
+    }
+
+    try {
+      const returnUrl = 'nobodyguard://payment/success';
+      const url = `${ENV.API_URL}/payments/hosted-form?clientToken=${encodeURIComponent(clientToken)}&amount=${breakdown.total}&returnUrl=${encodeURIComponent(returnUrl)}`;
+      
+      console.log('[PaymentSheet] Opening hosted payment page:', url);
+      
+      // Use Linking.openURL instead of WebBrowser for now (doesn't require rebuild)
+      const supported = await Linking.canOpenURL(url);
+      
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Cannot open payment page');
+      }
+    } catch (error) {
+      console.error('[PaymentSheet] Error opening payment page:', error);
+      Alert.alert('Error', 'Failed to open payment page');
     }
   };
 
@@ -124,225 +201,6 @@ export default function PaymentSheet({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleWebViewMessage = async (event: any) => {
-    try {
-      console.log('[PaymentSheet] Received message from WebView:', event.nativeEvent.data);
-      const data = JSON.parse(event.nativeEvent.data);
-      console.log('[PaymentSheet] Parsed message:', data);
-      
-      if (data.type === 'payment_nonce') {
-        console.log('[PaymentSheet] Processing payment nonce...');
-        setLoading(true);
-        const result = await paymentService.processPayment(
-          data.nonce,
-          breakdown.total,
-          bookingId,
-          userId,
-          data.saveCard || false
-        );
-
-        console.log('[PaymentSheet] Payment result:', { success: result.success, requiresAction: result.requiresAction });
-
-        if (result.success && result.transactionId) {
-          console.log('[PaymentSheet] Payment successful! Transaction ID:', result.transactionId);
-          onSuccess(result.transactionId);
-        } else if (result.requiresAction && result.actionUrl) {
-          console.log('[PaymentSheet] 3DS required, URL:', result.actionUrl);
-          if (webViewRef.current) {
-            webViewRef.current.injectJavaScript(`
-              window.location.href = '${result.actionUrl}';
-            `);
-          }
-        } else {
-          console.error('[PaymentSheet] Payment failed:', result.error);
-          Alert.alert('Payment Failed', result.error || 'Please try again');
-          setLoading(false);
-        }
-      } else if (data.type === 'payment_error') {
-        console.error('[PaymentSheet] Payment error from WebView:', data.message);
-        Alert.alert('Error', data.message || 'Payment failed');
-        setLoading(false);
-      } else if (data.type === 'test_message') {
-        console.log('[PaymentSheet] ✅ TEST MESSAGE RECEIVED:', data.message);
-      } else if (data.type === 'debug_message') {
-        console.log('[PaymentSheet] 🔍 DEBUG:', data.message);
-      } else {
-        console.warn('[PaymentSheet] Unknown message type:', data.type);
-      }
-    } catch (error) {
-      console.error('[PaymentSheet] WebView message error:', error);
-      console.error('[PaymentSheet] Raw message:', event.nativeEvent.data);
-      setLoading(false);
-    }
-  };
-
-  const getDropInHTML = () => {
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <script src="https://js.braintreegateway.com/web/dropin/1.43.0/js/dropin.min.js"></script>
-          <style>
-            body {
-              margin: 0;
-              padding: 16px;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background-color: ${Colors.background};
-            }
-            #dropin-container {
-              min-height: 300px;
-            }
-            .pay-button {
-              width: 100%;
-              padding: 16px;
-              background-color: ${Colors.gold};
-              color: ${Colors.background};
-              border: none;
-              border-radius: 12px;
-              font-size: 16px;
-              font-weight: 700;
-              margin-top: 16px;
-              cursor: pointer;
-            }
-            .pay-button:disabled {
-              opacity: 0.6;
-              cursor: not-allowed;
-            }
-          </style>
-        </head>
-        <body>
-          <div id="dropin-container"></div>
-          <button id="pay-button" class="pay-button" disabled>Pay ${paymentService.formatMXN(breakdown.total)}</button>
-          
-          <script>
-            console.log('[WebView] Starting Braintree initialization...');
-            
-            // Add error logging
-            window.onerror = function(msg, url, line, col, error) {
-              console.error('[WebView] Error:', msg, 'at', url, line, col);
-              if (window.ReactNativeWebView) {
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                  type: 'payment_error',
-                  message: 'JavaScript error: ' + msg
-                }));
-              }
-              return false;
-            };
-
-            var button = document.querySelector('#pay-button');
-            var clientToken = '${clientToken}';
-            
-            console.log('[WebView] Client token length:', clientToken.length);
-            console.log('[WebView] Button found:', !!button);
-            console.log('[WebView] ReactNativeWebView available:', !!window.ReactNativeWebView);
-
-            // Test message immediately
-            if (window.ReactNativeWebView) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'test_message',
-                message: 'WebView JavaScript is running!'
-              }));
-            } else {
-              alert('ReactNativeWebView not found!');
-            }
-
-            console.log('[WebView] About to call braintree.dropin.create...');
-            
-            braintree.dropin.create({
-              authorization: clientToken,
-              container: '#dropin-container',
-              locale: 'es_MX',
-              card: {
-                cardholderName: {
-                  required: false
-                },
-                cvv: {
-                  required: true
-                },
-                expirationDate: {
-                  required: true
-                },
-                postalCode: {
-                  required: true
-                }
-              }
-            }, function (createErr, instance) {
-              console.log('[WebView] Dropin create callback called');
-              
-              if (createErr) {
-                console.error('[WebView] Dropin creation error:', createErr);
-                console.error('[WebView] Error name:', createErr.name);
-                console.error('[WebView] Error message:', createErr.message);
-                console.error('[WebView] Error code:', createErr.code);
-                
-                if (window.ReactNativeWebView) {
-                  window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'payment_error',
-                    message: 'Braintree error: ' + (createErr.message || createErr.code || 'Unknown error')
-                  }));
-                }
-                return;
-              }
-
-              console.log('[WebView] Dropin created successfully');
-              console.log('[WebView] Instance object:', typeof instance);
-              button.disabled = false;
-              console.log('[WebView] Pay button enabled');
-
-              button.addEventListener('click', function () {
-                console.log('[WebView] Pay button clicked!');
-                button.disabled = true;
-                button.textContent = 'Processing...';
-
-                // Send immediate message to confirm button click
-                if (window.ReactNativeWebView) {
-                  window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'debug_message',
-                    message: 'Button clicked, calling requestPaymentMethod...'
-                  }));
-                }
-
-                instance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
-                  console.log('[WebView] Payment method callback called');
-                  
-                  if (requestPaymentMethodErr) {
-                    console.error('[WebView] Payment method error:', requestPaymentMethodErr);
-                    if (window.ReactNativeWebView) {
-                      window.ReactNativeWebView.postMessage(JSON.stringify({
-                        type: 'payment_error',
-                        message: requestPaymentMethodErr.message || 'Payment failed'
-                      }));
-                    }
-                    button.disabled = false;
-                    button.textContent = 'Pay ${paymentService.formatMXN(breakdown.total)}';
-                    return;
-                  }
-
-                  console.log('[WebView] Payment nonce received:', payload.nonce.substring(0, 20) + '...');
-                  console.log('[WebView] Sending message to React Native...');
-                  
-                  if (window.ReactNativeWebView) {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                      type: 'payment_nonce',
-                      nonce: payload.nonce,
-                      saveCard: payload.vaulted || false
-                    }));
-                    console.log('[WebView] Message sent successfully');
-                  } else {
-                    console.error('[WebView] ReactNativeWebView not available!');
-                  }
-                });
-              });
-            });
-            
-            console.log('[WebView] Initialization script completed');
-          </script>
-        </body>
-      </html>
-    `;
   };
 
   return (
@@ -423,36 +281,19 @@ export default function PaymentSheet({
                     <Text style={styles.loadingText}>Loading payment form...</Text>
                   </View>
                 ) : clientToken ? (
-                  <View style={styles.webViewContainer}>
-                    <WebView
-                      ref={webViewRef}
-                      source={{ html: getDropInHTML() }}
-                      style={styles.webView}
-                      onMessage={handleWebViewMessage}
-                      javaScriptEnabled
-                      domStorageEnabled
-                      startInLoadingState
-                      onError={(syntheticEvent) => {
-                        const { nativeEvent } = syntheticEvent;
-                        console.error('[PaymentSheet] WebView error:', nativeEvent);
-                      }}
-                      onHttpError={(syntheticEvent) => {
-                        const { nativeEvent } = syntheticEvent;
-                        console.error('[PaymentSheet] WebView HTTP error:', nativeEvent);
-                      }}
-                      onLoadStart={() => console.log('[PaymentSheet] WebView load started')}
-                      onLoadEnd={() => console.log('[PaymentSheet] WebView load completed')}
-                      onContentProcessDidTerminate={() => {
-                        console.error('[PaymentSheet] WebView process terminated');
-                      }}
-                      renderLoading={() => (
-                        <ActivityIndicator
-                          size="large"
-                          color={Colors.gold}
-                          style={styles.webViewLoading}
-                        />
-                      )}
-                    />
+                  <View>
+                    <TouchableOpacity
+                      style={styles.openPaymentButton}
+                      onPress={openHostedPaymentPage}
+                    >
+                      <CreditCard size={24} color={Colors.background} />
+                      <Text style={styles.openPaymentButtonText}>
+                        Enter Card Details
+                      </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.securityNote}>
+                      🔒 Secure payment page powered by Braintree
+                    </Text>
                   </View>
                 ) : (
                   <View style={styles.errorContainer}>
@@ -697,22 +538,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
   },
-  webViewContainer: {
-    height: 450,
+  openPaymentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.gold,
     borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: Colors.surface,
+    padding: 20,
+    gap: 12,
   },
-  webView: {
-    flex: 1,
-    backgroundColor: Colors.background,
+  openPaymentButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.background,
   },
-  webViewLoading: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginLeft: -20,
-    marginTop: -20,
+  securityNote: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 12,
   },
   errorContainer: {
     padding: 40,

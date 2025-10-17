@@ -109,6 +109,63 @@ export const paymentService = {
     }
   },
 
+  async processCardDirectly(
+    cardNumber: string,
+    expirationDate: string,
+    cvv: string,
+    postalCode: string,
+    amount: number,
+    bookingId: string
+  ): Promise<PaymentResult> {
+    console.log('[Payment] Processing card directly:', { amount, bookingId });
+    
+    try {
+      const response = await fetch(`${ENV.API_URL}/payments/process-card`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cardNumber,
+          expirationDate,
+          cvv,
+          postalCode,
+          amount,
+          bookingId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error('[Payment] Card payment failed:', data.error);
+        return {
+          success: false,
+          error: data.error || 'Payment processing failed',
+        };
+      }
+
+      console.log('[Payment] Card payment successful:', data.transactionId);
+      
+      await addDoc(collection(getDbInstance(), 'payments'), {
+        bookingId,
+        amount,
+        transactionId: data.transactionId,
+        status: 'completed',
+        createdAt: serverTimestamp(),
+      });
+
+      return {
+        success: true,
+        transactionId: data.transactionId,
+      };
+    } catch (error) {
+      console.error('[Payment] Card payment processing error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Payment failed',
+      };
+    }
+  },
+
   calculateBreakdown(hourlyRate: number, duration: number): PaymentBreakdown {
     const subtotal = hourlyRate * duration;
     const processingFee = subtotal * PAYMENT_CONFIG.PROCESSING_FEE_PERCENT + PAYMENT_CONFIG.PROCESSING_FEE_FIXED;

@@ -263,6 +263,8 @@ PODS:
     - Yoga
   - ExpoSystemUI (6.0.7):
     - ExpoModulesCore
+  - ExpoWebBrowser (15.0.8):
+    - ExpoModulesCore
   - EXUpdatesInterface (2.0.0):
     - ExpoModulesCore
   - FBLazyVector (0.81.4)
@@ -2347,6 +2349,7 @@ DEPENDENCIES:
   - ExpoLocation (from `../node_modules/expo-location/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
+  - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - EXUpdatesInterface (from `../node_modules/expo-updates-interface/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -2508,6 +2511,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSystemUI:
     :path: "../node_modules/expo-system-ui/ios"
+  ExpoWebBrowser:
+    :path: "../node_modules/expo-web-browser/ios"
   EXUpdatesInterface:
     :path: "../node_modules/expo-updates-interface/ios"
   FBLazyVector:
@@ -2700,6 +2705,7 @@ SPEC CHECKSUMS:
   ExpoLocation: 1dc9e4c06ef66ed081348a11eb637d1dfecc7d61
   ExpoModulesCore: 4a96f8ae1f6caa63eea03d7a2406de1a87b1e961
   ExpoSystemUI: 5e7fbe4b716edb9e3a7bc0441e4a3b6b1f9eb1ea
+  ExpoWebBrowser: 51218ce6ef35ea769e33409aac87fea3df4b919d
   EXUpdatesInterface: 1436757deb0d574b84bba063bd024c315e0ec08b
   FBLazyVector: 9e0cd874afd81d9a4d36679daca991b58b260d42
   Firebase: f07b15ae5a6ec0f93713e30b923d9970d144af3e

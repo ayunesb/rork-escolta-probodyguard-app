@@ -30,6 +30,9 @@ export interface User {
   braintreeCustomerId?: string;
   savedPaymentMethods?: SavedPaymentMethod[];
   createdAt: string;
+  isActive: boolean;
+  emailVerified: boolean;
+  updatedAt: string;
 }
 
 export interface Client extends User {

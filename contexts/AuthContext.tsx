@@ -32,6 +32,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         const userRef = doc(getDbInstance(), "users", firebaseUser.uid);
         const snap = await getDoc(userRef);
         if (!snap.exists()) {
+          const now = new Date().toISOString();
           const minimal: Omit<User, "id"> = {
             email: firebaseUser.email ?? "",
             role: "client",
@@ -40,7 +41,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             phone: "",
             language: "en",
             kycStatus: "pending",
-            createdAt: new Date().toISOString(),
+            createdAt: now,
+            isActive: true,
+            emailVerified: false,
+            updatedAt: now,
           } as Omit<User, "id">;
           try {
             await setDoc(userRef, minimal);

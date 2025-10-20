@@ -15,9 +15,26 @@ export default {
     },
     assetBundlePatterns: ['**/*'],
     ios: {
-  supportsTablet: true,
-  bundleIdentifier: "com.escolta.pro"
-},
+      supportsTablet: true,
+      bundleIdentifier: "com.escolta.pro",
+      infoPlist: {
+        NSAppTransportSecurity: {
+          NSAllowsArbitraryLoads: false,
+          NSExceptionDomains: {
+            'localhost': {
+              NSExceptionAllowsInsecureHTTPLoads: true
+            },
+            'exp.direct': {
+              NSExceptionAllowsInsecureHTTPLoads: true,
+              NSIncludesSubdomains: true
+            },
+            '127.0.0.1': {
+              NSExceptionAllowsInsecureHTTPLoads: true
+            }
+          }
+        }
+      }
+    },
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',

@@ -36,7 +36,7 @@ service cloud.firestore {
       );
       
       allow create: if isAuthenticated() && request.auth.uid == userId && 
-        request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt']);
+        request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt', 'isActive', 'emailVerified', 'updatedAt']);
       
       allow update: if isAuthenticated() && (
         request.auth.uid == userId ||

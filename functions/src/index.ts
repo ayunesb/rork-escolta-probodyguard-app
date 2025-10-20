@@ -16,11 +16,13 @@ const publicKey = process.env.BRAINTREE_PUBLIC_KEY;
 const privateKey = process.env.BRAINTREE_PRIVATE_KEY;
 
 if (!merchantId || !publicKey || !privateKey) {
-  console.error('[Braintree] Missing required credentials. Set BRAINTREE_MERCHANT_ID, BRAINTREE_PUBLIC_KEY, and BRAINTREE_PRIVATE_KEY in Firebase Functions config.');
-  throw new Error('Braintree credentials are not configured');
+  console.warn('[Braintree] Missing credentials. Functions will return errors until configured.');
+  console.warn('[Braintree] Set BRAINTREE_MERCHANT_ID, BRAINTREE_PUBLIC_KEY, and BRAINTREE_PRIVATE_KEY in .env file');
 }
 
-console.log('[Braintree] Using credentials:', { merchantId, publicKey, privateKey: privateKey.substring(0, 8) + '...' });
+if (merchantId && publicKey && privateKey) {
+  console.log('[Braintree] Using credentials:', { merchantId, publicKey, privateKey: privateKey.substring(0, 8) + '...' });
+}
 
 // Dynamic environment selection for production capability
 const braintreeEnvironment = process.env.BRAINTREE_ENV === 'production' 
@@ -29,19 +31,27 @@ const braintreeEnvironment = process.env.BRAINTREE_ENV === 'production'
 
 console.log('[Braintree] Environment:', process.env.BRAINTREE_ENV || 'sandbox (default)');
 
-const gateway = new braintree.BraintreeGateway({
-  environment: braintreeEnvironment,
-  merchantId,
-  publicKey,
-  privateKey,
-});
+// Initialize gateway only if credentials are present
+let gateway: braintree.BraintreeGateway | null = null;
+
+if (merchantId && publicKey && privateKey) {
+  gateway = new braintree.BraintreeGateway({
+    environment: braintreeEnvironment,
+    merchantId,
+    publicKey,
+    privateKey,
+  });
+  console.log('[Braintree] Gateway initialized successfully');
+} else {
+  console.warn('[Braintree] Gateway not initialized - credentials missing');
+}
 
 // === Payments routes (mobile expects /payments/*) ===
 app.get('/payments/client-token', async (req: Request, res: Response): Promise<void> => {
   try {
     // Verify Braintree credentials are configured
-    if (!privateKey || !merchantId || !publicKey) {
-      console.error('[ClientToken] Braintree credentials missing');
+    if (!gateway || !privateKey || !merchantId || !publicKey) {
+      console.error('[ClientToken] Braintree credentials missing or gateway not initialized');
       res.status(500).json({ 
         error: {
           code: 'PAYMENT_CONFIG_ERROR',
@@ -288,8 +298,16 @@ app.post('/payments/process', async (req: Request, res: Response) => {
       return;
     }
 
-    if (!privateKey || !merchantId) {
-      throw new Error('Braintree credentials missing');
+    // Verify gateway is configured (already checked at each endpoint but double-check here)
+    if (!gateway || !privateKey || !merchantId) {
+      console.error('[ProcessPayment] Gateway not initialized');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
     }
     
     if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
@@ -326,6 +344,18 @@ app.post('/payments/process', async (req: Request, res: Response) => {
     
     if (saveCard && saleRequest.options) {
       saleRequest.options.storeInVaultOnSuccess = true;
+    }
+    
+    // Verify gateway is initialized
+    if (!gateway) {
+      console.error('[ProcessPayment] Gateway not initialized');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
     }
     
     const result = await gateway.transaction.sale(saleRequest);
@@ -395,6 +425,18 @@ app.post('/payments/refund', async (req: Request, res: Response) => {
   try {
     const { transactionId, amount } = req.body;
     
+    // Verify gateway is initialized
+    if (!gateway) {
+      console.error('[RefundPayment] Gateway not initialized');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
+    }
+    
     const result = await gateway.transaction.refund(
       transactionId,
       amount ? amount.toString() : undefined
@@ -447,9 +489,16 @@ export async function handleCreatePaymentMethod(req: Request, res: Response): Pr
       return;
     }
 
-    // Ensure Braintree credentials are present
-    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
-      throw new Error('Braintree credentials missing');
+    // Verify gateway is configured (already checked earlier but double-check)
+    if (!gateway) {
+      console.error('[CreatePaymentMethod] Gateway not initialized - already checked but re-validating');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
     }
 
     // Only use mock in explicit Jest test environment
@@ -471,6 +520,20 @@ export async function handleCreatePaymentMethod(req: Request, res: Response): Pr
       failOnDuplicatePaymentMethod: true,
     };
     if (make_default) createParams.options.makeDefault = true;
+
+    console.log('[CreatePaymentMethod] Creating payment method with params:', createParams);
+    
+    // Verify gateway is initialized
+    if (!gateway) {
+      console.error('[CreatePaymentMethod] Gateway not initialized');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
+    }
 
     const result = await (gateway.paymentMethod as any).create(createParams as any);
 
@@ -497,9 +560,16 @@ app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
 
-    // Ensure Braintree credentials are present
-    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
-      throw new Error('Braintree credentials missing');
+    // Verify gateway is configured (already checked earlier but double-check)
+    if (!gateway) {
+      console.error('[ListPaymentMethods] Gateway not initialized - already checked but re-validating');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
     }
 
     // Only use mock in explicit Jest test environment
@@ -511,6 +581,18 @@ app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
           { token: 'mock-pm-1', type: 'CreditCard', default: true, cardType: 'Visa', maskedNumber: '****1111' },
           { token: 'mock-pm-2', type: 'CreditCard', default: false, cardType: 'MasterCard', maskedNumber: '****4444' }
         ]
+      });
+      return;
+    }
+
+    // Verify gateway is initialized
+    if (!gateway) {
+      console.error('[ListPaymentMethods] Gateway not initialized');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
       });
       return;
     }
@@ -543,15 +625,34 @@ app.delete('/payments/methods/:userId/:token', async (req: Request, res: Respons
   try {
     const { token } = req.params;
     
-    // Ensure Braintree credentials are present
-    if (!process.env.BRAINTREE_PRIVATE_KEY || !process.env.BRAINTREE_MERCHANT_ID) {
-      throw new Error('Braintree credentials missing');
+    // Verify gateway is configured (already checked earlier but double-check)
+    if (!gateway) {
+      console.error('[DeletePaymentMethod] Gateway not initialized - already checked but re-validating');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
     }
     
     // Only use mock in explicit Jest test environment
     if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
       console.warn('[DeleteMethod] Jest test mode active, returning mock success');
       res.json({ success: true });
+      return;
+    }
+    
+    // Verify gateway is initialized
+    if (!gateway) {
+      console.error('[DeletePaymentMethod] Gateway not initialized');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
       return;
     }
     
@@ -583,6 +684,18 @@ app.post('/webhooks/braintree', async (req: Request, res: Response) => {
       console.log('[Webhook] bt_signature:', bt_signature);
       console.log('[Webhook] bt_payload:', bt_payload);
       res.status(400).json({ error: 'Missing signature or payload' });
+      return;
+    }
+    
+    // Verify gateway is initialized
+    if (!gateway) {
+      console.error('[Webhook] Gateway not initialized');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
       return;
     }
     

@@ -13,6 +13,7 @@ import { RorkErrorBoundary as RootErrorBoundary } from "@/components/ErrorBounda
 import { initSentry } from "@/services/sentryService";
 import { analyticsService } from "@/services/analyticsService";
 import { appCheckService } from "@/services/appCheckService";
+import { initializeFirebaseServices } from "@/lib/firebase";
 import Colors from "@/constants/colors";
 
 const queryClient = new QueryClient({
@@ -31,6 +32,9 @@ export default function RootLayout() {
     const initializeApp = async () => {
       try {
         console.log('[App] Starting initialization...');
+        
+        await initializeFirebaseServices();
+        console.log('[App] Firebase initialized');
         
         initSentry();
         console.log('[App] Sentry initialized');

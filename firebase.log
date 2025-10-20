@@ -50,3 +50,18 @@ Serving at port 8144
 [90m└─────────────────────────[39m[90m┴───────────────┘[39m
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
+ 
+i  emulators: Received SIGHUP for the first time. Starting a clean shutdown.
+i  emulators: Please wait for a clean shutdown or send the SIGHUP signal again to stop right now.
+i  emulators: Shutting down emulators.
+i  extensions: Stopping Extensions Emulator
+i  functions: Stopping Functions Emulator
+i  database: Stopping Database Emulator
+i  firestore: Stopping Firestore Emulator
+i  pubsub: Stopping Pub/Sub Emulator
+i  auth: Stopping Authentication Emulator
+i  storage: Stopping Storage Emulator
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

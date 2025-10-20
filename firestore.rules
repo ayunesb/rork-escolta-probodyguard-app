@@ -26,6 +26,7 @@ service cloud.firestore {
 
     // === USERS COLLECTION ===
     match /users/{userId} {
+      // Allow users to read their own document
       allow get: if isAuthenticated() && request.auth.uid == userId;
       
       allow list: if isAuthenticated() && (
@@ -35,8 +36,10 @@ service cloud.firestore {
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'company')
       );
       
+      // Allow users to create their own document with minimum required fields
+      // This is critical for new user sign-up flow
       allow create: if isAuthenticated() && request.auth.uid == userId && 
-        request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt', 'isActive', 'emailVerified', 'updatedAt']);
+        request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt']);
       
       allow update: if isAuthenticated() && (
         request.auth.uid == userId ||

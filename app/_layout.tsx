@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SessionProvider } from "@/contexts/SessionContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { LocationTrackingProvider } from "@/contexts/LocationTrackingContext";
@@ -54,7 +55,8 @@ export default function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
             <AuthProvider>
-              <LanguageProvider>
+              <SessionProvider>
+                <LanguageProvider>
                 <NotificationProvider>
                   <LocationTrackingProvider>
                     <Stack
@@ -64,7 +66,8 @@ export default function RootLayout() {
                     />
                   </LocationTrackingProvider>
                 </NotificationProvider>
-              </LanguageProvider>
+                </LanguageProvider>
+              </SessionProvider>
             </AuthProvider>
           </SafeAreaProvider>
         </GestureHandlerRootView>

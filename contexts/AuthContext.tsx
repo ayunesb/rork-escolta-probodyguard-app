@@ -14,6 +14,7 @@ import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { registerForPushNotificationsAsync } from "@/services/notificationService";
 import { rateLimitService } from "@/services/rateLimitService";
 import { monitoringService } from "@/services/monitoringService";
+import { validatePasswordStrength } from "@/utils/passwordValidation";
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
@@ -248,6 +249,13 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       needsVerification?: boolean;
     }> => {
       try {
+        const passwordValidation = validatePasswordStrength(password);
+        if (!passwordValidation.isValid) {
+          return {
+            success: false,
+            error: `Password is not strong enough: ${passwordValidation.feedback.join(', ')}`,
+          };
+        }
         console.log("[Auth] Signing up:", email, role);
         const userCredential = await createUserWithEmailAndPassword(
           getAuthInstance(),

@@ -4,6 +4,7 @@ import { getBraintreeGateway } from '@/backend/lib/braintree';
 import { PAYMENTS_CURRENCY } from '@/backend/config/env';
 import { db as getDb } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { rateLimitService } from '@/services/rateLimitService';
 
 export const braintreeCheckoutProcedure = protectedProcedure
   .input(
@@ -23,6 +24,18 @@ export const braintreeCheckoutProcedure = protectedProcedure
       customerId: input.customerId,
       bookingId: input.bookingId,
     });
+
+    const rateLimitCheck = await rateLimitService.checkRateLimit(
+      'payment',
+      ctx.userId
+    );
+    if (!rateLimitCheck.allowed) {
+      const errorMessage = rateLimitService.getRateLimitError(
+        'payment',
+        rateLimitCheck.blockedUntil!
+      );
+      throw new Error(errorMessage);
+    }
 
     try {
       const gateway = getBraintreeGateway();
@@ -79,6 +92,8 @@ export const braintreeCheckoutProcedure = protectedProcedure
       const firestore = getDb();
       const paymentRef = await addDoc(collection(firestore, 'payments'), paymentRecord);
       console.log('[Braintree] Payment record created:', paymentRef.id);
+
+      await rateLimitService.resetRateLimit('payment', ctx.userId);
 
       return {
         id: transaction.id,

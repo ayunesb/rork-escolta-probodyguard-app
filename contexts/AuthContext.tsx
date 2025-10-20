@@ -284,6 +284,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           language: "en",
           kycStatus: "pending",
           createdAt: new Date().toISOString(),
+          isActive: false,
+          emailVerified: false,
+          updatedAt: ""
         };
         await setDoc(doc(getDbInstance(), "users", userId), userData);
         console.log("[Auth] User document created:", userId);

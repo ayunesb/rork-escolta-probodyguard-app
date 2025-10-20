@@ -39,7 +39,7 @@ service cloud.firestore {
       // Allow users to create their own document with minimum required fields
       // This is critical for new user sign-up flow
       allow create: if isAuthenticated() && request.auth.uid == userId && 
-        request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt']);
+        request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt', 'isActive', 'emailVerified', 'updatedAt']);
       
       allow update: if isAuthenticated() && (
         request.auth.uid == userId ||

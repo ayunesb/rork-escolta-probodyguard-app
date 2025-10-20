@@ -1,4 +1,4 @@
-import createContextHook from '../shims/create-context-hook.cjs';
+import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';

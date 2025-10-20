@@ -171,7 +171,8 @@ export const realtimeDb = (): Database => {
   }
 };
 
-// Auto initialize when imported
-initializeFirebaseServices().catch(error => {
-  console.error('[Firebase] Auto-initialization failed:', error);
-});
+if (typeof window !== 'undefined') {
+  initializeFirebaseServices().catch(error => {
+    console.error('[Firebase] Auto-initialization failed:', error);
+  });
+}

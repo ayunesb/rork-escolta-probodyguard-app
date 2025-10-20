@@ -1,4 +1,4 @@
-import createContextHook from '../shims/create-context-hook.cjs';
+import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as Location from 'expo-location';
 import { Platform } from 'react-native';

@@ -1,9 +1,12 @@
-import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
-import { onSchedule } from 'firebase-functions/v2/scheduler';
-import * as admin from 'firebase-admin';
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import * as braintree from 'braintree';
+const functions = require('firebase-functions');
+const { onRequest, HttpsError, onCall } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const admin = require('firebase-admin');
+const express = require('express');
+const cors = require('cors');
+const braintree = require('braintree');
+
+import { Request, Response } from 'express';
 
 admin.initializeApp();
 

@@ -1,12 +1,9 @@
-const functions = require('firebase-functions');
-const { onRequest, HttpsError, onCall } = require('firebase-functions/v2/https');
-const { onSchedule } = require('firebase-functions/v2/scheduler');
-const admin = require('firebase-admin');
-const express = require('express');
-const cors = require('cors');
-const braintree = require('braintree');
-
-import { Request, Response } from 'express';
+import { onRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import * as admin from 'firebase-admin';
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import * as braintree from 'braintree';
 
 admin.initializeApp();
 
@@ -25,79 +22,76 @@ if (!merchantId || !publicKey || !privateKey) {
 
 console.log('[Braintree] Using credentials:', { merchantId, publicKey, privateKey: privateKey.substring(0, 8) + '...' });
 
+// Dynamic environment selection for production capability
+const braintreeEnvironment = process.env.BRAINTREE_ENV === 'production' 
+  ? braintree.Environment.Production 
+  : braintree.Environment.Sandbox;
+
+console.log('[Braintree] Environment:', process.env.BRAINTREE_ENV || 'sandbox (default)');
+
 const gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
+  environment: braintreeEnvironment,
   merchantId,
   publicKey,
   privateKey,
 });
 
 // === Payments routes (mobile expects /payments/*) ===
-app.get('/payments/client-token', async (req: Request, res: Response) => {
+app.get('/payments/client-token', async (req: Request, res: Response): Promise<void> => {
   try {
-    // Ensure Braintree credentials are present (check fallback values too)
-    if (!privateKey || !merchantId) {
-      throw new Error('Braintree credentials missing');
+    // Verify Braintree credentials are configured
+    if (!privateKey || !merchantId || !publicKey) {
+      console.error('[ClientToken] Braintree credentials missing');
+      res.status(500).json({ 
+        error: {
+          code: 'PAYMENT_CONFIG_ERROR',
+          message: 'Payment system is not properly configured'
+        }
+      });
+      return;
     }
 
-    // Only use mock in explicit Jest test environment
+    // Mock token for automated testing only
     if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
-      console.warn('[ClientToken] Jest test mode active, returning mock client token');
+      console.warn('[ClientToken] Test environment - returning mock token');
       res.json({ clientToken: 'mock-client-token-for-testing' });
       return;
     }
 
-    // Use mock for development when BRAINTREE_EMULATE_LOCAL is true or when credentials are invalid
-    if (process.env.BRAINTREE_EMULATE_LOCAL === 'true') {
-      console.warn('[ClientToken] Development mode active, returning sandbox-style mock client token');
-      res.json({ clientToken: 'sandbox_mock_' + Buffer.from(JSON.stringify({
-        authorizationFingerprint: 'mock_auth_fingerprint_' + Date.now(),
-        configUrl: 'https://api.sandbox.braintreegateway.com/merchants/mock/client_api/v1/configuration',
-        challenges: [],
-        environment: 'sandbox',
-        clientApiUrl: 'https://api.sandbox.braintreegateway.com:443/merchants/mock/client_api',
-        assetsUrl: 'https://assets.braintreegateway.com',
-        authUrl: 'https://auth.venmo.sandbox.braintreegateway.com',
-        analytics: { url: 'https://origin-analytics-sand.sandbox.braintree-api.com/mock' },
-        threeDSecureEnabled: false,
-        paypalEnabled: true,
-        paypal: { displayName: 'Mock Company', clientId: null, assetsUrl: 'https://checkout.paypal.com' }
-      })).toString('base64') });
-      return;
-    }
-
-    // Use promise wrapper for Braintree callback
-    const result = await new Promise((resolve, reject) => {
-      // Don't pass customerId unless we have a valid Braintree customer
+    // Generate client token from Braintree
+    const result = await new Promise<any>((resolve, reject) => {
       (gateway.clientToken.generate as any)({
-        // customerId: userId, // Remove this - we don't need to specify a customer for token generation
-      }, (err: any, result: any) => {
+        // Optional: include customerId here if implementing vaulted payment methods
+      }, (err: any, response: any) => {
         if (err) {
           reject(err);
         } else {
-          resolve(result);
+          resolve(response);
         }
       });
     });
 
-    const clientToken = (result as any)?.clientToken;
+    const clientToken = result?.clientToken;
 
     if (!clientToken) {
-      throw new Error('Failed to generate client token from Braintree');
+      throw new Error('Braintree returned empty client token');
     }
 
+    console.log('[ClientToken] Successfully generated token');
     res.json({ clientToken });
+    
   } catch (error) {
-    console.error('[ClientToken] Error:', error);
+    console.error('[ClientToken] Generation failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
     
-    // If Braintree authentication fails, fall back to mock for development
-    if ((error as any)?.type === 'authenticationError' && process.env.BRAINTREE_EMULATE_LOCAL === 'true') {
-      console.warn('[ClientToken] Braintree auth failed, falling back to mock token');
-      res.json({ clientToken: 'sandbox_mock_fallback_' + Date.now() });
-      return;
-    }
-    
-    res.status(500).json({ error: 'Failed to generate client token' });
+    res.status(500).json({ 
+      error: {
+        code: 'PAYMENT_TOKEN_GENERATION_FAILED',
+        message: 'Unable to initialize payment. Please try again.'
+      }
+    });
   }
 });
 
@@ -287,7 +281,7 @@ app.post('/payments/process', async (req: Request, res: Response) => {
   const db = admin.firestore();
   
   try {
-    const { nonce, amount, saveCard, bookingId, userId } = req.body;
+    const { nonce, amount, saveCard, bookingId, userId, deviceData } = req.body;
     
     if (!nonce || !amount) {
       res.status(400).json({ error: 'Missing required parameters: nonce and amount' });
@@ -317,11 +311,16 @@ app.post('/payments/process', async (req: Request, res: Response) => {
       status: 'initiated',
     });
     
-    const saleRequest: braintree.TransactionRequest = {
+    const saleRequest: any = {
       amount: amount.toString(),
       paymentMethodNonce: nonce,
+      deviceData: deviceData || undefined,
       options: {
         submitForSettlement: true,
+        // 3D Secure for Strong Customer Authentication (SCA) compliance
+        threeDSecure: {
+          required: process.env.BRAINTREE_3DS_REQUIRED === 'true',
+        },
       },
     };
     
@@ -365,7 +364,13 @@ app.post('/payments/process', async (req: Request, res: Response) => {
     }
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error('[ProcessPayment] Error:', error);
+    console.error('[ProcessPayment] Error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      userId: req.body.userId,
+      bookingId: req.body.bookingId,
+      amount: req.body.amount,
+      timestamp: new Date().toISOString()
+    });
     
     await db.collection('payment_attempts').add({
       userId: req.body.userId || null,
@@ -377,7 +382,12 @@ app.post('/payments/process', async (req: Request, res: Response) => {
       duration,
     });
     
-    res.status(500).json({ error: 'Payment processing failed' });
+    res.status(500).json({ 
+      error: {
+        code: 'PAYMENT_PROCESSING_FAILED',
+        message: 'Payment could not be processed. Please check your payment details and try again.'
+      }
+    });
   }
 });
 
@@ -402,8 +412,18 @@ app.post('/payments/refund', async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    console.error('[Refund] Error:', error);
-    res.status(500).json({ error: 'Refund processing failed' });
+    console.error('[Refund] Error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      transactionId: req.body.transactionId,
+      amount: req.body.amount,
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({ 
+      error: {
+        code: 'REFUND_PROCESSING_FAILED',
+        message: 'Unable to process refund. Please try again or contact support.'
+      }
+    });
   }
 });
 
@@ -590,6 +610,7 @@ app.post('/webhooks/braintree', async (req: Request, res: Response) => {
       verified: true,
     });
     
+    // Handle different webhook event types according to Braintree best practices
     switch (webhookNotification.kind) {
       case 'subscription_charged_successfully':
         console.log('[Webhook] Payment successful');
@@ -599,20 +620,68 @@ app.post('/webhooks/braintree', async (req: Request, res: Response) => {
         console.log('[Webhook] Payment failed');
         break;
         
+      case 'subscription_canceled':
+        console.log('[Webhook] Subscription canceled');
+        // TODO: Update subscription status in database
+        break;
+        
+      case 'subscription_expired':
+        console.log('[Webhook] Subscription expired');
+        // TODO: Update subscription status in database
+        break;
+        
+      case 'dispute_opened':
+        console.log('[Webhook] Dispute opened - requires attention!');
+        // TODO: Send alert notification to admin
+        break;
+        
+      case 'dispute_lost':
+        console.log('[Webhook] Dispute lost');
+        // TODO: Update transaction status
+        break;
+        
+      case 'dispute_won':
+        console.log('[Webhook] Dispute won');
+        // TODO: Update transaction status
+        break;
+        
+      case 'disbursement':
+        console.log('[Webhook] Funds disbursed');
+        // TODO: Update payout records
+        break;
+        
+      case 'disbursement_exception':
+        console.log('[Webhook] Disbursement failed');
+        // TODO: Handle failed payout
+        break;
+        
       case 'check':
         console.log('[Webhook] Check notification received');
         break;
         
       default:
         console.log('[Webhook] Unhandled notification kind:', webhookNotification.kind);
+        // Log for future implementation
+        await db.collection('unhandled_webhooks').add({
+          kind: webhookNotification.kind,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          data: JSON.stringify(webhookNotification),
+        });
     }
     
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error('[Webhook] Error:', error);
-    console.error('[Webhook] Error details:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('[Webhook] Error stack:', error instanceof Error ? error.stack : 'No stack');
-    res.status(500).json({ error: 'Webhook processing failed' });
+    console.error('[Webhook] Processing error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack',
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({ 
+      error: {
+        code: 'WEBHOOK_PROCESSING_FAILED',
+        message: 'Webhook could not be processed'
+      }
+    });
   }
 });
 

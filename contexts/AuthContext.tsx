@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { registerForPushNotificationsAsync } from "@/services/notificationService";
+import { pushNotificationService } from '@/services/pushNotificationService';
 import { rateLimitService } from "@/services/rateLimitService";
 import { monitoringService } from "@/services/monitoringService";
 import { validatePasswordStrength } from "@/utils/passwordValidation";
@@ -138,7 +139,6 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
                 console.log("[Auth] Expo Push Token:", token);
                 // Store the Expo push token in device registry for push notifications
                 try {
-                  const { pushNotificationService } = await import('@/services/pushNotificationService');
                   if (token && firebaseUser?.uid) {
                     await pushNotificationService.registerDevice(firebaseUser.uid, 'client');
                   }

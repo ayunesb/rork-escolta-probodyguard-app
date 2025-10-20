@@ -47,12 +47,12 @@ export default {
     },
     owner: 'ayunesb',
     extra: {
-      braintreeEnv: process.env.EXPO_PUBLIC_BRAINTREE_ENV,
-      braintreeMerchantId: process.env.EXPO_PUBLIC_BRAINTREE_MERCHANT_ID,
-      braintreePublicKey: process.env.EXPO_PUBLIC_BRAINTREE_PUBLIC_KEY,
-      braintreePrivateKey: process.env.EXPO_PUBLIC_BRAINTREE_PRIVATE_KEY,
-      testNonces: process.env.EXPO_PUBLIC_BRAINTREE_TEST_NONCES ? process.env.EXPO_PUBLIC_BRAINTREE_TEST_NONCES.split(',') : [],
+      // === BRAINTREE CONFIGURATION (CLIENT-SAFE) ===
+      // Only expose environment and tokenization key - never private credentials!
+      braintreeEnv: process.env.EXPO_PUBLIC_BRAINTREE_ENV || 'production',
+      braintreeTokenizationKey: process.env.EXPO_PUBLIC_BRAINTREE_TOKENIZATION_KEY,
 
+      // === FIREBASE CONFIGURATION ===
       firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
       firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
 

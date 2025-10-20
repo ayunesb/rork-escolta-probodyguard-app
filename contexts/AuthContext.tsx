@@ -1,5 +1,5 @@
 import createContextHook from "@nkzw/create-context-hook";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { User, UserRole } from "@/types";
 import { auth as getAuthInstance, db as getDbInstance } from "@/lib/firebase";
 import {
@@ -16,9 +16,15 @@ import { rateLimitService } from "@/services/rateLimitService";
 import { monitoringService } from "@/services/monitoringService";
 import { validatePasswordStrength } from "@/utils/passwordValidation";
 
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+const ACTIVITY_CHECK_INTERVAL_MS = 60 * 1000;
+
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const lastActivityRef = useRef<number>(Date.now());
+  const sessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activityCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const ensureUserDocument = useCallback(
     async (firebaseUser: { uid: string; email: string | null }) => {
@@ -307,6 +313,14 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const signOut = useCallback(async () => {
     try {
       console.log("[Auth] Signing out");
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+        sessionTimeoutRef.current = null;
+      }
+      if (activityCheckIntervalRef.current) {
+        clearInterval(activityCheckIntervalRef.current);
+        activityCheckIntervalRef.current = null;
+      }
       await firebaseSignOut(getAuthInstance());
     } catch (error) {
       console.error("[Auth] Sign out error:", error);
@@ -329,6 +343,38 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     },
     [user]
   );
+
+  const resetSessionTimeout = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+    }
+    sessionTimeoutRef.current = setTimeout(async () => {
+      console.log('[Auth] Session expired due to inactivity');
+      await monitoringService.trackEvent('session_timeout', { userId: user?.id });
+      await signOut();
+    }, SESSION_TIMEOUT_MS);
+  }, [user?.id, signOut]);
+
+  const checkSessionActivity = useCallback(() => {
+    const now = Date.now();
+    const inactiveTime = now - lastActivityRef.current;
+    if (inactiveTime >= SESSION_TIMEOUT_MS) {
+      console.log('[Auth] Session expired - no activity for 30 minutes');
+      signOut();
+    }
+  }, [signOut]);
+
+  useEffect(() => {
+    if (user) {
+      resetSessionTimeout();
+      activityCheckIntervalRef.current = setInterval(checkSessionActivity, ACTIVITY_CHECK_INTERVAL_MS);
+      return () => {
+        if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current);
+        if (activityCheckIntervalRef.current) clearInterval(activityCheckIntervalRef.current);
+      };
+    }
+  }, [user, resetSessionTimeout, checkSessionActivity]);
 
   const resendVerificationEmail = useCallback(async (): Promise<{
     success: boolean;
@@ -361,7 +407,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       signOut,
       updateUser,
       resendVerificationEmail,
+      resetSessionTimeout,
     }),
-    [user, isLoading, signIn, signUp, signOut, updateUser, resendVerificationEmail]
+    [user, isLoading, signIn, signUp, signOut, updateUser, resendVerificationEmail, resetSessionTimeout]
   );
 });

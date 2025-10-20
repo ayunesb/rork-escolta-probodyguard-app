@@ -11,9 +11,14 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-const merchantId = process.env.BRAINTREE_MERCHANT_ID || '8jbcpm9yj7df7w4h';
-const publicKey = process.env.BRAINTREE_PUBLIC_KEY || 'fnjq66rkd6vbkmxt';
-const privateKey = process.env.BRAINTREE_PRIVATE_KEY || 'c96f93d2d472395ed663393d6e4e2976';
+const merchantId = process.env.BRAINTREE_MERCHANT_ID;
+const publicKey = process.env.BRAINTREE_PUBLIC_KEY;
+const privateKey = process.env.BRAINTREE_PRIVATE_KEY;
+
+if (!merchantId || !publicKey || !privateKey) {
+  console.error('[Braintree] Missing required credentials. Set BRAINTREE_MERCHANT_ID, BRAINTREE_PUBLIC_KEY, and BRAINTREE_PRIVATE_KEY in Firebase Functions config.');
+  throw new Error('Braintree credentials are not configured');
+}
 
 console.log('[Braintree] Using credentials:', { merchantId, publicKey, privateKey: privateKey.substring(0, 8) + '...' });
 
@@ -272,74 +277,24 @@ app.get('/payments/hosted-form', async (req: Request, res: Response) => {
   }
 });
 
-// NEW: Server-side payment processing with raw card data
-// This bypasses WebView iframe limitations by processing cards directly server-side
-app.post('/payments/process-card', async (req: Request, res: Response) => {
-  try {
-    const { cardNumber, expirationDate, cvv, postalCode, amount, bookingId } = req.body;
-    
-    // Validate required parameters
-    if (!cardNumber || !expirationDate || !cvv || !amount) {
-      res.status(400).json({ 
-        success: false,
-        error: 'Missing required parameters: cardNumber, expirationDate, cvv, and amount' 
-      });
-      return;
-    }
 
-    console.log('[ProcessCard] Processing payment for booking:', bookingId);
-
-    // Only use mock in explicit Jest test environment
-    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
-      console.warn('[ProcessCard] Jest test mode active, returning mock transaction');
-      res.json({ 
-        success: true,
-        transactionId: 'mock-txn-' + Date.now(),
-        status: 'settled',
-        amount: amount
-      });
-      return;
-    }
-
-    // Parse expiration date (MM/YY format)
-    const [expMonth, expYear] = expirationDate.split('/').map((s: string) => s.trim());
-
-    // Process payment with Braintree using transaction.sale
-    // Note: This is a simplified approach. In production, you should:
-    // 1. Use Braintree's hosted fields or Drop-in UI for PCI compliance
-    // 2. Or tokenize card data server-side then process the token
-    //
-    // For now, we'll return an error suggesting to use the nonce-based flow
-    res.status(400).json({
-      success: false,
-      error: 'Direct card processing not supported. Please use the standard payment flow with tokenization.'
-    });
-    
-  } catch (error: any) {
-    console.error('[ProcessCard] Error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: error.message || 'Payment processing failed'
-    });
-  }
-});
 
 app.post('/payments/process', async (req: Request, res: Response) => {
+  const startTime = Date.now();
+  const db = admin.firestore();
+  
   try {
-    const { nonce, amount, saveCard } = req.body;
+    const { nonce, amount, saveCard, bookingId, userId } = req.body;
     
-    // Validate required parameters
     if (!nonce || !amount) {
       res.status(400).json({ error: 'Missing required parameters: nonce and amount' });
       return;
     }
 
-    // Ensure Braintree credentials are present (check fallback values too)
     if (!privateKey || !merchantId) {
       throw new Error('Braintree credentials missing');
     }
     
-    // Only use mock in explicit Jest test environment
     if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
       console.warn('[ProcessPayment] Jest test mode active, returning mock payment result');
       res.json({
@@ -350,6 +305,14 @@ app.post('/payments/process', async (req: Request, res: Response) => {
       });
       return;
     }
+    
+    await db.collection('payment_attempts').add({
+      userId: userId || null,
+      bookingId: bookingId || null,
+      amount,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      status: 'initiated',
+    });
     
     const saleRequest: braintree.TransactionRequest = {
       amount: amount.toString(),
@@ -364,20 +327,53 @@ app.post('/payments/process', async (req: Request, res: Response) => {
     }
     
     const result = await gateway.transaction.sale(saleRequest);
+    const duration = Date.now() - startTime;
     
     if (result.success) {
+      await db.collection('payment_attempts').add({
+        userId: userId || null,
+        bookingId: bookingId || null,
+        amount,
+        transactionId: result.transaction?.id,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'success',
+        duration,
+      });
+      
       res.json({
         success: true,
         transactionId: result.transaction?.id,
       });
     } else {
+      await db.collection('payment_attempts').add({
+        userId: userId || null,
+        bookingId: bookingId || null,
+        amount,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'failed',
+        error: result.message,
+        duration,
+      });
+      
       res.status(400).json({
         success: false,
         error: result.message,
       });
     }
   } catch (error) {
+    const duration = Date.now() - startTime;
     console.error('[ProcessPayment] Error:', error);
+    
+    await db.collection('payment_attempts').add({
+      userId: req.body.userId || null,
+      bookingId: req.body.bookingId || null,
+      amount: req.body.amount || null,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      duration,
+    });
+    
     res.status(500).json({ error: 'Payment processing failed' });
   }
 });
@@ -567,10 +563,18 @@ app.post('/webhooks/braintree', async (req: Request, res: Response) => {
       return;
     }
     
-    const webhookNotification = await gateway.webhookNotification.parse(
-      bt_signature,
-      bt_payload
-    );
+    let webhookNotification;
+    try {
+      webhookNotification = await gateway.webhookNotification.parse(
+        bt_signature,
+        bt_payload
+      );
+      console.log('[Webhook] Signature verified successfully');
+    } catch (verificationError) {
+      console.error('[Webhook] Signature verification failed:', verificationError);
+      res.status(403).json({ error: 'Invalid webhook signature' });
+      return;
+    }
     
     console.log('[Webhook] Parsed notification:', webhookNotification.kind);
     
@@ -580,6 +584,7 @@ app.post('/webhooks/braintree', async (req: Request, res: Response) => {
       kind: webhookNotification.kind,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
       rawData: JSON.stringify(webhookNotification),
+      verified: true,
     });
     
     switch (webhookNotification.kind) {
@@ -604,7 +609,7 @@ app.post('/webhooks/braintree', async (req: Request, res: Response) => {
     console.error('[Webhook] Error:', error);
     console.error('[Webhook] Error details:', error instanceof Error ? error.message : 'Unknown error');
     console.error('[Webhook] Error stack:', error instanceof Error ? error.stack : 'No stack');
-    res.status(200).json({ success: true, note: 'Error logged but returning 200 to prevent retries' });
+    res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
 

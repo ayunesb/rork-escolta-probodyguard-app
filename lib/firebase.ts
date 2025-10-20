@@ -106,8 +106,8 @@ export const initializeFirebaseServices = async (): Promise<void> => {
       console.error('[Firebase] Realtime DB init error:', _e);
     }
 
-    // Connect to emulators in development
-    if (__DEV__ && authInstance && dbInstance && realtimeDbInstance) {
+    // Connect to emulators in development (only if EXPO_PUBLIC_USE_EMULATORS=1)
+    if (__DEV__ && process.env.EXPO_PUBLIC_USE_EMULATORS === '1' && authInstance && dbInstance && realtimeDbInstance) {
       try {
         connectAuthEmulator(authInstance, 'http://127.0.0.1:9099');
         console.log('[Firebase] Connected to Auth emulator');
@@ -128,6 +128,8 @@ export const initializeFirebaseServices = async (): Promise<void> => {
       } catch {
         console.log('[Firebase] Database emulator already connected or unavailable');
       }
+    } else if (__DEV__) {
+      console.log('[Firebase] Using production Firebase (emulators disabled)');
     }
 
     initialized = true;
@@ -170,9 +172,3 @@ export const realtimeDb = (): Database => {
     throw new Error('[Firebase] Realtime Database not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
 };
-
-if (typeof window !== 'undefined') {
-  initializeFirebaseServices().catch(error => {
-    console.error('[Firebase] Auto-initialization failed:', error);
-  });
-}

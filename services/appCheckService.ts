@@ -1,5 +1,13 @@
 import { Platform } from 'react-native';
 
+// Conditional import to handle Expo Go compatibility
+let appCheck: any = null;
+try {
+  appCheck = require('@react-native-firebase/app-check').default;
+} catch (error) {
+  console.warn('[AppCheck] React Native Firebase App Check not available in Expo Go');
+}
+
 // App Check Service for advanced security
 class AppCheckService {
   private static instance: AppCheckService;
@@ -16,10 +24,40 @@ class AppCheckService {
     if (this.isInitialized) return;
 
     try {
-      console.log('[AppCheck] Initialized (stub in Expo Go)');
+      // Skip initialization if App Check is not available (Expo Go)
+      if (!appCheck) {
+        console.warn('[AppCheck] Skipped - not available in Expo Go environment');
+        this.isInitialized = true;
+        return;
+      }
+
+      // Initialize App Check with appropriate provider
+      const rnfbProvider = appCheck().newReactNativeFirebaseAppCheckProvider();
+      rnfbProvider.configure({
+        android: {
+          provider: __DEV__ ? 'debug' : 'playIntegrity',
+          debugToken: __DEV__ ? process.env.EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN : undefined,
+        },
+        apple: {
+          provider: __DEV__ ? 'debug' : 'appAttest',
+          debugToken: __DEV__ ? process.env.EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN : undefined,
+        },
+        web: {
+          provider: 'reCaptchaV3',
+          siteKey: process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY || '',
+        },
+      });
+
+      await appCheck().initializeAppCheck({
+        provider: rnfbProvider,
+        isTokenAutoRefreshEnabled: true,
+      });
+
       this.isInitialized = true;
+      console.log('[AppCheck] Initialized successfully');
     } catch (error) {
       console.error('[AppCheck] Initialization failed:', error);
+      // Don't throw error to prevent app crash if App Check fails
     }
   }
 
@@ -28,8 +66,10 @@ class AppCheckService {
       if (!this.isInitialized) {
         await this.initialize();
       }
-      console.log('[AppCheck] Token stub (Expo Go)');
-      return null;
+
+      const result = await appCheck().getToken(forceRefresh);
+      console.log('[AppCheck] Token obtained successfully');
+      return result.token;
     } catch (error) {
       console.error('[AppCheck] Failed to get token:', error);
       return null;
@@ -41,8 +81,10 @@ class AppCheckService {
       if (!this.isInitialized) {
         await this.initialize();
       }
-      console.log('[AppCheck] Limited use token stub (Expo Go)');
-      return null;
+
+      const result = await appCheck().getLimitedUseToken();
+      console.log('[AppCheck] Limited use token obtained');
+      return result.token;
     } catch (error) {
       console.error('[AppCheck] Failed to get limited use token:', error);
       return null;

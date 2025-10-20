@@ -1,5 +1,18 @@
 import { Platform } from 'react-native';
 
+// Conditionally import React Native Firebase Analytics
+let analytics: any = null;
+if (Platform.OS !== 'web' && !__DEV__) {
+  try {
+    // Dynamic import for React Native Firebase in production builds only
+    import('@react-native-firebase/analytics').then((module) => {
+      analytics = module.default;
+    });
+  } catch {
+    console.log('React Native Firebase Analytics not available in development mode');
+  }
+}
+
 export enum AnalyticsEvent {
   USER_SIGNUP = 'user_signup',
   USER_LOGIN = 'user_login',
@@ -28,8 +41,19 @@ class FirebaseAnalyticsHelper {
 
   async initialize(): Promise<void> {
     try {
-      console.log('[Analytics] Initialized (stub in Expo Go)');
+      if (!analytics) {
+        console.log('Analytics not available in development mode');
+        this.initialized = true;
+        return;
+      }
+      
+      await analytics().setAnalyticsCollectionEnabled(true);
+      await analytics().setDefaultEventParameters({
+        platform: Platform.OS,
+        app_version: '1.0.0',
+      });
       this.initialized = true;
+      console.log('Firebase Analytics initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Firebase Analytics:', error);
     }
@@ -44,12 +68,29 @@ class FirebaseAnalyticsHelper {
       return;
     }
 
-    console.log(`[Analytics] Event: ${event}`, parameters);
+    if (!analytics) {
+      console.log(`[Dev] Analytics event: ${event}`, parameters);
+      return;
+    }
+
+    try {
+      await analytics().logEvent(event, parameters);
+    } catch (error) {
+      console.error('Failed to log event:', error);
+    }
   }
 
   async setUserId(userId: string): Promise<void> {
     if (!this.initialized) return;
-    console.log(`[Analytics] User ID: ${userId}`);
+    if (!analytics) {
+      console.log(`[Dev] Analytics user ID: ${userId}`);
+      return;
+    }
+    try {
+      await analytics().setUserId(userId);
+    } catch (error) {
+      console.error('Failed to set user ID:', error);
+    }
   }
 
   async trackUserSignup(method: string, userType: string): Promise<void> {

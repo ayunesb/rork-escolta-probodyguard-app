@@ -4,13 +4,19 @@ export const ENV = {
   BRAINTREE_ENV: Constants.expoConfig?.extra?.braintreeEnv ?? process.env.EXPO_PUBLIC_BRAINTREE_ENV ?? 'sandbox',
   BRAINTREE_MERCHANT_ID: Constants.expoConfig?.extra?.braintreeMerchantId ?? process.env.EXPO_PUBLIC_BRAINTREE_MERCHANT_ID ?? '',
   BRAINTREE_PUBLIC_KEY: Constants.expoConfig?.extra?.braintreePublicKey ?? process.env.EXPO_PUBLIC_BRAINTREE_PUBLIC_KEY ?? '',
-  BRAINTREE_PRIVATE_KEY: Constants.expoConfig?.extra?.braintreePrivateKey ?? process.env.EXPO_PUBLIC_BRAINTREE_PRIVATE_KEY ?? '',
   PAYMENTS_CURRENCY: 'MXN' as const,
   API_URL: process.env.EXPO_PUBLIC_API_URL ?? Constants.expoConfig?.extra?.apiUrl ?? '',
 };
 
-if (!ENV.BRAINTREE_MERCHANT_ID || !ENV.BRAINTREE_PUBLIC_KEY || !ENV.BRAINTREE_PRIVATE_KEY) {
-  console.warn('[ENV] Missing Braintree credentials in app.json -> expo.extra');
+if (!ENV.BRAINTREE_MERCHANT_ID || !ENV.BRAINTREE_PUBLIC_KEY) {
+  console.warn('[ENV] ⚠️ Missing Braintree credentials. Payment processing may fail.');
+  console.warn('[ENV] Set EXPO_PUBLIC_BRAINTREE_MERCHANT_ID and EXPO_PUBLIC_BRAINTREE_PUBLIC_KEY in .env');
+}
+
+if (ENV.BRAINTREE_ENV === 'production') {
+  console.warn('[ENV] ⚠️ Braintree is set to PRODUCTION mode. Ensure you are using production credentials.');
+} else {
+  console.log('[ENV] ✓ Braintree is in SANDBOX mode (safe for testing)');
 }
 
 if (!ENV.API_URL) {

@@ -22,7 +22,7 @@ const pollingConfig: PollingConfig = {
   isActive: false,
 };
 
-let pollingTimer: ReturnType<typeof setTimeout> | null = null;
+let pollingTimer: NodeJS.Timeout | null = null;
 let appStateSubscription: { remove: () => void } | null = null;
 
 function generateStartCode(): string {

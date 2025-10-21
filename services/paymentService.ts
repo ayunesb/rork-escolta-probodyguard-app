@@ -222,6 +222,12 @@ export const paymentService = {
     try {
       const response = await fetch(`${ENV.API_URL}/payments/methods/${userId}`);
       
+      // Handle 404 gracefully - user doesn't exist in Braintree yet (first-time user)
+      if (response.status === 404) {
+        console.log('[Payment] No saved cards found (first-time user)');
+        return [];
+      }
+      
       if (!response.ok) {
         throw new Error('Failed to fetch payment methods');
       }

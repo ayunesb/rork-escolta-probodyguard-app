@@ -1,4 +1,17 @@
 import { onRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
+import {
+  handleSubscriptionChargedSuccessfully,
+  handleSubscriptionChargedUnsuccessfully,
+  handleSubscriptionCanceled,
+  handleSubscriptionExpired,
+  handleDisputeOpened,
+  handleDisputeLost,
+  handleDisputeWon,
+  handleTransactionSettled,
+  handleTransactionSettlementDeclined,
+  handleDisbursement,
+  handleDisbursementException,
+} from './webhooks/braintreeHandlers';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
@@ -727,45 +740,47 @@ app.post('/webhooks/braintree', async (req: Request, res: Response) => {
     switch (webhookNotification.kind) {
       case 'subscription_charged_successfully':
         console.log('[Webhook] Payment successful');
+        await handleSubscriptionChargedSuccessfully(webhookNotification);
         break;
         
       case 'subscription_charged_unsuccessfully':
         console.log('[Webhook] Payment failed');
+        await handleSubscriptionChargedUnsuccessfully(webhookNotification);
         break;
         
       case 'subscription_canceled':
         console.log('[Webhook] Subscription canceled');
-        // TODO: Update subscription status in database
+        await handleSubscriptionCanceled(webhookNotification);
         break;
         
       case 'subscription_expired':
         console.log('[Webhook] Subscription expired');
-        // TODO: Update subscription status in database
+        await handleSubscriptionExpired(webhookNotification);
         break;
         
       case 'dispute_opened':
         console.log('[Webhook] Dispute opened - requires attention!');
-        // TODO: Send alert notification to admin
+        await handleDisputeOpened(webhookNotification);
         break;
         
       case 'dispute_lost':
         console.log('[Webhook] Dispute lost');
-        // TODO: Update transaction status
+        await handleDisputeLost(webhookNotification);
         break;
         
       case 'dispute_won':
         console.log('[Webhook] Dispute won');
-        // TODO: Update transaction status
+        await handleDisputeWon(webhookNotification);
         break;
         
       case 'disbursement':
         console.log('[Webhook] Funds disbursed');
-        // TODO: Update payout records
+        await handleDisbursement(webhookNotification);
         break;
         
       case 'disbursement_exception':
         console.log('[Webhook] Disbursement failed');
-        // TODO: Handle failed payout
+        await handleDisbursementException(webhookNotification);
         break;
         
       case 'check':
@@ -925,3 +940,263 @@ export const recordUsageMetrics = onSchedule('every day 00:00', async () => {
     console.error('[RecordUsageMetrics] Error:', error);
   }
 });
+
+// === DEMO USER SETUP ===
+export const createDemoUsers = onCall(async (request) => {
+  console.log('[CreateDemoUsers] Creating demo user documents...');
+  
+  const demoUsers = [
+    {
+      email: 'client@demo.com',
+      role: 'client',
+      firstName: 'Demo',
+      lastName: 'Client',
+      phone: '+1234567890',
+      kycStatus: 'approved'
+    },
+    {
+      email: 'bodyguard@demo.com',
+      role: 'bodyguard',
+      firstName: 'Demo',
+      lastName: 'Guard',
+      phone: '+1234567891',
+      kycStatus: 'approved'
+    },
+    {
+      email: 'company@demo.com',
+      role: 'company',
+      firstName: 'Demo',
+      lastName: 'Company',
+      phone: '+1234567892',
+      kycStatus: 'approved'
+    },
+    {
+      email: 'admin@demo.com',
+      role: 'admin',
+      firstName: 'Demo',
+      lastName: 'Admin',
+      phone: '+1234567893',
+      kycStatus: 'approved'
+    },
+    {
+      email: 'guard1@demo.com',
+      role: 'bodyguard',
+      firstName: 'Guard',
+      lastName: 'One',
+      phone: '+1234567894',
+      kycStatus: 'approved'
+    },
+    {
+      email: 'guard2@demo.com',
+      role: 'bodyguard',
+      firstName: 'Guard',
+      lastName: 'Two',
+      phone: '+1234567895',
+      kycStatus: 'approved'
+    }
+  ];
+
+  const db = admin.firestore();
+  const results: any[] = [];
+
+  try {
+    // Get all Firebase Auth users to map emails to UIDs
+    const authUsers = await admin.auth().listUsers();
+    const emailToUid: { [email: string]: string } = {};
+    
+    authUsers.users.forEach(user => {
+      if (user.email) {
+        emailToUid[user.email] = user.uid;
+      }
+    });
+
+    // Create Firestore document for each demo user
+    for (const userData of demoUsers) {
+      const uid = emailToUid[userData.email];
+      
+      if (!uid) {
+        results.push({
+          email: userData.email,
+          status: 'error',
+          message: 'No Firebase Auth account found'
+        });
+        continue;
+      }
+
+      try {
+        const now = new Date().toISOString();
+        const userDoc = {
+          email: userData.email,
+          role: userData.role,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          phone: userData.phone,
+          language: 'en',
+          kycStatus: userData.kycStatus,
+          createdAt: now,
+          isActive: true,
+          emailVerified: true,
+          updatedAt: now
+        };
+
+        await db.collection('users').doc(uid).set(userDoc, { merge: true });
+        
+        results.push({
+          email: userData.email,
+          role: userData.role,
+          status: 'success',
+          uid: uid
+        });
+        
+        console.log(`[CreateDemoUsers] ✅ ${userData.email} (${userData.role})`);
+      } catch (error: any) {
+        results.push({
+          email: userData.email,
+          status: 'error',
+          message: error.message
+        });
+        console.error(`[CreateDemoUsers] ❌ ${userData.email}:`, error);
+      }
+    }
+
+    const successCount = results.filter(r => r.status === 'success').length;
+    console.log(`[CreateDemoUsers] Complete: ${successCount}/${demoUsers.length} created`);
+    
+    return {
+      success: true,
+      created: successCount,
+      total: demoUsers.length,
+      results: results
+    };
+  } catch (error: any) {
+    console.error('[CreateDemoUsers] Fatal error:', error);
+    throw new HttpsError('internal', error.message);
+  }
+});
+
+/**
+ * Create a single missing demo user (both Auth and Firestore)
+ */
+export const createMissingDemoUser = onCall(async (request) => {
+  try {
+    const { email, password, role, firstName, lastName } = request.data;
+    
+    if (!email || !password || !role || !firstName || !lastName) {
+      throw new HttpsError('invalid-argument', 'Missing required fields');
+    }
+
+    console.log(`[CreateMissingDemoUser] Creating user: ${email}`);
+    
+    // Step 1: Create Firebase Auth account
+    let uid: string;
+    try {
+      const userRecord = await admin.auth().createUser({
+        email,
+        password,
+        emailVerified: true,
+        disabled: false,
+      });
+      uid = userRecord.uid;
+      console.log(`[CreateMissingDemoUser] Created Auth account: ${uid}`);
+    } catch (authError: any) {
+      if (authError.code === 'auth/email-already-exists') {
+        // Get existing user
+        const existingUser = await admin.auth().getUserByEmail(email);
+        uid = existingUser.uid;
+        console.log(`[CreateMissingDemoUser] Auth account already exists: ${uid}`);
+      } else {
+        throw authError;
+      }
+    }
+
+    // Step 2: Create Firestore document
+    const now = new Date().toISOString();
+    const userDoc = {
+      email,
+      role,
+      firstName,
+      lastName,
+      phone: '+1234567890',
+      language: 'en',
+      kycStatus: role === 'client' ? 'pending' : 'approved',
+      createdAt: now,
+      isActive: true,
+      emailVerified: true,
+      updatedAt: now,
+    };
+
+    await admin.firestore().collection('users').doc(uid).set(userDoc, { merge: true });
+    console.log(`[CreateMissingDemoUser] Created Firestore document for ${email}`);
+
+    return {
+      success: true,
+      email,
+      uid,
+      role,
+    };
+  } catch (error: any) {
+    console.error('[CreateMissingDemoUser] Error:', error);
+    throw new HttpsError('internal', error.message);
+  }
+});
+
+/**
+ * Reset Demo Account Passwords
+ * Resets all demo account passwords to known values
+ */
+export const resetDemoPasswords = onCall(async (request) => {
+  try {
+    const demoAccounts = [
+      { email: 'client@demo.com', password: 'Demo123!' },
+      { email: 'admin@demo.com', password: 'Admin123!' },
+      { email: 'company@demo.com', password: 'Company123!' },
+      { email: 'bodyguard@demo.com', password: 'Guard123!' },
+      { email: 'guard1@demo.com', password: 'Guard123!' },
+      { email: 'guard2@demo.com', password: 'Guard123!' }
+    ];
+
+    console.log('[ResetDemoPasswords] Starting password reset for all demo accounts');
+    const results: any[] = [];
+
+    for (const account of demoAccounts) {
+      try {
+        // Get user by email
+        const userRecord = await admin.auth().getUserByEmail(account.email);
+        
+        // Update password and ensure email is verified
+        await admin.auth().updateUser(userRecord.uid, {
+          password: account.password,
+          emailVerified: true
+        });
+
+        console.log(`[ResetDemoPasswords] Successfully reset password for ${account.email}`);
+        results.push({
+          email: account.email,
+          success: true,
+          uid: userRecord.uid
+        });
+      } catch (error: any) {
+        console.error(`[ResetDemoPasswords] Failed to reset ${account.email}:`, error);
+        results.push({
+          email: account.email,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+    console.log(`[ResetDemoPasswords] Completed: ${successCount}/${demoAccounts.length} successful`);
+
+    return {
+      success: true,
+      results,
+      totalProcessed: demoAccounts.length,
+      successfulResets: successCount
+    };
+  } catch (error: any) {
+    console.error('[ResetDemoPasswords] Error:', error);
+    throw new HttpsError('internal', error.message);
+  }
+});
+

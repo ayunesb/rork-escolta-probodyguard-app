@@ -7,13 +7,12 @@ service cloud.firestore {
     }
     
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let userDoc = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userDoc) ? get(userDoc).data : null;
     }
     
     function hasRole(role) {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        getUserData().role == role;
+      return isAuthenticated() && getUserData() != null && getUserData().role == role;
     }
     
     function isOwner(userId) {
@@ -21,7 +20,7 @@ service cloud.firestore {
     }
     
     function isKYCApproved() {
-      return isAuthenticated() && getUserData().kycStatus == 'approved';
+      return isAuthenticated() && getUserData() != null && getUserData().kycStatus == 'approved';
     }
 
     // === USERS COLLECTION ===
@@ -30,10 +29,7 @@ service cloud.firestore {
       allow get: if isAuthenticated() && request.auth.uid == userId;
       
       allow list: if isAuthenticated() && (
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'company')
+        hasRole('admin') || hasRole('company')
       );
       
       // Allow users to create their own document with minimum required fields
@@ -42,14 +38,10 @@ service cloud.firestore {
         request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt', 'isActive', 'emailVerified', 'updatedAt']);
       
       allow update: if isAuthenticated() && (
-        request.auth.uid == userId ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+        request.auth.uid == userId || hasRole('admin')
       );
       
-      allow delete: if isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow delete: if isAuthenticated() && hasRole('admin');
     }
 
     // === BOOKINGS COLLECTION ===

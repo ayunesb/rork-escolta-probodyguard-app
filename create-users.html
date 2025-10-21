@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Demo Users</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        #status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        #status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        #status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        .result {
+            margin: 5px 0;
+            padding: 8px;
+            background: #f9f9f9;
+            border-left: 3px solid #4CAF50;
+            font-family: monospace;
+        }
+        .result.error {
+            border-left-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Create Demo Users</h1>
+        <p>This will create Firestore documents for all 6 demo accounts:</p>
+        <ul>
+            <li>client@demo.com (client)</li>
+            <li>bodyguard@demo.com (bodyguard)</li>
+            <li>company@demo.com (company)</li>
+            <li>admin@demo.com (admin)</li>
+            <li>guard1@demo.com (bodyguard)</li>
+            <li>guard2@demo.com (bodyguard)</li>
+        </ul>
+        
+        <button id="createBtn" onclick="createUsers()">Create All Users</button>
+        
+        <div id="status"></div>
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
+
+        // Firebase config from environment
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes",
+            authDomain: "escolta-pro-fe90e.firebaseapp.com",
+            projectId: "escolta-pro-fe90e",
+            storageBucket: "escolta-pro-fe90e.firebasestorage.app",
+            messagingSenderId: "716976393607",
+            appId: "1:716976393607:web:39a3ac4e5a4c8cfaa98dbb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const functions = getFunctions(app);
+
+        window.createUsers = async function() {
+            const btn = document.getElementById('createBtn');
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            status.className = 'loading';
+            status.textContent = '⏳ Creating users...';
+            results.innerHTML = '';
+            
+            try {
+                const createDemoUsers = httpsCallable(functions, 'createDemoUsers');
+                const result = await createDemoUsers();
+                const data = result.data;
+                
+                status.className = 'success';
+                status.textContent = `✅ Success! Created ${data.created}/${data.total} users`;
+                
+                results.innerHTML = '<h3>Results:</h3>';
+                data.results.forEach(user => {
+                    const div = document.createElement('div');
+                    div.className = user.status === 'success' ? 'result' : 'result error';
+                    const icon = user.status === 'success' ? '✅' : '❌';
+                    div.textContent = `${icon} ${user.email} (${user.role}) - ${user.status}`;
+                    if (user.message) {
+                        div.textContent += ` - ${user.message}`;
+                    }
+                    results.appendChild(div);
+                });
+                
+                setTimeout(() => {
+                    status.textContent += '\n\n🎉 Demo users are ready! Try logging in at http://localhost:8081';
+                }, 1000);
+                
+            } catch (error) {
+                status.className = 'error';
+                status.textContent = `❌ Error: ${error.message}`;
+                console.error('Full error:', error);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

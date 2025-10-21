@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Missing Bodyguard User</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Create Missing Bodyguard User</h1>
+  <p>This will create the Firebase Auth account and Firestore document for bodyguard@demo.com</p>
+  
+  <button onclick="createUser()">Create Bodyguard User</button>
+  
+  <div id="result"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+    import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBvObUv0dIKRJEuGh4mR4h9x6IlYE5KHLA",
+      authDomain: "escolta-pro-fe90e.firebaseapp.com",
+      projectId: "escolta-pro-fe90e",
+      storageBucket: "escolta-pro-fe90e.firebasestorage.app",
+      messagingSenderId: "434931618892",
+      appId: "1:434931618892:web:5c41ccbd86d3ec5c6bf9e8",
+      measurementId: "G-DFHK1RQKQT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const functions = getFunctions(app, 'us-central1');
+
+    window.createUser = async function() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<p>Creating user...</p>';
+      
+      try {
+        const createMissingDemoUser = httpsCallable(functions, 'createMissingDemoUser');
+        const result = await createMissingDemoUser({
+          email: 'bodyguard@demo.com',
+          password: 'Guard123!',
+          role: 'bodyguard',
+          firstName: 'Demo',
+          lastName: 'Bodyguard'
+        });
+
+        resultDiv.className = 'success';
+        resultDiv.innerHTML = `
+          <h3>✅ Success!</h3>
+          <p><strong>Email:</strong> ${result.data.email}</p>
+          <p><strong>UID:</strong> ${result.data.uid}</p>
+          <p><strong>Role:</strong> ${result.data.role}</p>
+          <p>You can now login at <a href="http://localhost:8081">http://localhost:8081</a></p>
+          <p><strong>Credentials:</strong> bodyguard@demo.com / Guard123!</p>
+        `;
+      } catch (error) {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `
+          <h3>❌ Error</h3>
+          <p>${error.message}</p>
+          <pre>${JSON.stringify(error, null, 2)}</pre>
+        `;
+      }
+    };
+  </script>
+</body>
+</html>

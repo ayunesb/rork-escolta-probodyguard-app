@@ -2,8 +2,9 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, initializeAuth, Auth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getDatabase, Database, connectDatabaseEmulator } from 'firebase/database';
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
-import { Platform } from 'react-native';
+// App Check imports commented out - requires Firebase Console setup first
+// import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+// import { Platform } from 'react-native';
 // AsyncStorage import left intentionally in comments for potential future persistence
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -53,23 +54,28 @@ export const initializeFirebaseServices = async (): Promise<void> => {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     console.log('[Firebase] App initialized');
 
+    // TEMPORARILY DISABLED: App Check initialization
+    // App Check requires manual configuration in Firebase Console first
+    // See DEPLOYMENT_STATUS.md for setup instructions
+    // 
     // Enable App Check for web (only in production)
-  if (!__DEV__ && Platform.OS === 'web' && typeof globalThis !== 'undefined' && typeof (globalThis as any).window !== 'undefined') {
-      try {
-        initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(
-            process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY || 
-            '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
-          ),
-          isTokenAutoRefreshEnabled: true
-        });
-        console.log('[Firebase] App Check initialized for web');
-      } catch {
-        console.warn('[Firebase] App Check initialization failed (non-critical)');
-      }
-    } else if (__DEV__) {
-      console.log('[AppCheck] Skipped in web development mode');
-    }
+    // if (!__DEV__ && Platform.OS === 'web' && typeof globalThis !== 'undefined' && typeof (globalThis as any).window !== 'undefined') {
+    //   try {
+    //     initializeAppCheck(app, {
+    //       provider: new ReCaptchaV3Provider(
+    //         process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY || 
+    //         '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+    //       ),
+    //       isTokenAutoRefreshEnabled: true
+    //     });
+    //     console.log('[Firebase] App Check initialized for web');
+    //   } catch {
+    //     console.warn('[Firebase] App Check initialization failed (non-critical)');
+    //   }
+    // } else if (__DEV__) {
+    //   console.log('[AppCheck] Skipped in web development mode');
+    // }
+    console.log('[AppCheck] DISABLED - Requires Firebase Console setup. See DEPLOYMENT_STATUS.md');
 
     // ✅ Proper Auth Initialization (works in Expo Go)
     try {

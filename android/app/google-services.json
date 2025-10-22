@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "919834684647",
+    "project_id": "escolta-pro-fe90e",
+    "storage_bucket": "escolta-pro-fe90e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:919834684647:android:60dad6457ad0f92b068642",
+        "android_client_info": {
+          "package_name": "com.escolta.pro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjjsRChFfCQi3piUdtiUCqyysFrh2Cdes"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

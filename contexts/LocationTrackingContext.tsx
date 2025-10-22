@@ -5,6 +5,10 @@ import { Platform } from 'react-native';
 import { ref, onValue, set, off } from 'firebase/database';
 import { realtimeDb as getRealtimeDb } from '@/lib/firebase';
 import { UserRole } from '@/types';
+import { 
+  startBackgroundLocationUpdates,
+  stopBackgroundLocationUpdates 
+} from '@/services/backgroundLocationTask';
 
 interface LocationCoords {
   latitude: number;
@@ -201,6 +205,7 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     }
 
     try {
+      // Start foreground location tracking
       const subscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
@@ -215,8 +220,22 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
         }
       );
 
+      // Start background location tracking (for guards only)
+      if (userRole === 'guard') {
+        const backgroundStarted = await startBackgroundLocationUpdates();
+        if (backgroundStarted) {
+          console.log('[Location] Background tracking started');
+        } else {
+          console.warn('[Location] Background tracking failed to start');
+        }
+      }
+
       return () => {
         subscription.remove();
+        // Stop background tracking when component unmounts
+        if (userRole === 'guard') {
+          stopBackgroundLocationUpdates();
+        }
       };
     } catch (err) {
       console.error('[Location] Start tracking error:', err);
@@ -225,9 +244,15 @@ export const [LocationTrackingProvider, useLocationTracking] = createContextHook
     }
   }, [requiresLocation, userRole, hasPermission, requestLocationPermission]);
 
-  const stopTracking = useCallback(() => {
+  const stopTracking = useCallback(async () => {
     setIsTracking(false);
-  }, []);
+    
+    // Stop background location updates
+    if (Platform.OS !== 'web' && userRole === 'guard') {
+      await stopBackgroundLocationUpdates();
+      console.log('[Location] Background tracking stopped');
+    }
+  }, [userRole]);
 
   const updateGuardLocation = useCallback(async (guardId: string, location: LocationCoords, heading?: number, speed?: number) => {
     try {

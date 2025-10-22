@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import { registerForPushNotificationsAsync } from '@/services/notificationService';
+import Constants from 'expo-constants';
 
 interface NotificationContextProps {
   expoPushToken?: string;
@@ -14,6 +16,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [notification, setNotification] = useState<Notifications.Notification | undefined>();
 
   useEffect(() => {
+    // Skip notifications setup in Expo Go on Android with SDK 53+
+    const isExpoGo = Constants.appOwnership === 'expo';
+    const isAndroid = Platform.OS === 'android';
+    
+    if (isExpoGo && isAndroid) {
+      console.warn('[NotificationContext] Skipping notification setup in Expo Go on Android (SDK 53+). Use development build for notifications.');
+      return;
+    }
+
     const setupNotifications = async () => {
       try {
         const token = await registerForPushNotificationsAsync();
@@ -36,8 +47,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, []);
 
+  // ✅ Memoize the context value to prevent infinite re-renders
+  const contextValue = useMemo(
+    () => ({ expoPushToken, notification }),
+    [expoPushToken, notification]
+  );
+
   return (
-    <NotificationContext.Provider value={{ expoPushToken, notification }}>
+    <NotificationContext.Provider value={contextValue}>
       {children}
     </NotificationContext.Provider>
   );

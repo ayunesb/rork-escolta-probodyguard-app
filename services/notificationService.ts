@@ -1,8 +1,18 @@
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 export async function registerForPushNotificationsAsync() {
   try {
+    // ✅ Check if running in Expo Go on Android (SDK 53+ doesn't support remote notifications)
+    const isExpoGo = Constants.appOwnership === 'expo';
+    const isAndroid = Platform.OS === 'android';
+    
+    if (isExpoGo && isAndroid) {
+      console.warn('[Notifications] Skipping push notifications in Expo Go on Android (SDK 53+). Use a development build instead.');
+      return null;
+    }
+
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 

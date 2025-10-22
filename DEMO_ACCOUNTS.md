@@ -13,12 +13,15 @@ The app supports 4 user roles:
 ## Demo Account Credentials
 
 ### Existing Demo Accounts
-- **Client**: `client@demo.com` / `demo123`
-- **Guard**: `guard1@demo.com` / `demo123`
+- **Client**: `client@demo.com` / `Demo123!`
+- **Guard 1**: `guard1@demo.com` / `Demo123!`
+- **Guard 2**: `guard2@demo.com` / `Demo123!`
 
 ### Accounts That Need to Be Created
-- **Company**: `company@demo.com` / `demo123`
-- **Admin**: `admin@demo.com` / `demo123`
+- **Company**: `company@demo.com` / `Demo123!`
+- **Admin**: `admin@demo.com` / `Demo123!`
+
+**Note**: Passwords must be at least 8 characters with uppercase, lowercase, and special characters.
 
 ## How to Create Missing Demo Accounts
 

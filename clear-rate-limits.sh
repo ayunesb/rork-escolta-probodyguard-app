@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Clear Rate Limits Script
+# This will reset the Expo dev client which clears AsyncStorage
+
+echo "🔄 Clearing rate limits by resetting app storage..."
+echo ""
+echo "To clear rate limits, you have two options:"
+echo ""
+echo "Option 1 - Clear app data (iOS Simulator):"
+echo "  1. Long press the app icon"
+echo "  2. Select 'Remove App'"
+echo "  3. Reinstall with: npx expo run:ios"
+echo ""
+echo "Option 2 - Add a manual reset in the app:"
+echo "  1. Go to Settings/Profile screen"
+echo "  2. Add a 'Clear Cache' button"
+echo "  3. Call: AsyncStorage.multiRemove(await AsyncStorage.getAllKeys())"
+echo ""
+echo "Option 3 - Wait it out:"
+echo "  - Rate limit expires in 30 minutes"
+echo "  - Last failed attempt was likely around when you saw the error"
+echo ""
+echo "📝 Documented passwords from DEMO_ACCOUNTS.md:"
+echo "  - client@demo.com: demo123"
+echo "  - guard1@demo.com: demo123"
+echo "  - guard2@demo.com: demo123"
+echo ""
+echo "Next steps:"
+echo "1. Clear rate limit using one of the options above"
+echo "2. Try logging in with: client@demo.com / demo123"
+echo "3. If still fails, password may need reset in Firebase Console"

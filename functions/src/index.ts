@@ -17,6 +17,8 @@ import * as admin from 'firebase-admin';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import * as braintree from 'braintree';
+import * as fs from 'fs';
+import * as path from 'path';
 
 admin.initializeApp();
 
@@ -297,7 +299,31 @@ app.get('/payments/hosted-form', async (req: Request, res: Response) => {
   }
 });
 
-
+// Serve the Hosted Fields HTML page (custom in-app payment form)
+app.get('/payments/hosted-fields-page', async (req: Request, res: Response) => {
+  try {
+    console.log('[HostedFieldsPage] Serving Hosted Fields page');
+    
+    // Read the HTML file
+    const htmlPath = path.join(__dirname, 'payments', 'hostedFieldsPage.html');
+    
+    if (!fs.existsSync(htmlPath)) {
+      console.error('[HostedFieldsPage] HTML file not found at:', htmlPath);
+      res.status(404).send('Hosted Fields page not found');
+      return;
+    }
+    
+    const html = fs.readFileSync(htmlPath, 'utf8');
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.send(html);
+    
+  } catch (error) {
+    console.error('[HostedFieldsPage] Error:', error);
+    res.status(500).send('Internal server error');
+  }
+});
 
 app.post('/payments/process', async (req: Request, res: Response) => {
   const startTime = Date.now();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,13 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
-  Linking,
+  TextInput,
 } from 'react-native';
 import { CreditCard, X, Check } from 'lucide-react-native';
 import { paymentService, PaymentBreakdown } from '@/services/paymentService';
 import { SavedPaymentMethod } from '@/types';
 import Colors from '@/constants/colors';
-import { ENV } from '@/config/env';
+import BraintreeHostedFields, { BraintreeHostedFieldsHandle, CardDetails } from './BraintreeHostedFields';
 
 const TEXT_COLOR = Colors.textPrimary;
 
@@ -37,12 +37,14 @@ export default function PaymentSheet({
   onSuccess,
   onCancel,
 }: PaymentSheetProps) {
+  const hostedFieldsRef = useRef<BraintreeHostedFieldsHandle>(null);
   const [loading, setLoading] = useState(false);
   const [loadingToken, setLoadingToken] = useState(false);
   const [savedCards, setSavedCards] = useState<SavedPaymentMethod[]>([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
   const [clientToken, setClientToken] = useState<string | null>(null);
+  const [cardholderName, setCardholderName] = useState('');
 
   useEffect(() => {
     console.log('[PaymentSheet] Visibility changed:', visible);
@@ -52,57 +54,6 @@ export default function PaymentSheet({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, userId, bookingId]);
-
-  // Set up deep link listener for payment returns
-  useEffect(() => {
-    const handleDeepLink = async ({ url }: { url: string }) => {
-      console.log('[PaymentSheet] Deep link received:', url);
-      
-      if (url.includes('payment/success')) {
-        try {
-          const urlObj = new URL(url);
-          const nonce = urlObj.searchParams.get('nonce');
-          
-          if (nonce) {
-            console.log('[PaymentSheet] Processing payment with nonce:', nonce);
-            setLoading(true);
-            
-            const result = await paymentService.processPayment(
-              nonce,
-              breakdown.total,
-              bookingId,
-              userId,
-              false // Don't save card for now
-            );
-            
-            if (result.success && result.transactionId) {
-              console.log('[PaymentSheet] Payment successful! Transaction ID:', result.transactionId);
-              onSuccess(result.transactionId);
-            } else {
-              console.error('[PaymentSheet] Payment failed:', result.error);
-              Alert.alert('Pago Fallido', result.error || 'Por favor intenta de nuevo');
-            }
-          } else {
-            Alert.alert('Error', 'No se recibió el token de pago');
-          }
-        } catch (error) {
-          console.error('[PaymentSheet] Error processing payment:', error);
-          Alert.alert('Error', 'Error al procesar el pago');
-        } finally {
-          setLoading(false);
-        }
-      } else if (url.includes('payment/cancel')) {
-        console.log('[PaymentSheet] Payment cancelled by user');
-        setLoading(false);
-      }
-    };
-    
-    const subscription = Linking.addEventListener('url', handleDeepLink);
-    
-    return () => {
-      subscription.remove();
-    };
-  }, [breakdown.total, bookingId, userId, onSuccess]);
 
   const loadSavedCards = async () => {
     try {
@@ -134,30 +85,55 @@ export default function PaymentSheet({
     }
   };
 
-  const openHostedPaymentPage = async () => {
-    if (!clientToken) {
-      Alert.alert('Error', 'Payment not initialized. Please try again.');
+  const handlePayButtonPress = () => {
+    if (!cardholderName.trim()) {
+      Alert.alert('Cardholder Name Required', 'Please enter the name on the card');
       return;
     }
+    
+    setLoading(true);
+    console.log('[PaymentSheet] Submitting payment via Hosted Fields');
+    hostedFieldsRef.current?.submitPayment();
+  };
 
+  const handleHostedFieldsSuccess = async (nonce: string, cardDetails: CardDetails) => {
+    console.log('[PaymentSheet] Hosted Fields success - processing payment');
+    console.log('[PaymentSheet] Card type:', cardDetails.cardType);
+    console.log('[PaymentSheet] Last 4:', cardDetails.lastFour);
+    
     try {
-      const returnUrl = 'nobodyguard://payment/success';
-      const url = `${ENV.API_URL}/payments/hosted-form?clientToken=${encodeURIComponent(clientToken)}&amount=${breakdown.total}&returnUrl=${encodeURIComponent(returnUrl)}`;
+      const result = await paymentService.processPayment(
+        nonce,
+        breakdown.total,
+        bookingId,
+        userId,
+        false // Don't save card for now
+      );
       
-      console.log('[PaymentSheet] Opening hosted payment page:', url);
-      
-      // Use Linking.openURL instead of WebBrowser for now (doesn't require rebuild)
-      const supported = await Linking.canOpenURL(url);
-      
-      if (supported) {
-        await Linking.openURL(url);
+      if (result.success && result.transactionId) {
+        console.log('[PaymentSheet] Payment successful! Transaction ID:', result.transactionId);
+        onSuccess(result.transactionId);
       } else {
-        Alert.alert('Error', 'Cannot open payment page');
+        console.error('[PaymentSheet] Payment failed:', result.error);
+        Alert.alert('Payment Failed', result.error || 'Please try again');
+        setLoading(false);
       }
     } catch (error) {
-      console.error('[PaymentSheet] Error opening payment page:', error);
-      Alert.alert('Error', 'Failed to open payment page');
+      console.error('[PaymentSheet] Payment processing error:', error);
+      Alert.alert('Error', 'Failed to process payment');
+      setLoading(false);
     }
+  };
+
+  const handleHostedFieldsError = (error: string) => {
+    console.error('[PaymentSheet] Hosted Fields error:', error);
+    Alert.alert('Payment Error', error);
+    setLoading(false);
+  };
+
+  const handleHostedFieldsReady = () => {
+    console.log('[PaymentSheet] Hosted Fields ready');
+    setLoadingToken(false);
   };
 
   const handlePayment = async () => {
@@ -282,18 +258,45 @@ export default function PaymentSheet({
                   </View>
                 ) : clientToken ? (
                   <View>
+                    {/* Cardholder Name Input (Native) */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Cardholder Name</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="John Doe"
+                        placeholderTextColor={Colors.textTertiary}
+                        value={cardholderName}
+                        onChangeText={setCardholderName}
+                        autoCapitalize="words"
+                        editable={!loading}
+                      />
+                    </View>
+                    
+                    {/* Braintree Hosted Fields (Secure iframes) */}
+                    <BraintreeHostedFields
+                      ref={hostedFieldsRef}
+                      clientToken={clientToken}
+                      onSuccess={handleHostedFieldsSuccess}
+                      onError={handleHostedFieldsError}
+                      onReady={handleHostedFieldsReady}
+                    />
+                    
+                    {/* Pay Button */}
                     <TouchableOpacity
-                      style={styles.openPaymentButton}
-                      onPress={openHostedPaymentPage}
+                      style={[styles.payButton, loading && styles.payButtonDisabled]}
+                      onPress={handlePayButtonPress}
+                      disabled={loading}
                     >
-                      <CreditCard size={24} color={Colors.background} />
-                      <Text style={styles.openPaymentButtonText}>
-                        Enter Card Details
-                      </Text>
+                      {loading ? (
+                        <ActivityIndicator color={Colors.background} />
+                      ) : (
+                        <>
+                          <Text style={styles.payButtonText}>
+                            Pay {paymentService.formatMXN(breakdown.total)}
+                          </Text>
+                        </>
+                      )}
                     </TouchableOpacity>
-                    <Text style={styles.securityNote}>
-                      🔒 Secure payment page powered by Braintree
-                    </Text>
                   </View>
                 ) : (
                   <View style={styles.errorContainer}>
@@ -578,5 +581,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.background,
+  },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 8,
+    fontWeight: '500' as const,
   },
 });

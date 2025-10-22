@@ -90,6 +90,7 @@ export const paymentService = {
       await addDoc(collection(getDbInstance(), 'payments'), {
         bookingId,
         userId,
+        clientId: userId, // Required by Firestore rules
         amount,
         transactionId: data.transactionId,
         status: 'completed',
@@ -115,7 +116,8 @@ export const paymentService = {
     cvv: string,
     postalCode: string,
     amount: number,
-    bookingId: string
+    bookingId: string,
+    userId: string
   ): Promise<PaymentResult> {
     console.log('[Payment] Processing card directly:', { amount, bookingId });
     
@@ -147,6 +149,8 @@ export const paymentService = {
       
       await addDoc(collection(getDbInstance(), 'payments'), {
         bookingId,
+        userId,
+        clientId: userId, // Required by Firestore rules
         amount,
         transactionId: data.transactionId,
         status: 'completed',

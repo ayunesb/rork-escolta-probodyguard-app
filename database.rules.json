@@ -27,6 +27,18 @@
         ".write": "auth != null",
         ".indexOn": ["bookingId", "timestamp"]
       }
+    },
+    "pushTokens": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId"
+      }
+    },
+    "deviceTokens": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId"
+      }
     }
   }
 }

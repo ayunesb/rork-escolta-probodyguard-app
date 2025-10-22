@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Payment Form</title>
+  
+  <!-- Braintree Client SDK -->
+  <script src="https://js.braintreegateway.com/web/3.92.1/js/client.min.js"></script>
+  <!-- Braintree Hosted Fields -->
+  <script src="https://js.braintreegateway.com/web/3.92.1/js/hosted-fields.min.js"></script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .field-group {
+      margin-bottom: 20px;
+    }
+    
+    .field-label {
+      display: block;
+      font-size: 14px;
+      color: #999;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .hosted-field {
+      height: 50px;
+      padding: 0 15px;
+      border: 1px solid #333;
+      border-radius: 12px;
+      background: #2a2a2a;
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+    
+    .hosted-field.braintree-hosted-fields-focused {
+      border-color: #DAA520;
+      background: #2d2d2d;
+      box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.1);
+    }
+    
+    .hosted-field.braintree-hosted-fields-invalid {
+      border-color: #ff4444;
+    }
+    
+    .hosted-field.braintree-hosted-fields-valid {
+      border-color: #44ff44;
+    }
+    
+    .field-row {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .field-row .field-group {
+      flex: 1;
+    }
+    
+    .error-message {
+      color: #ff4444;
+      font-size: 12px;
+      margin-top: 6px;
+      min-height: 18px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(218, 165, 32, 0.2);
+      border-top-color: #DAA520;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .success-message {
+      text-align: center;
+      padding: 20px;
+      color: #44ff44;
+      font-size: 16px;
+    }
+    
+    .security-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 12px;
+      background: rgba(218, 165, 32, 0.1);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #999;
+    }
+    
+    .error-container {
+      background: rgba(255, 68, 68, 0.1);
+      border: 1px solid #ff4444;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .error-container.show {
+      display: block;
+    }
+    
+    .error-title {
+      color: #ff4444;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .error-text {
+      color: #ffaaaa;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <div>Cargando formulario de pago...</div>
+    </div>
+    
+    <!-- Payment Form -->
+    <form id="payment-form" style="display: none;">
+      <!-- Card Number -->
+      <div class="field-group">
+        <label class="field-label" for="card-number">Número de Tarjeta</label>
+        <div id="card-number" class="hosted-field"></div>
+        <div id="card-number-error" class="error-message"></div>
+      </div>
+      
+      <!-- Expiration Date & CVV -->
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="expiration-date">Fecha de Expiración</label>
+          <div id="expiration-date" class="hosted-field"></div>
+          <div id="expiration-date-error" class="error-message"></div>
+        </div>
+        
+        <div class="field-group">
+          <label class="field-label" for="cvv">CVV</label>
+          <div id="cvv" class="hosted-field"></div>
+          <div id="cvv-error" class="error-message"></div>
+        </div>
+      </div>
+      
+      <!-- Postal Code -->
+      <div class="field-group">
+        <label class="field-label" for="postal-code">Código Postal</label>
+        <div id="postal-code" class="hosted-field"></div>
+        <div id="postal-code-error" class="error-message"></div>
+      </div>
+      
+      <!-- Security Badge -->
+      <div class="security-badge">
+        🔒 Conexión segura protegida por Braintree
+      </div>
+    </form>
+    
+    <!-- Error Container -->
+    <div id="error-container" class="error-container">
+      <div class="error-title">Error al cargar el formulario</div>
+      <div id="error-text" class="error-text"></div>
+    </div>
+    
+    <!-- Success State -->
+    <div id="success" class="success-message" style="display: none;">
+      ✓ Procesando pago...
+    </div>
+  </div>
+  
+  <script>
+    (function() {
+      'use strict';
+      
+      console.log('[HostedFields] Page loaded');
+      
+      let hostedFieldsInstance = null;
+      let isReady = false;
+      
+      // Notify React Native
+      function notifyReactNative(data) {
+        console.log('[HostedFields] Notifying React Native:', data.type);
+        
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify(data));
+        } else {
+          console.warn('[HostedFields] ReactNativeWebView not available');
+        }
+      }
+      
+      // Show error
+      function showError(message) {
+        console.error('[HostedFields] Error:', message);
+        
+        const errorContainer = document.getElementById('error-container');
+        const errorText = document.getElementById('error-text');
+        const loading = document.getElementById('loading');
+        const form = document.getElementById('payment-form');
+        
+        if (errorContainer && errorText) {
+          errorText.textContent = message;
+          errorContainer.classList.add('show');
+        }
+        
+        if (loading) loading.style.display = 'none';
+        if (form) form.style.display = 'none';
+        
+        notifyReactNative({ 
+          type: 'error', 
+          error: message 
+        });
+      }
+      
+      // Initialize Hosted Fields
+      function initializeHostedFields(clientToken) {
+        console.log('[HostedFields] Initializing with client token');
+        
+        if (!clientToken) {
+          showError('No se recibió el token de cliente');
+          return;
+        }
+        
+        // Create Braintree client
+        braintree.client.create({
+          authorization: clientToken
+        }, function(clientErr, clientInstance) {
+          if (clientErr) {
+            console.error('[HostedFields] Client creation error:', clientErr);
+            showError('Error al inicializar el cliente de pago: ' + clientErr.message);
+            return;
+          }
+          
+          console.log('[HostedFields] Client created successfully');
+          
+          // Create Hosted Fields
+          braintree.hostedFields.create({
+            client: clientInstance,
+            styles: {
+              'input': {
+                'font-size': '16px',
+                'font-family': '-apple-system, BlinkMacSystemFont, sans-serif',
+                'color': '#fff',
+                'font-weight': '400'
+              },
+              'input::placeholder': {
+                'color': '#666'
+              },
+              ':focus': {
+                'color': '#fff'
+              },
+              '.invalid': {
+                'color': '#ff4444'
+              },
+              '.valid': {
+                'color': '#44ff44'
+              }
+            },
+            fields: {
+              number: {
+                selector: '#card-number',
+                placeholder: '4111 1111 1111 1111'
+              },
+              cvv: {
+                selector: '#cvv',
+                placeholder: '123'
+              },
+              expirationDate: {
+                selector: '#expiration-date',
+                placeholder: 'MM/AA'
+              },
+              postalCode: {
+                selector: '#postal-code',
+                placeholder: '12345'
+              }
+            }
+          }, function(hostedFieldsErr, instance) {
+            if (hostedFieldsErr) {
+              console.error('[HostedFields] Creation error:', hostedFieldsErr);
+              showError('Error al crear los campos de pago: ' + hostedFieldsErr.message);
+              return;
+            }
+            
+            console.log('[HostedFields] Fields created successfully');
+            
+            hostedFieldsInstance = instance;
+            isReady = true;
+            
+            // Hide loading, show form
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('payment-form').style.display = 'block';
+            
+            // Notify React Native
+            notifyReactNative({ type: 'ready' });
+            
+            // Setup event listeners
+            setupEventListeners(instance);
+          });
+        });
+      }
+      
+      // Setup field event listeners
+      function setupEventListeners(instance) {
+        // Clear error messages on focus
+        instance.on('focus', function(event) {
+          console.log('[HostedFields] Field focused:', event.emittedBy);
+          const errorElement = document.getElementById(event.emittedBy + '-error');
+          if (errorElement) {
+            errorElement.textContent = '';
+          }
+        });
+        
+        // Show validation errors
+        instance.on('blur', function(event) {
+          console.log('[HostedFields] Field blurred:', event.emittedBy);
+        });
+        
+        // Notify on validation state changes
+        instance.on('validityChange', function(event) {
+          const field = event.fields[event.emittedBy];
+          const errorElement = document.getElementById(event.emittedBy + '-error');
+          
+          if (errorElement && !field.isValid && field.isPotentiallyValid === false) {
+            errorElement.textContent = 'Campo inválido';
+          }
+        });
+        
+        // Card type detection
+        instance.on('cardTypeChange', function(event) {
+          if (event.cards.length === 1) {
+            console.log('[HostedFields] Card type:', event.cards[0].type);
+          }
+        });
+      }
+      
+      // Submit payment
+      function submitPayment() {
+        console.log('[HostedFields] Submit payment requested');
+        
+        if (!isReady || !hostedFieldsInstance) {
+          showError('El formulario no está listo. Por favor, recarga la página.');
+          return;
+        }
+        
+        // Show loading
+        document.getElementById('success').style.display = 'block';
+        document.getElementById('payment-form').style.display = 'none';
+        
+        // Tokenize the card data
+        hostedFieldsInstance.tokenize(function(tokenizeErr, payload) {
+          if (tokenizeErr) {
+            console.error('[HostedFields] Tokenization error:', tokenizeErr);
+            
+            // Hide success, show form again
+            document.getElementById('success').style.display = 'none';
+            document.getElementById('payment-form').style.display = 'block';
+            
+            // Show specific error
+            if (tokenizeErr.code === 'HOSTED_FIELDS_FIELDS_EMPTY') {
+              showError('Por favor, completa todos los campos del formulario.');
+            } else if (tokenizeErr.code === 'HOSTED_FIELDS_FIELDS_INVALID') {
+              showError('Uno o más campos contienen información inválida.');
+            } else {
+              showError('Error al procesar la tarjeta: ' + tokenizeErr.message);
+            }
+            
+            return;
+          }
+          
+          console.log('[HostedFields] Tokenization successful');
+          console.log('[HostedFields] Card type:', payload.details.cardType);
+          console.log('[HostedFields] Last 4:', payload.details.lastFour);
+          
+          // Notify React Native with the nonce
+          notifyReactNative({
+            type: 'success',
+            nonce: payload.nonce,
+            details: {
+              cardType: payload.details.cardType,
+              lastFour: payload.details.lastFour,
+              lastTwo: payload.details.lastTwo
+            }
+          });
+        });
+      }
+      
+      // Listen for messages from React Native
+      window.addEventListener('message', function(event) {
+        console.log('[HostedFields] Message received:', event.data);
+        
+        let data;
+        try {
+          data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        } catch (e) {
+          console.error('[HostedFields] Failed to parse message:', e);
+          return;
+        }
+        
+        switch (data.action) {
+          case 'initialize':
+            console.log('[HostedFields] Initialize action received');
+            if (data.clientToken) {
+              initializeHostedFields(data.clientToken);
+            } else {
+              showError('No se recibió el token de cliente');
+            }
+            break;
+            
+          case 'submit':
+            console.log('[HostedFields] Submit action received');
+            submitPayment();
+            break;
+            
+          default:
+            console.warn('[HostedFields] Unknown action:', data.action);
+        }
+      });
+      
+      // Notify that page is loaded and ready to receive initialization
+      console.log('[HostedFields] Ready to receive initialization message');
+      notifyReactNative({ type: 'loaded' });
+      
+    })();
+  </script>
+</body>
+</html>

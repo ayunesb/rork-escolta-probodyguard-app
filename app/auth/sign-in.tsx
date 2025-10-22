@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -27,6 +27,7 @@ export default function SignInScreen() {
   const [error, setError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const hasNavigatedRef = useRef(false); // Use ref instead of state to avoid re-renders
 
   useEffect(() => {
     checkBiometric();
@@ -34,11 +35,12 @@ export default function SignInScreen() {
 
   // Handle navigation when user logs in successfully
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !hasNavigatedRef.current) {
       console.log('[SignIn] User logged in, navigating based on role:', user.role);
+      hasNavigatedRef.current = true; // Prevent multiple navigations
       switch (user.role) {
         case 'client':
-        case 'guard':
+        case 'bodyguard': // Fixed: was 'guard', but role is 'bodyguard'
           router.replace('/(tabs)/home');
           break;
         case 'company':
@@ -51,7 +53,7 @@ export default function SignInScreen() {
           router.replace('/(tabs)/home');
       }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading]); // Removed hasNavigated from dependencies since it's now a ref
 
   const checkBiometric = async () => {
     const available = await biometricService.isAvailable();

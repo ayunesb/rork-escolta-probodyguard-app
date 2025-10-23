@@ -19,12 +19,13 @@ import Colors from '@/constants/colors';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn } = useAuth(); // ✅ Removed unused user and authLoading - navigation handled by index.tsx
+  const { signIn, resendVerificationEmail } = useAuth(); // ✅ Added resendVerificationEmail
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('client@demo.com'); // Pre-fill demo credentials
   const [password, setPassword] = useState('demo123'); // Pre-fill demo credentials
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showResendVerification, setShowResendVerification] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   // ✅ FIX: Navigation is now handled by app/index.tsx
@@ -54,6 +55,7 @@ export default function SignInScreen() {
 
     setIsLoading(true);
     setError('');
+    setShowResendVerification(false);
 
     try {
       const result = await signIn(trimmedEmail, trimmedPassword);
@@ -62,6 +64,11 @@ export default function SignInScreen() {
         console.log('[SignIn] Login successful - index.tsx will handle navigation');
         // ✅ Navigation is automatic via AuthContext → index.tsx routing
         // No need to navigate here or wait for user to load
+      } else if (result.emailNotVerified) {
+        // Show resend verification option
+        setError(result.error || 'Email not verified');
+        setShowResendVerification(true);
+        setIsLoading(false);
       } else {
         setError(result.error || 'Failed to sign in');
         setIsLoading(false);
@@ -69,6 +76,28 @@ export default function SignInScreen() {
     } catch (error) {
       console.error('[SignIn] Unexpected error:', error);
       setError('An unexpected error occurred');
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const result = await resendVerificationEmail();
+      
+      if (result.success) {
+        setError('');
+        setShowResendVerification(false);
+        alert('Verification email sent! Please check your inbox.');
+      } else {
+        setError(result.error || 'Failed to resend verification email');
+      }
+    } catch (error) {
+      console.error('[SignIn] Resend verification error:', error);
+      setError('Failed to resend verification email');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -157,6 +186,16 @@ export default function SignInScreen() {
           </View>
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          {showResendVerification && (
+            <TouchableOpacity
+              style={[styles.resendButton, isLoading && styles.buttonDisabled]}
+              onPress={handleResendVerification}
+              disabled={isLoading}
+            >
+              <Text style={styles.resendButtonText}>Resend Verification Email</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -354,6 +393,21 @@ const styles = StyleSheet.create({
   biometricButtonText: {
     color: Colors.gold,
     fontSize: 16,
+    fontWeight: '600' as const,
+  },
+  resendButton: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  resendButtonText: {
+    color: Colors.gold,
+    fontSize: 14,
     fontWeight: '600' as const,
   },
 });

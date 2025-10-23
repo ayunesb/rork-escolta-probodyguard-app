@@ -19,6 +19,7 @@ import cors from 'cors';
 import * as braintree from 'braintree';
 import * as fs from 'fs';
 import * as path from 'path';
+import { gateway, isGatewayConfigured, getConfigurationError } from './config/braintree';
 
 admin.initializeApp();
 
@@ -26,53 +27,13 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-const merchantId = process.env.BRAINTREE_MERCHANT_ID;
-const publicKey = process.env.BRAINTREE_PUBLIC_KEY;
-const privateKey = process.env.BRAINTREE_PRIVATE_KEY;
-
-if (!merchantId || !publicKey || !privateKey) {
-  console.warn('[Braintree] Missing credentials. Functions will return errors until configured.');
-  console.warn('[Braintree] Set BRAINTREE_MERCHANT_ID, BRAINTREE_PUBLIC_KEY, and BRAINTREE_PRIVATE_KEY in .env file');
-}
-
-if (merchantId && publicKey && privateKey) {
-  console.log('[Braintree] Using credentials:', { merchantId, publicKey, privateKey: privateKey.substring(0, 8) + '...' });
-}
-
-// Dynamic environment selection for production capability
-const braintreeEnvironment = process.env.BRAINTREE_ENV === 'production' 
-  ? braintree.Environment.Production 
-  : braintree.Environment.Sandbox;
-
-console.log('[Braintree] Environment:', process.env.BRAINTREE_ENV || 'sandbox (default)');
-
-// Initialize gateway only if credentials are present
-let gateway: braintree.BraintreeGateway | null = null;
-
-if (merchantId && publicKey && privateKey) {
-  gateway = new braintree.BraintreeGateway({
-    environment: braintreeEnvironment,
-    merchantId,
-    publicKey,
-    privateKey,
-  });
-  console.log('[Braintree] Gateway initialized successfully');
-} else {
-  console.warn('[Braintree] Gateway not initialized - credentials missing');
-}
-
 // === Payments routes (mobile expects /payments/*) ===
 app.get('/payments/client-token', async (req: Request, res: Response): Promise<void> => {
   try {
     // Verify Braintree credentials are configured
-    if (!gateway || !privateKey || !merchantId || !publicKey) {
+    if (!isGatewayConfigured() || !gateway) {
       console.error('[ClientToken] Braintree credentials missing or gateway not initialized');
-      res.status(500).json({ 
-        error: {
-          code: 'PAYMENT_CONFIG_ERROR',
-          message: 'Payment system is not properly configured'
-        }
-      });
+      res.status(500).json(getConfigurationError());
       return;
     }
 
@@ -84,16 +45,8 @@ app.get('/payments/client-token', async (req: Request, res: Response): Promise<v
     }
 
     // Generate client token from Braintree
-    const result = await new Promise<any>((resolve, reject) => {
-      (gateway.clientToken.generate as any)({
-        // Optional: include customerId here if implementing vaulted payment methods
-      }, (err: any, response: any) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(response);
-        }
-      });
+    const result = await gateway!.clientToken.generate({
+      // Optional: include customerId here if implementing vaulted payment methods
     });
 
     const clientToken = result?.clientToken;
@@ -337,15 +290,10 @@ app.post('/payments/process', async (req: Request, res: Response) => {
       return;
     }
 
-    // Verify gateway is configured (already checked at each endpoint but double-check here)
-    if (!gateway || !privateKey || !merchantId) {
+    // Verify gateway is configured
+    if (!isGatewayConfigured() || !gateway) {
       console.error('[ProcessPayment] Gateway not initialized');
-      res.status(500).json({ 
-        error: {
-          code: 'PAYMENT_CONFIG_ERROR',
-          message: 'Payment system is not properly configured'
-        }
-      });
+      res.status(500).json(getConfigurationError());
       return;
     }
     
@@ -969,6 +917,16 @@ export const recordUsageMetrics = onSchedule('every day 00:00', async () => {
 
 // === DEMO USER SETUP ===
 export const createDemoUsers = onCall(async (request) => {
+  // ✅ SECURITY: Only allow in development/sandbox environment
+  if (process.env.BRAINTREE_ENV === 'production') {
+    throw new HttpsError('permission-denied', 'Demo user creation is disabled in production');
+  }
+  
+  // ✅ SECURITY: Require authentication (admin only in production-like environments)
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+  
   console.log('[CreateDemoUsers] Creating demo user documents...');
   
   const demoUsers = [
@@ -1104,6 +1062,16 @@ export const createDemoUsers = onCall(async (request) => {
  * Create a single missing demo user (both Auth and Firestore)
  */
 export const createMissingDemoUser = onCall(async (request) => {
+  // ✅ SECURITY: Only allow in development/sandbox environment
+  if (process.env.BRAINTREE_ENV === 'production') {
+    throw new HttpsError('permission-denied', 'Demo user creation is disabled in production');
+  }
+  
+  // ✅ SECURITY: Require authentication
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+  
   try {
     const { email, password, role, firstName, lastName } = request.data;
     
@@ -1169,8 +1137,19 @@ export const createMissingDemoUser = onCall(async (request) => {
 /**
  * Reset Demo Account Passwords
  * Resets all demo account passwords to known values
+ * ✅ SECURITY: Protected - only works in sandbox mode
  */
 export const resetDemoPasswords = onCall(async (request) => {
+  // ✅ SECURITY: Only allow in development/sandbox environment
+  if (process.env.BRAINTREE_ENV === 'production') {
+    throw new HttpsError('permission-denied', 'Password reset is disabled in production');
+  }
+  
+  // ✅ SECURITY: Require authentication
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+  
   try {
     const demoAccounts = [
       { email: 'client@demo.com', password: 'Demo123!' },

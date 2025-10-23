@@ -1,12 +1,17 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, initializeAuth, Auth, connectAuthEmulator } from 'firebase/auth';
+import { 
+  getAuth, 
+  initializeAuth, 
+  Auth, 
+  connectAuthEmulator,
+  browserLocalPersistence
+} from 'firebase/auth';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getDatabase, Database, connectDatabaseEmulator } from 'firebase/database';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // App Check imports commented out - requires Firebase Console setup first
 // import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
-// import { Platform } from 'react-native';
-// AsyncStorage import left intentionally in comments for potential future persistence
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
 
@@ -77,24 +82,42 @@ export const initializeFirebaseServices = async (): Promise<void> => {
     // }
     console.log('[AppCheck] DISABLED - Requires Firebase Console setup. See DEPLOYMENT_STATUS.md');
 
-    // ✅ Proper Auth Initialization (works in Expo Go)
+    // ✅ Proper Auth Initialization with AsyncStorage persistence
     try {
-      // initializeAuth may throw on web; fallback to getAuth
-        // Note: getReactNativePersistence may not be exported in this SDK version
-        try {
-          // Try initializeAuth without specifying persistence
-          authInstance = initializeAuth(app as FirebaseApp);
-        } catch {
-          // Fallback to getAuth
-          authInstance = getAuth(app as FirebaseApp);
-        }
-      console.log('[Firebase] Auth initialized with AsyncStorage persistence');
+      if (Platform.OS === 'web') {
+        // Web uses browser local persistence
+        authInstance = initializeAuth(app as FirebaseApp, {
+          persistence: browserLocalPersistence,
+        });
+        console.log('[Firebase] Auth initialized with browser persistence (web)');
+      } else {
+        // React Native: Use custom AsyncStorage persistence
+        // Create a custom persistence object that implements the Persistence interface
+        const customPersistence = {
+          async _get(key: string): Promise<string | null> {
+            return await AsyncStorage.getItem(key);
+          },
+          async _remove(key: string): Promise<void> {
+            await AsyncStorage.removeItem(key);
+          },
+          async _set(key: string, value: string): Promise<void> {
+            await AsyncStorage.setItem(key, value);
+          },
+          type: 'LOCAL' as const,
+        };
+        
+        authInstance = initializeAuth(app as FirebaseApp, {
+          persistence: customPersistence as any,
+        });
+        console.log('[Firebase] Auth initialized with AsyncStorage persistence (native)');
+      }
     } catch (error) {
       console.warn('[Firebase] initializeAuth failed, falling back to getAuth:', error);
       try {
         authInstance = getAuth(app as FirebaseApp);
-      } catch {
-        console.error('[Firebase] getAuth fallback failed');
+        console.log('[Firebase] Auth initialized with getAuth fallback');
+      } catch (fallbackError) {
+        console.error('[Firebase] getAuth fallback failed:', fallbackError);
       }
     }
 

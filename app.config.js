@@ -6,6 +6,7 @@ export default {
     slug: 'escolta-pro',
     version: '1.0.0',
     orientation: 'portrait',
+    scheme: 'escoltapro',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     splash: {

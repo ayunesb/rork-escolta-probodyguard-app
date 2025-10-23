@@ -1,51 +1,42 @@
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import Colors from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Index() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const hasNavigatedRef = useRef(false);
-  
-  // Add debugging for the auth context
-  console.log('[Index] Attempting to get auth context...');
-  const authContext = useAuth();
-  console.log('[Index] Auth context:', authContext);
-  
-  const user = authContext?.user;
-  const isLoading = authContext?.isLoading ?? true;
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isLoading || hasNavigatedRef.current) return;
+    if (isLoading) return;
 
-    hasNavigatedRef.current = true; // Prevent multiple navigations
-    
-    if (user) {
-      console.log('[Index] User role:', user.role);
+    // This component only handles initial app launch routing
+    // After login, sign-in.tsx handles navigation directly
+    if (!user) {
+      console.log('[Index] No user, redirecting to sign-in');
+      router.replace('/auth/sign-in');
+    } else {
+      // User is authenticated, redirect to appropriate home
+      console.log('[Index] User authenticated, redirecting based on role:', user.role);
       switch (user.role) {
         case 'client':
-        case 'bodyguard': // Fixed: was 'guard', but role is 'bodyguard'
+        case 'bodyguard':
           router.replace('/(tabs)/home');
           break;
         case 'company':
-          console.log('[Index] Company role detected - routing to company dashboard');
           router.replace('/(tabs)/company-home');
           break;
         case 'admin':
-          console.log('[Index] Admin role detected - routing to admin dashboard');
           router.replace('/(tabs)/admin-home');
           break;
         default:
-          console.log('[Index] Unknown role, routing to home');
           router.replace('/(tabs)/home');
       }
-    } else {
-      router.replace('/auth/sign-in');
     }
-  }, [user, isLoading]); // Dependencies don't include hasNavigated since it's a ref
+  }, [user, isLoading, router]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>

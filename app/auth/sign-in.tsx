@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import Colors from '@/constants/colors';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, user, isLoading: authLoading } = useAuth();
+  const { signIn } = useAuth(); // ✅ Removed unused user and authLoading - navigation handled by index.tsx
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('client@demo.com'); // Pre-fill demo credentials
   const [password, setPassword] = useState('demo123'); // Pre-fill demo credentials
@@ -27,33 +27,13 @@ export default function SignInScreen() {
   const [error, setError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const hasNavigatedRef = useRef(false); // Use ref instead of state to avoid re-renders
+  // ✅ FIX: Navigation is now handled by app/index.tsx
+  // Removing navigation logic from this component to prevent infinite loop
+  // The AuthContext will update user state → index.tsx will detect it → route properly
 
   useEffect(() => {
     checkBiometric();
-  }, []);
-
-  // Handle navigation when user logs in successfully
-  useEffect(() => {
-    if (!authLoading && user && !hasNavigatedRef.current) {
-      console.log('[SignIn] User logged in, navigating based on role:', user.role);
-      hasNavigatedRef.current = true; // Prevent multiple navigations
-      switch (user.role) {
-        case 'client':
-        case 'bodyguard': // Fixed: was 'guard', but role is 'bodyguard'
-          router.replace('/(tabs)/home');
-          break;
-        case 'company':
-          router.replace('/(tabs)/company-home');
-          break;
-        case 'admin':
-          router.replace('/(tabs)/admin-home');
-          break;
-        default:
-          router.replace('/(tabs)/home');
-      }
-    }
-  }, [user, authLoading]); // Removed hasNavigated from dependencies since it's now a ref
+  }, []); // Only depend on user.uid to prevent object reference changes
 
   const checkBiometric = async () => {
     const available = await biometricService.isAvailable();
@@ -79,9 +59,9 @@ export default function SignInScreen() {
       const result = await signIn(trimmedEmail, trimmedPassword);
 
       if (result.success) {
-        console.log('[SignIn] Login successful, navigating...');
-        // Don't set loading to false here, let the auth state change handle navigation
-        // The index.tsx will handle the navigation based on user role
+        console.log('[SignIn] Login successful - index.tsx will handle navigation');
+        // ✅ Navigation is automatic via AuthContext → index.tsx routing
+        // No need to navigate here or wait for user to load
       } else {
         setError(result.error || 'Failed to sign in');
         setIsLoading(false);
@@ -116,7 +96,10 @@ export default function SignInScreen() {
 
       const result = await signIn(credentials.email, credentials.encryptedPassword);
 
-      if (!result.success) {
+      if (result.success) {
+        console.log('[SignIn] Biometric login successful, waiting for user data to load');
+        // Don't navigate here - let the useEffect handle it when user is loaded
+      } else {
         setError(result.error || 'Failed to sign in');
         setIsLoading(false);
       }

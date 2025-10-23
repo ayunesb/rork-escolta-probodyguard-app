@@ -6,16 +6,24 @@ import { useLocationTracking } from "@/contexts/LocationTrackingContext";
 import Colors from "@/constants/colors";
 
 export default function TabLayout() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { setRole } = useLocationTracking();
 
   useEffect(() => {
     if (user) {
+      console.log('[TabLayout] User detected:', user.email, 'role:', user.role);
       setRole(user.role);
     }
   }, [user, setRole]);
 
+  // Show loading while auth is still initializing
+  if (isLoading) {
+    console.log('[TabLayout] Auth loading...');
+    return null;
+  }
+
   if (!user) {
+    console.log('[TabLayout] No user, redirecting to sign-in');
     return <Redirect href="/auth/sign-in" />;
   }
 

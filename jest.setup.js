@@ -1,5 +1,12 @@
 let localStorageData = {};
 
+// Mock Firebase to prevent ESM import errors
+jest.mock('firebase/firestore');
+jest.mock('firebase/auth');
+jest.mock('firebase/database');
+jest.mock('firebase/storage');
+jest.mock('firebase/analytics');
+
 const mockLocalStorage = {
   getItem(key) {
     return localStorageData[key] || null;

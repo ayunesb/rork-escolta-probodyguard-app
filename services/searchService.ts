@@ -1,4 +1,5 @@
 import { Guard } from '@/types';
+import { logger } from '@/utils/logger';
 
 export interface SearchFilters {
   query?: string;
@@ -169,7 +170,7 @@ export const searchService = {
         results.sort((a, b) => b.matchScore - a.matchScore);
     }
 
-    logger.log('[Search] Found', results.length, 'guards');
+    logger.log('[Search] Found guards:', { count: results.length });
     return results;
   },
 

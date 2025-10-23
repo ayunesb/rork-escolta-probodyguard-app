@@ -3,6 +3,7 @@ import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs } fro
 import { notificationService } from './notificationService';
 import * as Location from 'expo-location';
 import { Platform } from 'react-native';
+import { logger } from '@/utils/logger';
 
 export interface EmergencyAlert {
   id: string;
@@ -29,7 +30,7 @@ class EmergencyService {
     type: 'panic' | 'sos' | 'medical' | 'security' = 'panic'
   ): Promise<{ success: boolean; alertId?: string; error?: string }> {
     try {
-      logger.log('[Emergency] Triggering panic button:', userId, type);
+      logger.log('[Emergency] Triggering panic button:', { userId, type });
 
       const location = await this.getCurrentLocation();
       
@@ -68,7 +69,7 @@ class EmergencyService {
     notes?: string
   ): Promise<boolean> {
     try {
-      logger.log('[Emergency] Resolving alert:', alertId, status);
+      logger.log('[Emergency] Resolving alert:', { alertId, status });
 
       await updateDoc(doc(getDbInstance(), 'emergencyAlerts', alertId), {
         status,

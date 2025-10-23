@@ -16,8 +16,9 @@ import { paymentService } from '@/services/paymentService';
 import { notificationService } from '@/services/notificationService';
 import { useAuth } from '@/contexts/AuthContext';
 import { BraintreePaymentForm } from '@/components/BraintreePaymentForm';
+import { withErrorBoundary } from '@/components/CriticalScreenErrorBoundary';
 
-export default function BookingPaymentScreen() {
+function BookingPaymentScreen() {
   const params = useLocalSearchParams<{
     guardId: string;
     guardName: string;
@@ -304,4 +305,9 @@ const styles = StyleSheet.create({
     textAlign: 'center' as const,
     marginTop: 16,
   },
+});
+
+// Wrap with error boundary for payment flow protection
+export default withErrorBoundary(BookingPaymentScreen, {
+  fallbackMessage: "Payment processing encountered an error. Please try again or contact support.",
 });

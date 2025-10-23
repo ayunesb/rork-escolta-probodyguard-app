@@ -17,6 +17,7 @@ import * as Location from 'expo-location';
 import Colors from '@/constants/colors';
 import { mockGuards } from '@/mocks/guards';
 import { VehicleType, ProtectionType, DressCode } from '@/types';
+import { withErrorBoundary } from '@/components/CriticalScreenErrorBoundary';
 
 const TIME_OPTIONS = [
   '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM',
@@ -58,7 +59,7 @@ const generateDateOptions = () => {
 
 const DATE_OPTIONS = generateDateOptions();
 
-export default function BookingCreateScreen() {
+function BookingCreateScreen() {
   const router = useRouter();
   const [step, setStep] = useState<'details' | 'guards'>(Platform.OS === 'web' ? 'details' : 'details');
   
@@ -964,3 +965,9 @@ const styles = StyleSheet.create({
     color: Colors.gold,
   },
 });
+
+// Wrap with error boundary for booking flow protection
+export default withErrorBoundary(BookingCreateScreen, {
+  fallbackMessage: "Booking creation encountered an error. Please try again.",
+});
+

@@ -16,6 +16,7 @@ import { pushNotificationService } from '@/services/pushNotificationService';
 import { rateLimitService } from "@/services/rateLimitService";
 import { monitoringService } from "@/services/monitoringService";
 import { validatePasswordStrength } from "@/utils/passwordValidation";
+import { logger } from "@/utils/logger";
 
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 const ACTIVITY_CHECK_INTERVAL_MS = 60 * 1000;
@@ -49,14 +50,14 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           } as Omit<User, "id">;
           try {
             await setDoc(userRef, minimal);
-            console.log("[Auth] Created minimal user document");
+            logger.log("[Auth] Created minimal user document");
           } catch (setDocError: any) {
-            console.error(
+            logger.error(
               "[Auth] Failed to create user document:",
-              setDocError?.message ?? setDocError
+              { error: setDocError?.message ?? setDocError }
             );
             if (setDocError?.code === "permission-denied") {
-              console.error("[Auth] Permission denied - check Firestore rules");
+              logger.error("[Auth] Permission denied - check Firestore rules");
             }
             throw setDocError;
           }
@@ -64,7 +65,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         }
         return snap.data() as Omit<User, "id">;
       } catch (e: any) {
-        console.warn("[Auth] ensureUserDocument failed:", e?.message ?? e);
+        logger.warn("[Auth] ensureUserDocument failed:", { error: e?.message ?? e });
         throw e;
       }
     },
@@ -75,7 +76,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     const unsubscribe = onAuthStateChanged(
       getAuthInstance(),
       async (firebaseUser) => {
-        console.log("[Auth] State changed:", firebaseUser?.uid);
+        logger.log("[Auth] State changed:", { userId: firebaseUser?.uid });
         if (firebaseUser) {
           try {
             let userData: Omit<User, "id"> | null = null;
@@ -89,9 +90,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
                 );
                 if (userDoc.exists()) {
                   userData = userDoc.data() as Omit<User, "id">;
-                  console.log("[Auth] User document loaded successfully");
+                  logger.log("[Auth] User document loaded successfully");
                 } else {
-                  console.warn("[Auth] User document not found. Creating...");
+                  logger.warn("[Auth] User document not found. Creating...");
                   userData = await ensureUserDocument({
                     uid: firebaseUser.uid,
                     email: firebaseUser.email,
@@ -99,7 +100,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
                 }
               } catch (err: any) {
                 if (err?.code === "permission-denied") {
-                  console.warn(
+                  logger.warn(
                     "[Auth] Permission denied on getDoc. Attempting self-create..."
                   );
                   try {
@@ -108,13 +109,13 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
                       email: firebaseUser.email,
                     });
                   } catch (createErr: any) {
-                    console.error(
+                    logger.error(
                       "[Auth] Failed to create user document:",
-                      createErr?.message
+                      { error: createErr?.message }
                     );
                     retryCount++;
                     if (retryCount < maxRetries) {
-                      console.log(
+                      logger.log(
                         `[Auth] Retrying... (${retryCount}/${maxRetries})`
                       );
                       await new Promise((resolve) =>
@@ -136,26 +137,26 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
               // ✅ FIXED Notification Registration
               const token = await registerForPushNotificationsAsync();
               if (token && firebaseUser?.uid) {
-                console.log("[Auth] Expo Push Token:", token);
+                logger.log("[Auth] Expo Push Token:", { token });
                 // Store the Expo push token in device registry for push notifications
                 try {
                   if (token && firebaseUser?.uid) {
                     await pushNotificationService.registerDevice(firebaseUser.uid, 'client');
                   }
                 } catch (regErr) {
-                  console.warn('[Auth] Failed to register device for push notifications:', regErr);
+                  logger.warn('[Auth] Failed to register device for push notifications:', { error: regErr });
                 }
               }
             } else {
-              console.error(
+              logger.error(
                 "[Auth] Failed to load or create user data after retries"
               );
               setUser(null);
             }
           } catch (error: any) {
-            console.error(
+            logger.error(
               "[Auth] Error loading user data:",
-              error?.message ?? error
+              { error: error?.message ?? error }
             );
             setUser(null);
           }
@@ -178,7 +179,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       emailNotVerified?: boolean;
     }> => {
       try {
-        console.log("[Auth] Signing in:", email);
+        logger.log("[Auth] Signing in:", { email });
         const rateLimitCheck = await rateLimitService.checkRateLimit(
           "login",
           email
@@ -188,7 +189,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             "login",
             rateLimitCheck.blockedUntil!
           );
-          console.log("[Auth] Rate limit exceeded for:", email);
+          logger.log("[Auth] Rate limit exceeded for:", { email });
           return { success: false, error: errorMessage };
         }
         const userCredential = await signInWithEmailAndPassword(
@@ -196,11 +197,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           email,
           password
         );
-        console.log("[Auth] Sign in successful:", userCredential.user.uid);
+        logger.log("[Auth] Sign in successful:", { userId: userCredential.user.uid });
         const allowUnverified =
           (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? "") === "1";
         if (!userCredential.user.emailVerified && !allowUnverified) {
-          console.log("[Auth] Email not verified");
+          logger.log("[Auth] Email not verified");
           await firebaseSignOut(getAuthInstance());
           return {
             success: false,
@@ -209,7 +210,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           };
         }
         if (!userCredential.user.emailVerified && allowUnverified) {
-          console.warn(
+          logger.warn(
             "[Auth] Email not verified — allowed due to EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN=1"
           );
         }
@@ -221,7 +222,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         );
         return { success: true };
       } catch (error: any) {
-        console.error("[Auth] Sign in error:", error);
+        logger.error("[Auth] Sign in error:", { error });
         await monitoringService.reportError({
           error,
           context: { action: "signIn", email },
@@ -266,7 +267,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             error: `Password is not strong enough: ${passwordValidation.feedback.join(', ')}`,
           };
         }
-        console.log("[Auth] Signing up:", email, role);
+        logger.log("[Auth] Signing up:", { email, role });
         const userCredential = await createUserWithEmailAndPassword(
           getAuthInstance(),
           email,
@@ -274,7 +275,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         );
         const userId = userCredential.user.uid;
         await sendEmailVerification(userCredential.user);
-        console.log("[Auth] Verification email sent to:", email);
+        logger.log("[Auth] Verification email sent to:", { email });
         const userData: Omit<User, "id"> = {
           email,
           role,
@@ -289,7 +290,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           updatedAt: ""
         };
         await setDoc(doc(getDbInstance(), "users", userId), userData);
-        console.log("[Auth] User document created:", userId);
+        logger.log("[Auth] User document created:", { userId });
         await monitoringService.trackEvent(
           "user_signup",
           { email, role, userId },
@@ -298,7 +299,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         await firebaseSignOut(getAuthInstance());
         return { success: true, needsVerification: true };
       } catch (error: any) {
-        console.error("[Auth] Sign up error:", error);
+        logger.error("[Auth] Sign up error:", { error });
         await monitoringService.reportError({
           error,
           context: { action: "signUp", email, role },
@@ -319,7 +320,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const signOut = useCallback(async () => {
     try {
-      console.log("[Auth] Signing out");
+      logger.log("[Auth] Signing out");
       if (sessionTimeoutRef.current) {
         clearTimeout(sessionTimeoutRef.current);
         sessionTimeoutRef.current = null;
@@ -330,7 +331,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
       await firebaseSignOut(getAuthInstance());
     } catch (error) {
-      console.error("[Auth] Sign out error:", error);
+      logger.error("[Auth] Sign out error:", { error });
     }
   }, []);
 
@@ -338,14 +339,14 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     async (updates: Partial<User>) => {
       if (!user) return;
       try {
-        console.log("[Auth] Updating user:", user.id);
+        logger.log("[Auth] Updating user:", { userId: user.id });
         const { id, ...updateData } = updates as Partial<User> & {
           id?: string;
         };
         await updateDoc(doc(getDbInstance(), "users", user.id), updateData);
         setUser({ ...user, ...updates });
       } catch (error) {
-        console.error("[Auth] Update user error:", error);
+        logger.error("[Auth] Update user error:", { error });
       }
     },
     [user]
@@ -357,7 +358,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       clearTimeout(sessionTimeoutRef.current);
     }
     sessionTimeoutRef.current = setTimeout(async () => {
-      console.log('[Auth] Session expired due to inactivity');
+      logger.log('[Auth] Session expired due to inactivity');
       await monitoringService.trackEvent('session_timeout', { userId: user?.id });
       await signOut();
     }, SESSION_TIMEOUT_MS);
@@ -367,7 +368,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     const now = Date.now();
     const inactiveTime = now - lastActivityRef.current;
     if (inactiveTime >= SESSION_TIMEOUT_MS) {
-      console.log('[Auth] Session expired - no activity for 30 minutes');
+      logger.log('[Auth] Session expired - no activity for 30 minutes');
       signOut();
     }
   }, [signOut]);
@@ -397,10 +398,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         return { success: false, error: "Email already verified" };
       }
       await sendEmailVerification(authInstance.currentUser);
-      console.log("[Auth] Verification email resent");
+      logger.log("[Auth] Verification email resent");
       return { success: true };
     } catch (error: any) {
-      console.error("[Auth] Resend verification error:", error);
+      logger.error("[Auth] Resend verification error:", { error });
       return { success: false, error: "Failed to resend verification email" };
     }
   }, []);

@@ -1,4 +1,5 @@
 import { trpcClient } from '@/lib/trpc';
+import { logger } from '@/utils/logger';
 
 export interface BraintreePaymentResult {
   id: string;
@@ -18,17 +19,17 @@ export interface BraintreeRefundResult {
 
 class BraintreeService {
   async getClientToken(customerId?: string): Promise<string> {
-    console.log('[BraintreeService] Getting client token for customer:', customerId);
+    logger.log('[BraintreeService] Getting client token for customer:', { customerId });
     
     try {
       const result = await trpcClient.payments.braintree.clientToken.mutate({
         customerId,
       });
       
-      console.log('[BraintreeService] Client token received');
+      logger.log('[BraintreeService] Client token received');
       return result.clientToken;
     } catch (error: any) {
-      console.error('[BraintreeService] Error getting client token:', error);
+      logger.error('[BraintreeService] Error getting client token:', { error });
       throw new Error(`Failed to get client token: ${error.message}`);
     }
   }
@@ -41,7 +42,7 @@ class BraintreeService {
     bookingId?: string;
     description?: string;
   }): Promise<BraintreePaymentResult> {
-    console.log('[BraintreeService] Processing payment:', {
+    logger.log('[BraintreeService] Processing payment:', {
       amount: params.amount,
       currency: params.currency || 'MXN',
       bookingId: params.bookingId,
@@ -57,10 +58,10 @@ class BraintreeService {
         description: params.description,
       });
 
-      console.log('[BraintreeService] Payment successful:', result.id);
+      logger.log('[BraintreeService] Payment successful:', { transactionId: result.id });
       return result;
     } catch (error: any) {
-      console.error('[BraintreeService] Payment error:', error);
+      logger.error('[BraintreeService] Payment error:', { error });
       throw new Error(`Payment failed: ${error.message}`);
     }
   }
@@ -70,7 +71,7 @@ class BraintreeService {
     amount?: number;
     reason?: string;
   }): Promise<BraintreeRefundResult> {
-    console.log('[BraintreeService] Processing refund:', params.transactionId);
+    logger.log('[BraintreeService] Processing refund:', { transactionId: params.transactionId });
 
     try {
       const result = await trpcClient.payments.braintree.refund.mutate({
@@ -79,10 +80,10 @@ class BraintreeService {
         reason: params.reason,
       });
 
-      console.log('[BraintreeService] Refund successful:', result.id);
+      logger.log('[BraintreeService] Refund successful:', { refundId: result.id });
       return result;
     } catch (error: any) {
-      console.error('[BraintreeService] Refund error:', error);
+      logger.error('[BraintreeService] Refund error:', { error });
       throw new Error(`Refund failed: ${error.message}`);
     }
   }

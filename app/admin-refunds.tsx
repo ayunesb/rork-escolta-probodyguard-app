@@ -13,8 +13,9 @@ import { Stack, useRouter } from 'expo-router';
 import { DollarSign, AlertCircle, CheckCircle, XCircle, Search } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import type { Refund } from '@/types';
+import { withErrorBoundary } from '@/components/CriticalScreenErrorBoundary';
 
-export default function AdminRefundsScreen() {
+function AdminRefundsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRefund, setSelectedRefund] = useState<Refund | null>(null);
   
@@ -429,3 +430,9 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
 });
+
+// Wrap with error boundary for admin refunds protection
+export default withErrorBoundary(AdminRefundsScreen, {
+  fallbackMessage: "Admin refunds screen encountered an error. Please try again or contact support.",
+});
+

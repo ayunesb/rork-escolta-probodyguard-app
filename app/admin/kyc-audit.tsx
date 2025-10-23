@@ -13,6 +13,7 @@ import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { FileText, Search, User, Shield, CheckCircle, XCircle, Eye, ChevronLeft } from 'lucide-react-native';
 import { kycAuditService } from '@/services/kycAuditService';
 import Colors from '@/constants/colors';
+import { withErrorBoundary } from '@/components/CriticalScreenErrorBoundary';
 
 interface AuditEntry {
   userId: string;
@@ -27,7 +28,7 @@ interface AuditEntry {
   timestamp: Date;
 }
 
-export default function AdminKYCAuditScreen() {
+function AdminKYCAuditScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
@@ -496,3 +497,9 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
 });
+
+// Wrap with error boundary for admin KYC audit protection
+export default withErrorBoundary(AdminKYCAuditScreen, {
+  fallbackMessage: "KYC audit screen encountered an error. Please try again.",
+});
+

@@ -1,6 +1,7 @@
 import { collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db as getDbInstance } from '@/lib/firebase';
 import { RatingBreakdown } from '@/types';
+import { logger } from '@/utils/logger';
 
 export interface Review {
   id: string;
@@ -48,7 +49,7 @@ export const ratingsService = {
     photos?: string[]
   ): Promise<string | null> {
     try {
-      console.log('[Ratings] Submitting rating for booking:', bookingId);
+      logger.log('[Ratings] Submitting rating for booking:', bookingId);
 
       const reviewData = {
         bookingId,
@@ -74,10 +75,10 @@ export const ratingsService = {
 
       await this.updateGuardRating(guardId);
 
-      console.log('[Ratings] Rating submitted:', reviewRef.id);
+      logger.log('[Ratings] Rating submitted:', reviewRef.id);
       return reviewRef.id;
     } catch (error) {
-      console.error('[Ratings] Error submitting rating:', error);
+      logger.error('[Ratings] Error submitting rating:', error);
       return null;
     }
   },
@@ -134,9 +135,9 @@ export const ratingsService = {
         lastRatingUpdate: new Date().toISOString(),
       });
 
-      console.log('[Ratings] Guard rating updated:', guardId, overallRating);
+      logger.log('[Ratings] Guard rating updated:', { guardId, overallRating });
     } catch (error) {
-      console.error('[Ratings] Error updating guard rating:', error);
+      logger.error('[Ratings] Error updating guard rating:', { error });
     }
   },
 
@@ -207,7 +208,7 @@ export const ratingsService = {
         responseRate,
       };
     } catch (error) {
-      console.error('[Ratings] Error getting rating stats:', error);
+      logger.error('[Ratings] Error getting rating stats:', error);
       return null;
     }
   },
@@ -236,7 +237,7 @@ export const ratingsService = {
 
       return reviews;
     } catch (error) {
-      console.error('[Ratings] Error getting reviews:', error);
+      logger.error('[Ratings] Error getting reviews:', error);
       return [];
     }
   },
@@ -254,10 +255,10 @@ export const ratingsService = {
         updatedAt: new Date().toISOString(),
       });
 
-      console.log('[Ratings] Response added to review:', reviewId);
+      logger.log('[Ratings] Response added to review:', reviewId);
       return true;
     } catch (error) {
-      console.error('[Ratings] Error responding to review:', error);
+      logger.error('[Ratings] Error responding to review:', error);
       return false;
     }
   },
@@ -284,7 +285,7 @@ export const ratingsService = {
 
       return false;
     } catch (error) {
-      console.error('[Ratings] Error marking review helpful:', error);
+      logger.error('[Ratings] Error marking review helpful:', error);
       return false;
     }
   },
@@ -309,7 +310,7 @@ export const ratingsService = {
 
       return reviews;
     } catch (error) {
-      console.error('[Ratings] Error getting client rating history:', error);
+      logger.error('[Ratings] Error getting client rating history:', error);
       return [];
     }
   },
@@ -336,7 +337,7 @@ export const ratingsService = {
 
       return guards;
     } catch (error) {
-      console.error('[Ratings] Error getting top rated guards:', error);
+      logger.error('[Ratings] Error getting top rated guards:', error);
       return [];
     }
   },

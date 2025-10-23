@@ -22,8 +22,9 @@ import {
   Plus,
 } from 'lucide-react-native';
 import Colors from '@/constants/colors';
+import { withErrorBoundary } from '@/components/CriticalScreenErrorBoundary';
 
-export default function BookingActiveScreen() {
+function BookingActiveScreen() {
   const params = useLocalSearchParams<{
     bookingId: string;
     guardId: string;
@@ -603,3 +604,9 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
 });
+
+// Wrap with error boundary for active booking flow protection
+export default withErrorBoundary(BookingActiveScreen, {
+  fallbackMessage: "Active booking screen encountered an error. Please try again or contact support.",
+});
+

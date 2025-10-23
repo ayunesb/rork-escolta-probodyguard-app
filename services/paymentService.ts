@@ -2,6 +2,7 @@ import { collection, addDoc, updateDoc, doc, getDocs, query, where, serverTimest
 import { db as getDbInstance } from '@/lib/firebase';
 import { SavedPaymentMethod } from '@/types';
 import { PAYMENT_CONFIG, ENV } from '@/config/env';
+import { logger } from '@/utils/logger';
 
 export interface PaymentResult {
   success: boolean;
@@ -21,7 +22,7 @@ export interface PaymentBreakdown {
 
 export const paymentService = {
   async getClientToken(userId: string): Promise<string> {
-    console.log('[Payment] Requesting client token for user:', userId);
+    logger.log('[Payment] Requesting client token for user:', userId);
     
     try {
       const url = new URL(`${ENV.API_URL}/payments/client-token`);
@@ -35,10 +36,10 @@ export const paymentService = {
       }
 
       const data = await response.json();
-      console.log('[Payment] Client token received');
+      logger.log('[Payment] Client token received');
       return data.clientToken;
     } catch (error) {
-      console.error('[Payment] Error getting client token:', error);
+      logger.error('[Payment] Error getting client token:', error);
       throw error;
     }
   },
@@ -50,7 +51,7 @@ export const paymentService = {
     userId: string,
     saveCard: boolean = false
   ): Promise<PaymentResult> {
-    console.log('[Payment] Processing payment:', { amount, bookingId, userId, saveCard });
+    logger.log('[Payment] Processing payment:', { amount, bookingId, userId, saveCard });
     
     try {
       const response = await fetch(`${ENV.API_URL}/payments/process`, {
@@ -69,7 +70,7 @@ export const paymentService = {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('[Payment] Payment failed:', data.error);
+        logger.error('[Payment] Payment failed:', data.error);
         return {
           success: false,
           error: data.error || 'Payment processing failed',
@@ -77,7 +78,7 @@ export const paymentService = {
       }
 
       if (data.requiresAction) {
-        console.log('[Payment] 3DS authentication required');
+        logger.log('[Payment] 3DS authentication required');
         return {
           success: false,
           requiresAction: true,
@@ -85,7 +86,7 @@ export const paymentService = {
         };
       }
 
-      console.log('[Payment] Payment successful:', data.transactionId);
+      logger.log('[Payment] Payment successful:', data.transactionId);
       
       await addDoc(collection(getDbInstance(), 'payments'), {
         bookingId,
@@ -102,7 +103,7 @@ export const paymentService = {
         transactionId: data.transactionId,
       };
     } catch (error) {
-      console.error('[Payment] Payment processing error:', error);
+      logger.error('[Payment] Payment processing error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Payment failed',
@@ -119,7 +120,7 @@ export const paymentService = {
     bookingId: string,
     userId: string
   ): Promise<PaymentResult> {
-    console.log('[Payment] Processing card directly:', { amount, bookingId });
+    logger.log('[Payment] Processing card directly:', { amount, bookingId });
     
     try {
       const response = await fetch(`${ENV.API_URL}/payments/process-card`, {
@@ -138,14 +139,14 @@ export const paymentService = {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        console.error('[Payment] Card payment failed:', data.error);
+        logger.error('[Payment] Card payment failed:', data.error);
         return {
           success: false,
           error: data.error || 'Payment processing failed',
         };
       }
 
-      console.log('[Payment] Card payment successful:', data.transactionId);
+      logger.log('[Payment] Card payment successful:', data.transactionId);
       
       await addDoc(collection(getDbInstance(), 'payments'), {
         bookingId,
@@ -162,7 +163,7 @@ export const paymentService = {
         transactionId: data.transactionId,
       };
     } catch (error) {
-      console.error('[Payment] Card payment processing error:', error);
+      logger.error('[Payment] Card payment processing error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Payment failed',
@@ -228,7 +229,7 @@ export const paymentService = {
       
       // Handle 404 gracefully - user doesn't exist in Braintree yet (first-time user)
       if (response.status === 404) {
-        console.log('[Payment] No saved cards found (first-time user)');
+        logger.log('[Payment] No saved cards found (first-time user)');
         return [];
       }
       
@@ -239,7 +240,7 @@ export const paymentService = {
       const data = await response.json();
       return data.paymentMethods || [];
     } catch (error) {
-      console.error('[Payment] Error loading saved cards:', error);
+      logger.error('[Payment] Error loading saved cards:', error);
       return [];
     }
   },
@@ -254,15 +255,15 @@ export const paymentService = {
         throw new Error('Failed to remove payment method');
       }
 
-      console.log('[Payment] Removed payment method');
+      logger.log('[Payment] Removed payment method');
     } catch (error) {
-      console.error('[Payment] Error removing payment method:', error);
+      logger.error('[Payment] Error removing payment method:', error);
       throw error;
     }
   },
 
   async processRefund(transactionId: string, bookingId: string, amount?: number): Promise<PaymentResult> {
-    console.log('[Payment] Processing refund:', { transactionId, bookingId, amount });
+    logger.log('[Payment] Processing refund:', { transactionId, bookingId, amount });
     
     try {
       const response = await fetch(`${ENV.API_URL}/payments/refund`, {
@@ -278,14 +279,14 @@ export const paymentService = {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('[Payment] Refund failed:', data.error);
+        logger.error('[Payment] Refund failed:', data.error);
         return {
           success: false,
           error: data.error || 'Refund processing failed',
         };
       }
 
-      console.log('[Payment] Refund successful:', data.refundId);
+      logger.log('[Payment] Refund successful:', data.refundId);
       
       const paymentQuery = query(
         collection(getDbInstance(), 'payments'),
@@ -307,7 +308,7 @@ export const paymentService = {
         transactionId: data.refundId,
       };
     } catch (error) {
-      console.error('[Payment] Refund processing error:', error);
+      logger.error('[Payment] Refund processing error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Refund failed',

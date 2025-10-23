@@ -83,7 +83,7 @@ export const searchService = {
     filters: SearchFilters,
     userLocation?: { latitude: number; longitude: number }
   ): SearchResult[] {
-    console.log('[Search] Searching guards with filters:', filters);
+    logger.log('[Search] Searching guards with filters:', filters);
 
     let results: SearchResult[] = guards.map(guard => {
       let distance: number | undefined;
@@ -169,7 +169,7 @@ export const searchService = {
         results.sort((a, b) => b.matchScore - a.matchScore);
     }
 
-    console.log('[Search] Found', results.length, 'guards');
+    logger.log('[Search] Found', results.length, 'guards');
     return results;
   },
 

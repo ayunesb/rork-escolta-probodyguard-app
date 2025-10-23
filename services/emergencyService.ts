@@ -29,7 +29,7 @@ class EmergencyService {
     type: 'panic' | 'sos' | 'medical' | 'security' = 'panic'
   ): Promise<{ success: boolean; alertId?: string; error?: string }> {
     try {
-      console.log('[Emergency] Triggering panic button:', userId, type);
+      logger.log('[Emergency] Triggering panic button:', userId, type);
 
       const location = await this.getCurrentLocation();
       
@@ -47,7 +47,7 @@ class EmergencyService {
       };
 
       const docRef = await addDoc(collection(getDbInstance(), 'emergencyAlerts'), alert);
-      console.log('[Emergency] Alert created:', docRef.id);
+      logger.log('[Emergency] Alert created:', docRef.id);
 
       await this.notifyEmergencyContacts(docRef.id, alert);
 
@@ -57,7 +57,7 @@ class EmergencyService {
 
       return { success: true, alertId: docRef.id };
     } catch (error) {
-      console.error('[Emergency] Error triggering panic button:', error);
+      logger.error('[Emergency] Error triggering panic button:', error);
       return { success: false, error: 'Failed to trigger emergency alert' };
     }
   }
@@ -68,7 +68,7 @@ class EmergencyService {
     notes?: string
   ): Promise<boolean> {
     try {
-      console.log('[Emergency] Resolving alert:', alertId, status);
+      logger.log('[Emergency] Resolving alert:', alertId, status);
 
       await updateDoc(doc(getDbInstance(), 'emergencyAlerts', alertId), {
         status,
@@ -78,7 +78,7 @@ class EmergencyService {
 
       return true;
     } catch (error) {
-      console.error('[Emergency] Error resolving alert:', error);
+      logger.error('[Emergency] Error resolving alert:', error);
       return false;
     }
   }
@@ -97,7 +97,7 @@ class EmergencyService {
         ...doc.data(),
       })) as EmergencyAlert[];
     } catch (error) {
-      console.error('[Emergency] Error getting active alerts:', error);
+      logger.error('[Emergency] Error getting active alerts:', error);
       return [];
     }
   }
@@ -122,7 +122,7 @@ class EmergencyService {
                 });
               },
               (error) => {
-                console.error('[Emergency] Web geolocation error:', error);
+                logger.error('[Emergency] Web geolocation error:', error);
                 resolve(null);
               },
               { enableHighAccuracy: true }
@@ -131,7 +131,7 @@ class EmergencyService {
         }
         return null;
       } catch (error) {
-        console.error('[Emergency] Web location error:', error);
+        logger.error('[Emergency] Web location error:', error);
         return null;
       }
     }
@@ -140,7 +140,7 @@ class EmergencyService {
       const { status } = await Location.requestForegroundPermissionsAsync();
       
       if (status !== 'granted') {
-        console.error('[Emergency] Location permission denied');
+        logger.error('[Emergency] Location permission denied');
         return null;
       }
 
@@ -159,7 +159,7 @@ class EmergencyService {
           address = `${geocode.street || ''} ${geocode.city || ''} ${geocode.region || ''}`.trim();
         }
       } catch (error) {
-        console.error('[Emergency] Error getting address:', error);
+        logger.error('[Emergency] Error getting address:', error);
       }
 
       return {
@@ -169,7 +169,7 @@ class EmergencyService {
         address,
       };
     } catch (error) {
-      console.error('[Emergency] Error getting location:', error);
+      logger.error('[Emergency] Error getting location:', error);
       return null;
     }
   }
@@ -200,9 +200,9 @@ class EmergencyService {
         );
       }
 
-      console.log('[Emergency] Notified emergency contacts');
+      logger.log('[Emergency] Notified emergency contacts');
     } catch (error) {
-      console.error('[Emergency] Error notifying emergency contacts:', error);
+      logger.error('[Emergency] Error notifying emergency contacts:', error);
     }
   }
 
@@ -231,9 +231,9 @@ class EmergencyService {
         );
       }
 
-      console.log('[Emergency] Notified booking parties');
+      logger.log('[Emergency] Notified booking parties');
     } catch (error) {
-      console.error('[Emergency] Error notifying booking parties:', error);
+      logger.error('[Emergency] Error notifying booking parties:', error);
     }
   }
 }

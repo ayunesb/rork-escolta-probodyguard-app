@@ -4,8 +4,9 @@ import { useEffect } from 'react';
 import { TrendingUp, Users, DollarSign, Star, MessageSquare, Clock, AlertTriangle } from 'lucide-react-native';
 import { useAnalytics } from '@/contexts/AnalyticsContext';
 import colors from '@/constants/colors';
+import { withErrorBoundary } from '@/components/CriticalScreenErrorBoundary';
 
-export default function AdminAnalyticsScreen() {
+function AdminAnalyticsScreen() {
   const { summary, isLoading, loadSummary } = useAnalytics();
 
   const appColors = {
@@ -376,3 +377,9 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 });
+
+// Wrap with error boundary for admin analytics protection
+export default withErrorBoundary(AdminAnalyticsScreen, {
+  fallbackMessage: "Admin analytics encountered an error. Please try again.",
+});
+

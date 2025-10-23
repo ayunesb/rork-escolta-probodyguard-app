@@ -5,6 +5,7 @@ import { realtimeDb as getRealtimeDb } from '@/lib/firebase';
 import { notificationService } from './notificationService';
 import { rateLimitService } from './rateLimitService';
 import { AppState, AppStateStatus } from 'react-native';
+import { logger } from '@/utils/logger';
 
 const BOOKINGS_KEY = '@escolta_bookings';
 
@@ -75,7 +76,7 @@ function cleanUndefined(obj: any) {
 export const bookingService = {
   setPollingActive(isActive: boolean): void {
     pollingConfig.isActive = isActive;
-    console.log('[Booking] Polling mode:', isActive ? 'active (10s)' : 'idle (30s)');
+    logger.log('[Booking] Polling mode:', { mode: isActive ? 'active (10s)' : 'idle (30s)' });
   },
 
   getCurrentPollingInterval(): number {
@@ -91,16 +92,16 @@ export const bookingService = {
         const bookings: Booking[] = data ? Object.values(data) : [];
 
         await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-        console.log('[Booking] Real-time update received:', bookings.length, 'bookings');
+        logger.log('[Booking] Real-time update received:', { count: bookings.length });
         callback(bookings);
       } catch (error) {
-        console.error('[Booking] Error processing real-time update:', error);
+        logger.error('[Booking] Error processing real-time update:', error);
       }
     });
 
     return () => {
       off(bookingsRef);
-      console.log('[Booking] Unsubscribed from real-time updates');
+      logger.log('[Booking] Unsubscribed from real-time updates');
     };
   },
 
@@ -113,7 +114,7 @@ export const bookingService = {
         const interval = this.getCurrentPollingInterval();
         pollingTimer = setTimeout(poll, interval);
       } catch (error) {
-        console.error('[Booking] Polling error:', error);
+        logger.error('[Booking] Polling error:', error);
         pollingTimer = setTimeout(poll, pollingConfig.idleInterval);
       }
     };
@@ -137,12 +138,12 @@ export const bookingService = {
       if (appStateSubscription) {
         try {
           appStateSubscription.remove();
-        } catch (e) {
+        } catch {
           // ignore
         }
         appStateSubscription = null;
       }
-      console.log('[Booking] Stopped polling');
+      logger.log('[Booking] Stopped polling');
     };
   },
 
@@ -159,16 +160,16 @@ export const bookingService = {
             b.guardId === guardId
         );
 
-        console.log('[Booking] Guard real-time update:', guardBookings.length, 'bookings for guard', guardId);
+        logger.log('[Booking] Guard real-time update:', { count: guardBookings.length, guardId });
         callback(guardBookings);
       } catch (error) {
-        console.error('[Booking] Error processing guard real-time update:', error);
+        logger.error('[Booking] Error processing guard real-time update:', error);
       }
     });
 
     return () => {
       off(bookingsRef);
-      console.log('[Booking] Unsubscribed from guard real-time updates');
+      logger.log('[Booking] Unsubscribed from guard real-time updates');
     };
   },
 
@@ -179,7 +180,7 @@ export const bookingService = {
       const rateLimitCheck = await rateLimitService.checkRateLimit('booking', bookingData.clientId);
       if (!rateLimitCheck.allowed) {
         const errorMessage = rateLimitService.getRateLimitError('booking', rateLimitCheck.blockedUntil!);
-        console.log('[Booking] Rate limit exceeded for client:', bookingData.clientId);
+        logger.log('[Booking] Rate limit exceeded for client:', bookingData.clientId);
         throw new Error(errorMessage);
       }
 
@@ -199,7 +200,10 @@ export const bookingService = {
         createdAt: new Date().toISOString(),
       };
 
-      console.log('[Booking] Created booking type:', bookingType, 'scheduled:', `${bookingData.scheduledDate}T${bookingData.scheduledTime}`);
+      logger.log('[Booking] Created booking type:', { 
+        bookingType, 
+        scheduled: `${bookingData.scheduledDate}T${bookingData.scheduledTime}` 
+      });
 
       const bookings = await this.getAllBookings();
       bookings.push(booking);
@@ -209,19 +213,23 @@ export const bookingService = {
         const bookingsRef = ref(getRealtimeDb(), 'bookings');
         const bookingsData = bookings.reduce((acc, b) => ({ ...acc, [b.id]: cleanUndefined(b) }), {});
         await set(bookingsRef, bookingsData);
-        console.log('[Booking] Synced to Firebase Realtime Database');
+        logger.log('[Booking] Synced to Firebase Realtime Database');
 
         if (booking.guardId) {
           await notificationService.notifyNewBookingRequest('Client', booking.id);
         }
       } catch (firebaseError) {
-        console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+        logger.error('[Booking] Firebase sync error (non-critical):', { error: firebaseError });
       }
 
-      console.log('[Booking] Created booking:', booking.id, 'guardId:', booking.guardId, 'Start code:', booking.startCode);
+      logger.log('[Booking] Created booking:', { 
+        bookingId: booking.id, 
+        guardId: booking.guardId, 
+        startCode: booking.startCode 
+      });
       return booking;
     } catch (error) {
-      console.error('[Booking] Error creating booking:', error);
+      logger.error('[Booking] Error creating booking:', error);
       throw error;
     }
   },
@@ -231,7 +239,7 @@ export const bookingService = {
       const stored = await AsyncStorage.getItem(BOOKINGS_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
-      console.error('[Booking] Error loading bookings:', error);
+      logger.error('[Booking] Error loading bookings:', error);
       return [];
     }
   },
@@ -288,13 +296,13 @@ export const bookingService = {
       try {
         const bookingRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
         await update(bookingRef, cleanUndefined(b));
-        console.log('[Booking] Synced cancellation to Firebase');
+        logger.log('[Booking] Synced cancellation to Firebase');
         await notificationService.notifyBookingStatusChange(bookingId, 'cancelled', cancelledBy as any, reason);
       } catch {
-        console.error('[Booking] Firebase sync error (non-critical)');
+        logger.error('[Booking] Firebase sync error (non-critical)');
       }
     } catch (error) {
-      console.error('[Booking] Error cancelling booking:', error);
+      logger.error('[Booking] Error cancelling booking:', error);
       throw error;
     }
   },
@@ -367,7 +375,7 @@ export const bookingService = {
       const bookings = await this.getAllBookings();
       return bookings.find((b) => b.id === id) || null;
     } catch (error) {
-      console.error('[Booking] Error getting booking:', error);
+      logger.error('[Booking] Error getting booking:', error);
       return null;
     }
   },
@@ -379,7 +387,7 @@ export const bookingService = {
       if (role === 'guard') return bookings.filter((b) => b.guardId === userId);
       return bookings;
     } catch (error) {
-      console.error('[Booking] Error getting user bookings:', error);
+      logger.error('[Booking] Error getting user bookings:', error);
       return [];
     }
   },
@@ -406,16 +414,16 @@ export const bookingService = {
         try {
           const bookingRef = ref(getRealtimeDb(), `bookings/${id}`);
           await update(bookingRef, cleanUndefined(b));
-          console.log('[Booking] Synced status update to Firebase');
+          logger.log('[Booking] Synced status update to Firebase');
           await notificationService.notifyBookingStatusChange(id, status, undefined, rejectionReason);
         } catch {
-          console.error('[Booking] Firebase sync error (non-critical)');
+          logger.error('[Booking] Firebase sync error (non-critical)');
         }
 
-        console.log('[Booking] Updated booking status:', id, status);
+        logger.log('[Booking] Updated booking status:', { id, status });
       }
     } catch (error) {
-      console.error('[Booking] Error updating booking status:', error);
+      logger.error('[Booking] Error updating booking status:', error);
       throw error;
     }
   },
@@ -436,16 +444,16 @@ export const bookingService = {
         try {
           const bookingRef = ref(getRealtimeDb(), `bookings/${id}`);
           await update(bookingRef, cleanUndefined(b));
-          console.log('[Booking] Synced payment confirmation to Firebase');
+          logger.log('[Booking] Synced payment confirmation to Firebase');
           await notificationService.notifyBookingStatusChange(id, 'confirmed');
         } catch (firebaseError) {
-          console.error('[Booking] Firebase sync error (non-critical):', firebaseError);
+          logger.error('[Booking] Firebase sync error (non-critical):', { error: firebaseError });
         }
 
-        console.log('[Booking] Confirmed booking payment:', id, transactionId);
+        logger.log('[Booking] Confirmed booking payment:', { bookingId: id, transactionId });
       }
     } catch (error) {
-      console.error('[Booking] Error confirming booking payment:', error);
+      logger.error('[Booking] Error confirming booking payment:', error);
       throw error;
     }
   },

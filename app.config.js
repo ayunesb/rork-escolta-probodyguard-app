@@ -64,6 +64,10 @@ export default {
       }
     },
     owner: 'ayunesb',
+    updates: {
+      url: 'https://u.expo.dev/7cee6c31-9a1c-436d-9baf-57fc8a43b651'
+    },
+    runtimeVersion: '1.0.0',
     extra: {
       // === BRAINTREE CONFIGURATION (CLIENT-SAFE) ===
       // Only expose environment and tokenization key - never private credentials!

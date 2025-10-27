@@ -26,6 +26,7 @@ service cloud.firestore {
     // === USERS COLLECTION ===
     match /users/{userId} {
       // Allow users to read their own document (no role check needed to avoid circular dependency)
+      // CRITICAL: This must work WITHOUT calling getUserData() to avoid infinite recursion
       allow get: if isAuthenticated() && request.auth.uid == userId;
       
       // Allow list for admins and companies (checking role after user doc exists)
@@ -36,11 +37,18 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.auth.uid == userId && 
         request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt', 'isActive', 'emailVerified', 'updatedAt']);
       
+      // Allow update: user can update own document, or admin can update any
+      // Use direct check instead of hasRole() for self-updates to avoid recursion
       allow update: if isAuthenticated() && (
-        request.auth.uid == userId || hasRole('admin')
+        request.auth.uid == userId ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
       
-      allow delete: if isAuthenticated() && hasRole('admin');
+      // Allow delete only for admins
+      allow delete: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     // === BOOKINGS COLLECTION ===

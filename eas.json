@@ -27,7 +27,30 @@
         "resourceClass": "medium"
       }
     },
+    "internal-testing": {
+      "env": {
+        "APP_ENV": "production"
+      },
+      "distribution": "internal",
+      "channel": "internal",
+      "ios": {
+        "resourceClass": "m-medium",
+        "simulator": false
+      },
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "medium",
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        }
+      }
+    },
     "production": {
+      "env": {
+        "APP_ENV": "production"
+      },
+      "channel": "production",
       "ios": {
         "resourceClass": "m-medium"
       },

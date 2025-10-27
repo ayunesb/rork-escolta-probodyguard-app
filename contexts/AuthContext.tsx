@@ -78,10 +78,21 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       async (firebaseUser) => {
         logger.log("[Auth] State changed:", { userId: firebaseUser?.uid });
         if (firebaseUser) {
+          const allowUnverified = (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? "") === "1";
+          if (!firebaseUser.emailVerified && !allowUnverified) {
+            logger.log("[Auth] Email not verified - skipping Firestore access and signing out early");
+            try {
+              await firebaseSignOut(getAuthInstance());
+            } catch {}
+            setUser(null);
+            setIsLoading(false);
+            return;
+          }
+
           try {
             let userData: Omit<User, "id"> | null = null;
             let retryCount = 0;
-            const maxRetries = 3;
+            const maxRetries = 2;
 
             while (retryCount < maxRetries && !userData) {
               try {
@@ -100,64 +111,31 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
                 }
               } catch (err: any) {
                 if (err?.code === "permission-denied") {
-                  logger.warn(
-                    "[Auth] Permission denied on getDoc. Attempting self-create..."
-                  );
-                  try {
-                    userData = await ensureUserDocument({
-                      uid: firebaseUser.uid,
-                      email: firebaseUser.email,
-                    });
-                  } catch (createErr: any) {
-                    logger.error(
-                      "[Auth] Failed to create user document:",
-                      { error: createErr?.message }
-                    );
-                    retryCount++;
-                    if (retryCount < maxRetries) {
-                      logger.log(
-                        `[Auth] Retrying... (${retryCount}/${maxRetries})`
-                      );
-                      await new Promise((resolve) =>
-                        setTimeout(resolve, 1000 * retryCount)
-                      );
-                    } else {
-                      throw createErr;
-                    }
-                  }
-                } else {
-                  throw err;
+                  logger.warn("[Auth] Firestore permission denied - stopping retries");
+                  break;
                 }
+                throw err;
               }
             }
 
             if (userData) {
               setUser({ id: firebaseUser.uid, ...userData });
 
-              // ✅ FIXED Notification Registration
               const token = await registerForPushNotificationsAsync();
               if (token && firebaseUser?.uid) {
                 logger.log("[Auth] Expo Push Token:", { token });
-                // Store the Expo push token in device registry for push notifications
                 try {
-                  if (token && firebaseUser?.uid) {
-                    await pushNotificationService.registerDevice(firebaseUser.uid, 'client');
-                  }
+                  await pushNotificationService.registerDevice(firebaseUser.uid, 'client');
                 } catch (regErr) {
                   logger.warn('[Auth] Failed to register device for push notifications:', { error: regErr });
                 }
               }
             } else {
-              logger.error(
-                "[Auth] Failed to load or create user data after retries"
-              );
+              logger.error("[Auth] No user data available (permission denied or creation blocked)");
               setUser(null);
             }
           } catch (error: any) {
-            logger.error(
-              "[Auth] Error loading user data:",
-              { error: error?.message ?? error }
-            );
+            logger.error("[Auth] Error loading user data:", { error: error?.message ?? error });
             setUser(null);
           }
         } else {

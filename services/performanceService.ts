@@ -1,9 +1,21 @@
-import perf, { FirebasePerformanceTypes } from '@react-native-firebase/perf';
+// Optional: Performance monitoring is disabled if package is not installed
+// To enable: npm install @react-native-firebase/perf
+let perf: any = null;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const perfModule = require('@react-native-firebase/perf');
+  perf = perfModule.default;
+} catch {
+  // Package not installed - performance monitoring disabled
+  console.log('[Performance] @react-native-firebase/perf not installed, monitoring disabled');
+}
 
 // Performance Monitoring Service
 class PerformanceService {
   private static instance: PerformanceService;
-  private traces: Map<string, FirebasePerformanceTypes.Trace> = new Map();
+  private traces: Map<string, any> = new Map();
+  private enabled: boolean = perf !== null;
 
   static getInstance() {
     if (!PerformanceService.instance) {
@@ -13,7 +25,11 @@ class PerformanceService {
   }
 
   // Start a custom trace
-  async startTrace(traceName: string): Promise<FirebasePerformanceTypes.Trace> {
+  async startTrace(traceName: string): Promise<any> {
+    if (!this.enabled) {
+      console.log(`[Performance] Monitoring disabled, skipping trace: ${traceName}`);
+      return null;
+    }
     try {
       const trace = perf().newTrace(traceName);
       await trace.start();
@@ -28,6 +44,8 @@ class PerformanceService {
 
   // Stop a trace
   async stopTrace(traceName: string): Promise<void> {
+    if (!this.enabled) return;
+    
     try {
       const trace = this.traces.get(traceName);
       if (trace) {
@@ -44,6 +62,8 @@ class PerformanceService {
 
   // Add custom attributes to a trace
   putAttribute(traceName: string, key: string, value: string): void {
+    if (!this.enabled) return;
+    
     try {
       const trace = this.traces.get(traceName);
       if (trace) {

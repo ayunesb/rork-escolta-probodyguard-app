@@ -42,3 +42,8 @@ functions/.env
 
 # functions compiled output
 functions/lib/
+
+# Cubrir TODA variante de .env, incluido .env.backup.*
+.env*
+!.env.example
+!.env.template

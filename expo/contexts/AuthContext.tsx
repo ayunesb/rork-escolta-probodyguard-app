@@ -78,7 +78,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       async (firebaseUser) => {
         logger.log("[Auth] State changed:", { userId: firebaseUser?.uid });
         if (firebaseUser) {
-          const allowUnverified = (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? "") === "1";
+          const allowUnverified = __DEV__ && (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? "") === "1";
           if (!firebaseUser.emailVerified && !allowUnverified) {
             logger.log("[Auth] Email not verified - skipping Firestore access and signing out early");
             try {
@@ -177,7 +177,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         );
         logger.log("[Auth] Sign in successful:", { userId: userCredential.user.uid });
         const allowUnverified =
-          (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? "") === "1";
+          __DEV__ && (process.env.EXPO_PUBLIC_ALLOW_UNVERIFIED_LOGIN ?? "") === "1";
         if (!userCredential.user.emailVerified && !allowUnverified) {
           logger.log("[Auth] Email not verified");
           await firebaseSignOut(getAuthInstance());

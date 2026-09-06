@@ -1,4 +1,4 @@
-export default {
+const Colors = {
   background: '#0A0A0A',
   surface: '#1A1A1A',
   surfaceLight: '#2A2A2A',
@@ -15,3 +15,7 @@ export default {
   info: '#3B82F6',
   overlay: 'rgba(0, 0, 0, 0.7)',
 };
+
+export default Colors;
+
+export type ThemeColorName = keyof typeof Colors;

@@ -1,4 +1,4 @@
-import { onRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
+import { onRequest, HttpsError, onCall, CallableRequest } from 'firebase-functions/v2/https';
 import {
   handleSubscriptionChargedSuccessfully,
   handleSubscriptionChargedUnsuccessfully,
@@ -916,7 +916,7 @@ export const recordUsageMetrics = onSchedule('every day 00:00', async () => {
 });
 
 // === DEMO USER SETUP ===
-export const createDemoUsers = onCall(async (request) => {
+export const createDemoUsers = onCall(async (request: CallableRequest) => {
   // ✅ SECURITY: Only allow in development/sandbox environment
   if (process.env.BRAINTREE_ENV === 'production') {
     throw new HttpsError('permission-denied', 'Demo user creation is disabled in production');
@@ -1061,7 +1061,7 @@ export const createDemoUsers = onCall(async (request) => {
 /**
  * Create a single missing demo user (both Auth and Firestore)
  */
-export const createMissingDemoUser = onCall(async (request) => {
+export const createMissingDemoUser = onCall(async (request: CallableRequest) => {
   // ✅ SECURITY: Only allow in development/sandbox environment
   if (process.env.BRAINTREE_ENV === 'production') {
     throw new HttpsError('permission-denied', 'Demo user creation is disabled in production');
@@ -1139,7 +1139,7 @@ export const createMissingDemoUser = onCall(async (request) => {
  * Resets all demo account passwords to known values
  * ✅ SECURITY: Protected - only works in sandbox mode
  */
-export const resetDemoPasswords = onCall(async (request) => {
+export const resetDemoPasswords = onCall(async (request: CallableRequest) => {
   // ✅ SECURITY: Only allow in development/sandbox environment
   if (process.env.BRAINTREE_ENV === 'production') {
     throw new HttpsError('permission-denied', 'Password reset is disabled in production');

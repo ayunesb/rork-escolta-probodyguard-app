@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "esnext",
-  "module": "esnext",
+    "module": "esnext",
     "jsx": "react-native",
     "lib": [
       "esnext",
@@ -10,14 +10,16 @@
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-  "skipLibCheck": true,
-  "strict": true,
-  "types": ["node", "jest"],
-  "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "strict": true,
+    "types": [
+      "node",
+      "jest"
+    ],
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
@@ -59,7 +61,12 @@
     "node_modules",
     "babel.config.js",
     "metro.config.js",
-    "jest.config.js"
+    "jest.config.js",
+    "functions",
+    "escolta-pro",
+    "Users",
+    "android",
+    "ios"
   ],
   "extends": "expo/tsconfig.base"
 }

@@ -47,3 +47,9 @@ functions/lib/
 .env*
 !.env.example
 !.env.template
+
+ios/
+android/
+core
+node_modules
+.expo

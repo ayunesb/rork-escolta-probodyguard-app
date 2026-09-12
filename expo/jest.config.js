@@ -1,7 +1,7 @@
 export default {
   preset: 'jest-expo',
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|firebase|@firebase/.*|)',
   ],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect', '<rootDir>/jest.setup.js'],
   collectCoverageFrom: [
@@ -16,6 +16,9 @@ export default {
     '**/__tests__/**/*.test.{ts,tsx}',
   ],
   moduleNameMapper: {
+    // @firebase/util/dist/postinstall.mjs es ESM puro y jest-expo no lo
+    // transforma; sin este stub la suite de AuthContext no arranca.
+    'postinstall\\.mjs$': '<rootDir>/__mocks__/firebase-util-postinstall.js',
     '^@/(.*)$': '<rootDir>/$1',
     '^@/components/(.*)$': '<rootDir>/components/$1',
     '^@/services/(.*)$': '<rootDir>/services/$1',

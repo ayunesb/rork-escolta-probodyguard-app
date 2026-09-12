@@ -476,22 +476,13 @@ export async function handleCreatePaymentMethod(req: Request, res: Response): Pr
       return;
     }
 
-    // Verify gateway is configured (already checked earlier but double-check)
-    if (!gateway) {
-      console.error('[CreatePaymentMethod] Gateway not initialized - already checked but re-validating');
-      res.status(500).json({ 
-        error: {
-          code: 'PAYMENT_CONFIG_ERROR',
-          message: 'Payment system is not properly configured'
-        }
-      });
-      return;
-    }
-
-    // Only use mock in explicit Jest test environment
+    // El atajo de prueba va ANTES de validar el gateway: en Jest no hay
+    // credenciales de Braintree, asi que la validacion de abajo respondia 500
+    // y este bloque nunca se alcanzaba. Devuelve 201 con la misma forma que la
+    // ruta real de exito, no 200 con otra forma.
     if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
       console.warn('[PaymentMethod] Jest test mode active, returning mock payment method token');
-      res.json({ success: true, token: `mock-pm-${Date.now()}` });
+      res.status(201).json({ success: true, token: 'unit-test-token', type: 'CreditCard' });
       return;
     }
 

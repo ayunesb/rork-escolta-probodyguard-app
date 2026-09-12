@@ -21,8 +21,8 @@ export default function SignInScreen() {
   const router = useRouter();
   const { signIn, resendVerificationEmail } = useAuth(); // ✅ Added resendVerificationEmail
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState('client@demo.com'); // Pre-fill demo credentials
-  const [password, setPassword] = useState('Demo123!'); // Pre-fill demo credentials
+  const [email, setEmail] = useState(__DEV__ ? 'client@demo.com' : ''); // Precarga solo en desarrollo
+  const [password, setPassword] = useState(__DEV__ ? 'Demo123!' : ''); // Precarga solo en desarrollo
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showResendVerification, setShowResendVerification] = useState(false);
@@ -238,23 +238,27 @@ export default function SignInScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Demo Accounts:
-          </Text>
-          <Text style={styles.footerText}>
-            Client: client@demo.com / Demo123!
-          </Text>
-          <Text style={styles.footerText}>
-            Company: company@demo.com / Company123!
-          </Text>
-          <Text style={styles.footerText}>
-            Admin: admin@demo.com / Admin123!
-          </Text>
-          <Text style={styles.footerText}>
-            Guards: guard1@demo.com / Guard123!
-          </Text>
-        </View>
+        {/* Las credenciales demo solo se muestran en desarrollo. En un build
+            publicado darian acceso de administrador a cualquiera con la URL. */}
+        {__DEV__ && (
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Demo Accounts:
+            </Text>
+            <Text style={styles.footerText}>
+              Client: client@demo.com / Demo123!
+            </Text>
+            <Text style={styles.footerText}>
+              Company: company@demo.com / Company123!
+            </Text>
+            <Text style={styles.footerText}>
+              Admin: admin@demo.com / Admin123!
+            </Text>
+            <Text style={styles.footerText}>
+              Guards: guard1@demo.com / Guard123!
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );

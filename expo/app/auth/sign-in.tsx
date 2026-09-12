@@ -22,7 +22,7 @@ export default function SignInScreen() {
   const { signIn, resendVerificationEmail } = useAuth(); // ✅ Added resendVerificationEmail
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('client@demo.com'); // Pre-fill demo credentials
-  const [password, setPassword] = useState('demo123'); // Pre-fill demo credentials
+  const [password, setPassword] = useState('Demo123!'); // Pre-fill demo credentials
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showResendVerification, setShowResendVerification] = useState(false);
@@ -243,13 +243,16 @@ export default function SignInScreen() {
             Demo Accounts:
           </Text>
           <Text style={styles.footerText}>
-            Client: client@demo.com | Guard: guard1@demo.com
+            Client: client@demo.com / Demo123!
           </Text>
           <Text style={styles.footerText}>
-            Company: company@demo.com | Admin: admin@demo.com
+            Company: company@demo.com / Company123!
           </Text>
           <Text style={styles.footerText}>
-            Password: demo123 (for all accounts)
+            Admin: admin@demo.com / Admin123!
+          </Text>
+          <Text style={styles.footerText}>
+            Guards: guard1@demo.com / Guard123!
           </Text>
         </View>
       </ScrollView>

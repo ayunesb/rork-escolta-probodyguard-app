@@ -13,6 +13,19 @@ export async function registerForPushNotificationsAsync() {
       return null;
     }
 
+    // En web, Expo exige `notification.vapidPublicKey` para poder pedir un
+    // token. Sin esa llave getExpoPushTokenAsync lanza, y el error aparecia dos
+    // veces en la consola del sitio publicado (lo llaman AuthContext y
+    // NotificationContext). El dia que exista la llave este guardia deja de
+    // aplicar solo, y los avisos web se encienden sin tocar nada mas.
+    if (Platform.OS === 'web') {
+      const vapid = (Constants.expoConfig?.notification as any)?.vapidPublicKey;
+      if (!vapid) {
+        console.log('[Notifications] Avisos web desactivados: falta notification.vapidPublicKey');
+        return null;
+      }
+    }
+
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 

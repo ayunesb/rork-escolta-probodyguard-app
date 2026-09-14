@@ -24,7 +24,9 @@ if (!ENV.API_URL) {
 }
 
 export const PAYMENT_CONFIG = {
-  PROCESSING_FEE_PERCENT: 0.029,
+  // Stripe Mexico, tarjetas nacionales: 3.6% + $3.00 MXN
+  // https://stripe.com/mx/pricing (verificado 2026-09-14)
+  PROCESSING_FEE_PERCENT: 0.036,
   PROCESSING_FEE_FIXED: 3.0,
   PLATFORM_CUT_PERCENT: 0.15,
   MAX_BOOKING_DURATION: 8,

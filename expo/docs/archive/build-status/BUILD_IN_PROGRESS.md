@@ -55,7 +55,7 @@ npx expo run:ios --device "iPhone 15 Plus"
 - You'll see the login screen
 
 ### Step 4: You Can Test!
-- Login with: `client@demo.com` / `demo123`
+- Login with: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - Start testing features!
 
 ---
@@ -116,7 +116,7 @@ https://expo.dev/accounts/ayunesb/projects/escolta-pro/builds/5e946033-fcce-42f2
 
 ### 2. Login Screen Should Appear
 - Email: `client@demo.com`
-- Password: `demo123`
+- Password: `<contrasena en tu .env local, no en el repositorio>`
 
 ### 3. Start Testing!
 Follow the testing flow in `QUICK_START_NOW.md`

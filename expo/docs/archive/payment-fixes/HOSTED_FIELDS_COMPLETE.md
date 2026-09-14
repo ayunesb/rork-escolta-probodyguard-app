@@ -139,7 +139,7 @@ POST /payments/process
 ```
 
 ### 2. Go to Payment Screen
-- Login as `client@demo.com` / `demo123`
+- Login as `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - Create a new booking
 - Click "Proceed to Payment"
 

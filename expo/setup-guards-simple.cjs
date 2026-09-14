@@ -29,7 +29,7 @@ async function createGuardUser(email, firstName, lastName, rating, totalBookings
     console.log(`\n📝 Creating ${email}...`);
     
     // Create auth user
-    const userCredential = await createUserWithEmailAndPassword(auth, email, 'demo123');
+    const userCredential = await createUserWithEmailAndPassword(auth, email, '<contrasena en tu .env local, no en el repositorio>');
     const userId = userCredential.user.uid;
     
     console.log(`✅ Auth user created: ${userId}`);
@@ -74,8 +74,8 @@ async function main() {
   
   console.log('\n🎉 Setup complete!');
   console.log('\n📝 You can now login with:');
-  console.log('   - guard1@demo.com / demo123');
-  console.log('   - guard2@demo.com / demo123\n');
+  console.log('   - guard1@demo.com / <contrasena en tu .env local, no en el repositorio>');
+  console.log('   - guard2@demo.com / <contrasena en tu .env local, no en el repositorio>\n');
   
   process.exit(0);
 }

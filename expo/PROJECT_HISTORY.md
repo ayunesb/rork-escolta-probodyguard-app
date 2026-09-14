@@ -15,7 +15,7 @@
    - Firestore rules configured
    
 2. **Client Account** - client@demo.com
-   - Password: `Demo123!`
+   - Password: `<contrasena en tu .env local, no en el repositorio>`
    - Fully functional
    - Can create bookings and payments
    
@@ -28,7 +28,7 @@
 ### ⚠️ Needs Attention
 1. **Guard Accounts** (guard1@demo.com, guard2@demo.com)
    - Exist in Firebase but have wrong password
-   - Need manual password reset to `Demo123!`
+   - Need manual password reset to `<contrasena en tu .env local, no en el repositorio>`
    - See: `QUICK_FIX_GUARDS.md`
 
 2. **Chat/Messaging**
@@ -77,9 +77,9 @@
 
 | Email | Password | Status |
 |-------|----------|--------|
-| client@demo.com | `Demo123!` | ✅ Working |
-| guard1@demo.com | `Demo123!` | ⚠️ Need reset in Firebase Console |
-| guard2@demo.com | `Demo123!` | ⚠️ Need reset in Firebase Console |
+| client@demo.com | `<contrasena en tu .env local, no en el repositorio>` | ✅ Working |
+| guard1@demo.com | `<contrasena en tu .env local, no en el repositorio>` | ⚠️ Need reset in Firebase Console |
+| guard2@demo.com | `<contrasena en tu .env local, no en el repositorio>` | ⚠️ Need reset in Firebase Console |
 
 **Password Requirements**: 8+ characters, uppercase, special character
 
@@ -139,7 +139,7 @@ User Input → AuthContext.tsx
 
 ### Issue: Login shows auth/invalid-credential
 **Causes**:
-1. Wrong password (use `Demo123!` not `demo123`)
+1. Wrong password (use `<contrasena en tu .env local, no en el repositorio>` not `<contrasena en tu .env local, no en el repositorio>`)
 2. Rate limiting (5 attempts in 15 min = 30 min block)
 3. Account doesn't exist
 

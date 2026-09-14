@@ -8,7 +8,7 @@
 ## ✅ READY FOR TESTING
 
 ### client@demo.com
-- **Password**: `Demo123!`
+- **Password**: `<contrasena en tu .env local, no en el repositorio>`
 - **UID**: `qlDzWsluu1c9JOfmgUTV5amzaZu2`
 - **Role**: client ✅
 - **Firestore Document**: Complete ✅
@@ -35,12 +35,12 @@
 ## ❌ NOT READY (Password Issue)
 
 ### guard1@demo.com
-- **Expected Password**: `Demo123!`
+- **Expected Password**: `<contrasena en tu .env local, no en el repositorio>`
 - **Status**: ❌ `auth/invalid-credential`
 - **Issue**: Password doesn't match (needs reset in Firebase Console)
 
 ### guard2@demo.com
-- **Expected Password**: `Demo123!`
+- **Expected Password**: `<contrasena en tu .env local, no en el repositorio>`
 - **Status**: ❌ `auth/invalid-credential`
 - **Issue**: Password doesn't match (needs reset in Firebase Console)
 
@@ -55,7 +55,7 @@
 1. **Client Login** ✅
    ```
    Email: client@demo.com
-   Password: Demo123!
+   Password: <contrasena en tu .env local, no en el repositorio>
    ```
 
 2. **Create Booking** ✅
@@ -98,7 +98,7 @@
 3. Authentication → Users
 4. Find `guard1@demo.com`:
    - Click three dots (⋮)
-   - Reset password → `Demo123!`
+   - Reset password → `<contrasena en tu .env local, no en el repositorio>`
 5. Repeat for `guard2@demo.com`
 6. Run verification: `node verify-complete-setup.cjs`
 
@@ -250,7 +250,7 @@ npx expo start
 - Verify Firestore rules deployed
 
 ### Guard login fails
-- ❌ **KNOWN ISSUE** - Reset password to `Demo123!`
+- ❌ **KNOWN ISSUE** - Reset password to `<contrasena en tu .env local, no en el repositorio>`
 - See QUICK_FIX_GUARDS.md
 
 ---

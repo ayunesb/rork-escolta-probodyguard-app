@@ -1,3 +1,5 @@
+// Las contrasenas salen de DEMO_PASS_SEED en el entorno. Sin DEMO_PASS_SEED
+// este sembrador no crea nada, a proposito: este repositorio es publico.
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -18,7 +20,7 @@ const db = getFirestore(app);
 const demoUsers = [
   {
     email: 'client@demo.com',
-    password: 'demo123',
+    password: process.env.DEMO_PASS_SEED ?? '',
     firstName: 'John',
     lastName: 'Client',
     phone: '+1234567890',
@@ -26,7 +28,7 @@ const demoUsers = [
   },
   {
     email: 'guard1@demo.com',
-    password: 'demo123',
+    password: process.env.DEMO_PASS_SEED ?? '',
     firstName: 'Mike',
     lastName: 'Security',
     phone: '+1234567891',
@@ -34,7 +36,7 @@ const demoUsers = [
   },
   {
     email: 'guard2@demo.com',
-    password: 'demo123',
+    password: process.env.DEMO_PASS_SEED ?? '',
     firstName: 'Sarah',
     lastName: 'Protection',
     phone: '+1234567892',
@@ -42,7 +44,7 @@ const demoUsers = [
   },
   {
     email: 'company@demo.com',
-    password: 'demo123',
+    password: process.env.DEMO_PASS_SEED ?? '',
     firstName: 'Elite',
     lastName: 'Security',
     phone: '+1234567893',
@@ -50,7 +52,7 @@ const demoUsers = [
   },
   {
     email: 'admin@demo.com',
-    password: 'demo123',
+    password: process.env.DEMO_PASS_SEED ?? '',
     firstName: 'Admin',
     lastName: 'User',
     phone: '+1234567894',
@@ -169,7 +171,7 @@ async function seedFirebase() {
     console.log('\n🛡️  Creating guard profiles...');
     console.log('  Signing in as admin to create guard profiles...');
     
-    await signInWithEmailAndPassword(auth, 'admin@demo.com', 'demo123');
+    await signInWithEmailAndPassword(auth, 'admin@demo.com', process.env.DEMO_PASS_SEED ?? '');
     console.log('  ✅ Signed in as admin');
     
     for (const guard of demoGuards) {

@@ -50,8 +50,8 @@ The Firebase emulators are running in background (PID 46865)
 ### **Once App Launches in Simulator:**
 
 #### **Step 1: Create Test Accounts**
-1. Sign Up: `client@demo.com` / `demo123` (CLIENT role)
-2. Sign Up: `guard1@demo.com` / `demo123` (GUARD role)
+1. Sign Up: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (CLIENT role)
+2. Sign Up: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (GUARD role)
 
 #### **Step 2: Test Payment Navigation** 🎯
 1. Sign in as **client@demo.com**

@@ -71,8 +71,8 @@ This happens when:
 Once the app loads successfully in the simulator:
 
 1. **Create Test Accounts:**
-   - Sign Up: `client@demo.com` / `demo123` (CLIENT)
-   - Sign Up: `guard1@demo.com` / `demo123` (GUARD)
+   - Sign Up: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (CLIENT)
+   - Sign Up: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (GUARD)
 
 2. **Test Payment Navigation Fix:**
    - Sign in as client

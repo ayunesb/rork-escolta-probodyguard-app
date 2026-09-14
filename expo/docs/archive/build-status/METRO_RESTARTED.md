@@ -21,7 +21,7 @@ I've now:
 - Press reload button
 
 ### 2. Test Payment Again
-1. **Login** as `client@demo.com` / `demo123`
+1. **Login** as `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. **Create new booking**
 3. **Go to payment screen**
 4. **You should now see ALL fields**:

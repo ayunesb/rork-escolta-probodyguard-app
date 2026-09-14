@@ -20,8 +20,8 @@ if (!admin.apps.length) {
 }
 
 const USERS_TO_FIX = [
-  { email: 'guard1@demo.com', newPassword: 'Demo123!' },
-  { email: 'guard2@demo.com', newPassword: 'Demo123!' },
+  { email: 'guard1@demo.com', newPassword: '<contrasena en tu .env local, no en el repositorio>' },
+  { email: 'guard2@demo.com', newPassword: '<contrasena en tu .env local, no en el repositorio>' },
 ];
 
 async function resetPassword(email, newPassword) {
@@ -107,7 +107,7 @@ async function main() {
     if (r.success) {
       console.log(`✅ SUCCESS - ${r.email}`);
       console.log(`   UID: ${r.uid}`);
-      console.log(`   Password: Demo123!`);
+      console.log(`   Password: <contrasena en tu .env local, no en el repositorio>`);
       console.log('');
     } else {
       console.log(`❌ FAILED - ${r.email}`);
@@ -121,8 +121,8 @@ async function main() {
   if (successCount === results.length) {
     console.log('🎉 ALL PASSWORDS RESET SUCCESSFULLY!');
     console.log('\nYou can now login with:');
-    console.log('   • guard1@demo.com / Demo123!');
-    console.log('   • guard2@demo.com / Demo123!');
+    console.log('   • guard1@demo.com / <contrasena en tu .env local, no en el repositorio>');
+    console.log('   • guard2@demo.com / <contrasena en tu .env local, no en el repositorio>');
     console.log('\nNext: Run verification to confirm:');
     console.log('   node verify-complete-setup.cjs\n');
   } else {

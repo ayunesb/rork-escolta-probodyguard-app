@@ -144,7 +144,7 @@ bun run start
 - Click "Run Tests" to verify all systems
 
 ### 3. Test Authentication
-**Demo Accounts (password: demo123):**
+**Demo Accounts (password: <contrasena en tu .env local, no en el repositorio>):**
 - Client: `client@demo.com`
 - Guard: `guard1@demo.com`
 - Admin: `admin@demo.com`

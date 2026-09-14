@@ -28,14 +28,14 @@ eas build --profile development --platform all
 ### Guards (Background Location Testing)
 ```
 Email: guard1@demo.com
-Password: DemoGuard123!
+Password: Demo<contrasena en tu .env local, no en el repositorio>
 Role: guard
 Features: Background tracking, bookings, payments
 ```
 
 ```
 Email: guard2@demo.com  
-Password: DemoGuard123!
+Password: Demo<contrasena en tu .env local, no en el repositorio>
 Role: guard
 Features: Same as guard1
 ```
@@ -51,7 +51,7 @@ Features: Booking, payment, tracking
 ### Admins
 ```
 Email: admin@demo.com
-Password: DemoAdmin123!
+Password: Demo<contrasena en tu .env local, no en el repositorio>
 Role: admin
 Features: Full access, analytics, refunds
 ```

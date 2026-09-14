@@ -50,7 +50,7 @@ npx expo start --dev-client
 ```
 
 **Then**:
-1. Login as `client@demo.com` / `demo123`
+1. Login as `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. Browse guards
 3. Create booking
 4. Test payment with card: `4111 1111 1111 1111`
@@ -249,7 +249,7 @@ To see what went wrong:
 ```bash
 npx expo start --dev-client
 # Press 'i'
-# Login: client@demo.com / demo123
+# Login: client@demo.com / <contrasena en tu .env local, no en el repositorio>
 # Test booking + payment
 ```
 

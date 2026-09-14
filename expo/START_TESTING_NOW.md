@@ -10,7 +10,7 @@
 I've verified all demo users and their complete setup. Here's what we found:
 
 ### client@demo.com ✅ **FULLY READY**
-- ✅ Can authenticate (password: `Demo123!`)
+- ✅ Can authenticate (password: `<contrasena en tu .env local, no en el repositorio>`)
 - ✅ Firestore document complete (all required fields)
 - ✅ Has payment history (1 completed payment)
 - ✅ Has message history (4 messages)
@@ -22,12 +22,12 @@ I've verified all demo users and their complete setup. Here's what we found:
 
 ### guard1@demo.com ❌ **PASSWORD ISSUE**
 - ❌ Authentication fails (`auth/invalid-credential`)
-- ⚠️ Account exists but password doesn't match `Demo123!`
+- ⚠️ Account exists but password doesn't match `<contrasena en tu .env local, no en el repositorio>`
 - 🔧 **Fix**: Reset password in Firebase Console (2 minutes)
 
 ### guard2@demo.com ❌ **PASSWORD ISSUE**
 - ❌ Authentication fails (`auth/invalid-credential`)
-- ⚠️ Account exists but password doesn't match `Demo123!`
+- ⚠️ Account exists but password doesn't match `<contrasena en tu .env local, no en el repositorio>`
 - 🔧 **Fix**: Reset password in Firebase Console (2 minutes)
 
 ---
@@ -48,7 +48,7 @@ npx expo start
 ```
 
 **Test Flow**:
-1. ✅ Login (client@demo.com / Demo123!)
+1. ✅ Login (client@demo.com / <contrasena en tu .env local, no en el repositorio>)
 2. ✅ Create new booking
 3. ✅ Payment with Hosted Fields (CRITICAL TEST)
 4. ✅ View booking in pending state
@@ -75,7 +75,7 @@ npx expo start
 4. Find **guard1@demo.com**:
    - Click ⋮ (three dots)
    - Click **Reset password**
-   - Enter: `Demo123!`
+   - Enter: `<contrasena en tu .env local, no en el repositorio>`
    - Save
 5. Repeat for **guard2@demo.com**
 6. Verify:
@@ -329,7 +329,7 @@ npx expo start
 
 - [ ] Start Metro bundler
 - [ ] App loads without errors
-- [ ] Login with client@demo.com / Demo123!
+- [ ] Login with client@demo.com / <contrasena en tu .env local, no en el repositorio>
 - [ ] Dashboard appears correctly
 - [ ] Profile shows correct data
 - [ ] Create booking button works
@@ -395,7 +395,7 @@ npx expo start
 
 Then:
 1. Press **'i'** for iOS Simulator
-2. Login: **client@demo.com** / **Demo123!**
+2. Login: **client@demo.com** / **<contrasena en tu .env local, no en el repositorio>**
 3. Create booking and test **payment flow**
 4. Report any issues
 
@@ -419,7 +419,7 @@ Then:
 - Reinstall app to clear cache
 
 **If guards can't login after reset**:
-- Verify password is exactly: `Demo123!`
+- Verify password is exactly: `<contrasena en tu .env local, no en el repositorio>`
 - Check in Firebase Console that reset worked
 - Try deleting and recreating accounts
 

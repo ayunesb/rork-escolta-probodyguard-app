@@ -18,7 +18,7 @@ async function createDemoUsers() {
     try {
       const guard1User = await auth.createUser({
         email: 'guard1@demo.com',
-        password: 'demo123',
+        password: '<contrasena en tu .env local, no en el repositorio>',
         displayName: 'Chris M.',
         emailVerified: true,
       });
@@ -54,7 +54,7 @@ async function createDemoUsers() {
     try {
       const guard2User = await auth.createUser({
         email: 'guard2@demo.com',
-        password: 'demo123',
+        password: '<contrasena en tu .env local, no en el repositorio>',
         displayName: 'Alex R.',
         emailVerified: true,
       });
@@ -90,7 +90,7 @@ async function createDemoUsers() {
     try {
       const companyUser = await auth.createUser({
         email: 'company@demo.com',
-        password: 'demo123',
+        password: '<contrasena en tu .env local, no en el repositorio>',
         displayName: 'Demo Security Company',
         emailVerified: true,
       });
@@ -123,9 +123,9 @@ async function createDemoUsers() {
 
     console.log('🎉 Demo users setup complete!\n');
     console.log('📝 You can now login with:');
-    console.log('   - guard1@demo.com / demo123');
-    console.log('   - guard2@demo.com / demo123');
-    console.log('   - company@demo.com / demo123');
+    console.log('   - guard1@demo.com / <contrasena en tu .env local, no en el repositorio>');
+    console.log('   - guard2@demo.com / <contrasena en tu .env local, no en el repositorio>');
+    console.log('   - company@demo.com / <contrasena en tu .env local, no en el repositorio>');
     
   } catch (error) {
     console.error('❌ Error creating demo users:', error);

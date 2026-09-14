@@ -46,21 +46,21 @@ const db = getFirestore(app);
 const DEMO_USERS = [
   { 
     email: 'client@demo.com', 
-    password: 'Demo123!', 
+    password: '<contrasena en tu .env local, no en el repositorio>', 
     expectedRole: 'client',
     requiresPayment: true,
     requiresBookings: true
   },
   { 
     email: 'guard1@demo.com',
-    password: 'Demo123!',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     expectedRole: 'bodyguard',
     requiresPayment: false,
     requiresBookings: true
   },
   { 
     email: 'guard2@demo.com', 
-    password: 'Demo123!', 
+    password: '<contrasena en tu .env local, no en el repositorio>', 
     expectedRole: 'bodyguard',
     requiresPayment: false,
     requiresBookings: true
@@ -399,7 +399,7 @@ async function main() {
       console.log(`\n${r.email}:`);
       if (!r.uid) {
         console.log('  → Check password in Firebase Console');
-        console.log('  → Try resetting to: Demo123!');
+        console.log('  → Try resetting to: <contrasena en tu .env local, no en el repositorio>');
       }
       if (!r.hasFirestoreDoc) {
         console.log('  → Run: node setup-demo-users-production.cjs');

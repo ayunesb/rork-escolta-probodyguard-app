@@ -148,10 +148,10 @@ node setup-demo-users-quick.cjs
 ```
 
 **Demo Accounts**:
-- **Client**: `client@demo.com` / `demo123`
-- **Guard**: `guard1@demo.com` / `demo123`
-- **Company**: `company@demo.com` / `demo123`
-- **Admin**: `admin@demo.com` / `demo123`
+- **Client**: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Guard**: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Company**: `company@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Admin**: `admin@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 
 ### 3. Verify Environment Variables
 Check `.env`:
@@ -265,7 +265,7 @@ Zip: 12345
 This will be declined for testing error handling.
 
 ### Testing Payment Flow
-1. Log in as client (`client@demo.com` / `demo123`)
+1. Log in as client (`client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`)
 2. Browse guards
 3. Create booking
 4. Enter payment details (use test card above)
@@ -392,8 +392,8 @@ Before sharing with testers:
 [EAS build link from `eas build` output]
 
 🔐 Demo Accounts:
-- Client: client@demo.com / demo123
-- Guard: guard1@demo.com / demo123
+- Client: client@demo.com / <contrasena en tu .env local, no en el repositorio>
+- Guard: guard1@demo.com / <contrasena en tu .env local, no en el repositorio>
 
 💳 Test Payment (use these fake cards):
 Card: 4111 1111 1111 1111

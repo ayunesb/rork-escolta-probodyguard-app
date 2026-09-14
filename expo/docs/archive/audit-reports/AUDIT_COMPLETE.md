@@ -178,8 +178,8 @@ Expected: 27/29 passing
 ### Test Authentication
 ```bash
 # Use demo accounts
-client@demo.com / demo123
-guard1@demo.com / demo123
+client@demo.com / <contrasena en tu .env local, no en el repositorio>
+guard1@demo.com / <contrasena en tu .env local, no en el repositorio>
 ```
 Expected: Login in <3 seconds
 

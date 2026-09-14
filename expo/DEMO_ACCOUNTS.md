@@ -13,13 +13,13 @@ The app supports 4 user roles:
 ## Demo Account Credentials
 
 ### Existing Demo Accounts
-- **Client**: `client@demo.com` / `Demo123!`
-- **Guard 1**: `guard1@demo.com` / `Demo123!`
-- **Guard 2**: `guard2@demo.com` / `Demo123!`
+- **Client**: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Guard 1**: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Guard 2**: `guard2@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 
 ### Accounts That Need to Be Created
-- **Company**: `company@demo.com` / `Demo123!`
-- **Admin**: `admin@demo.com` / `Demo123!`
+- **Company**: `company@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Admin**: `admin@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 
 **Note**: Passwords must be at least 8 characters with uppercase, lowercase, and special characters.
 
@@ -33,7 +33,7 @@ Since Firebase Authentication requires actual sign-up, you need to create these 
 2. Select the role you want to create (Company or Admin)
 3. Fill in the form:
    - **Email**: `company@demo.com` (or `admin@demo.com`)
-   - **Password**: `demo123`
+   - **Password**: `<contrasena en tu .env local, no en el repositorio>`
    - **First Name**: `Demo`
    - **Last Name**: `Company` (or `Admin`)
    - **Phone**: `+1-555-0100`
@@ -67,22 +67,22 @@ Since Firebase Authentication requires actual sign-up, you need to create these 
 ## Testing Different Roles
 
 ### Testing as Client
-1. Sign in with `client@demo.com` / `demo123`
+1. Sign in with `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. You should see the home screen with options to book protection services
 3. You can create bookings and view your booking history
 
 ### Testing as Guard
-1. Sign in with `guard1@demo.com` / `demo123`
+1. Sign in with `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. You should see pending booking requests
 3. You can accept/reject bookings and track active jobs
 
 ### Testing as Company
-1. Sign in with `company@demo.com` / `demo123`
+1. Sign in with `company@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. You should see a company dashboard
 3. You can manage guards and view company bookings
 
 ### Testing as Admin
-1. Sign in with `admin@demo.com` / `demo123`
+1. Sign in with `admin@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. You should see an admin dashboard
 3. You can manage all users, bookings, and system settings
 

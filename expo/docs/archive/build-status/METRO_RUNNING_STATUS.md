@@ -29,7 +29,7 @@ Once the simulator opens and app loads:
 
 1. **Login as Client**
    - Email: `client@demo.com`
-   - Password: `demo123`
+   - Password: `<contrasena en tu .env local, no en el repositorio>`
 
 2. **Book a Guard**
    - Select guard1@demo.com

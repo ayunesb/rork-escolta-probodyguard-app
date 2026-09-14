@@ -68,10 +68,10 @@ case 'admin':
 ```
 
 #### Demo Accounts Available
-- **Client**: `client@demo.com` / `demo123`
-- **Guard**: `guard1@demo.com` / `demo123`
-- **Company**: `company@demo.com` / `demo123` (Create via sign-up)
-- **Admin**: `admin@demo.com` / `demo123` (Create via sign-up)
+- **Client**: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Guard**: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
+- **Company**: `company@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (Create via sign-up)
+- **Admin**: `admin@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (Create via sign-up)
 
 #### Data Generated for Each Role
 

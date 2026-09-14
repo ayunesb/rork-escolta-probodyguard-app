@@ -28,7 +28,7 @@ In the Metro terminal, press **`i`** to open iOS simulator.
 ### Step 2: Login as Test Client
 
 - Email: `client@demo.com`
-- Password: `demo123`
+- Password: `<contrasena en tu .env local, no en el repositorio>`
 
 ---
 

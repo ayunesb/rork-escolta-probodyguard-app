@@ -14,7 +14,7 @@ The app is being built for iOS. This process includes:
 ### Once iOS Starts:
 1. The iPhone 15 simulator will open automatically
 2. The app will launch
-3. Login with: `client@demo.com` / `demo123`
+3. Login with: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 4. Navigate to booking and test payment flow
 5. The WebView payment form will work correctly!
 
@@ -73,7 +73,7 @@ Make sure these stay running in the background:
 
 - [ ] App opens successfully
 - [ ] Login screen appears
-- [ ] Can login with `client@demo.com` / `demo123`
+- [ ] Can login with `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - [ ] Navigate to booking creation
 - [ ] Fill out booking details
 - [ ] Click "Proceed to Payment"

@@ -129,7 +129,7 @@ eas build:download 33aa849f-5f0e-4fb4-8753-ff4467041a1f
 ## 🧪 CRITICAL TESTS
 
 ### Test #1: Background Location (CRITICAL!)
-**Account**: guard1@demo.com / DemoGuard123!
+**Account**: guard1@demo.com / Demo<contrasena en tu .env local, no en el repositorio>
 
 **Steps**:
 1. Login as guard

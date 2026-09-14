@@ -191,11 +191,11 @@ npx expo start
 
 ### Demo Accounts
 ```
-Client:  client@demo.com  | demo123
-Guard 1: guard1@demo.com  | demo123
-Guard 2: guard2@demo.com  | demo123
-Company: company@demo.com | demo123
-Admin:   admin@demo.com   | demo123
+Client:  client@demo.com  | <contrasena en tu .env local, no en el repositorio>
+Guard 1: guard1@demo.com  | <contrasena en tu .env local, no en el repositorio>
+Guard 2: guard2@demo.com  | <contrasena en tu .env local, no en el repositorio>
+Company: company@demo.com | <contrasena en tu .env local, no en el repositorio>
+Admin:   admin@demo.com   | <contrasena en tu .env local, no en el repositorio>
 ```
 
 ### Test Cards

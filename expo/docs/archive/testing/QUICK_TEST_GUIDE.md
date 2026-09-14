@@ -66,7 +66,7 @@
 ```
 1. Use demo account:
    Email: client@demo.com
-   Password: demo123
+   Password: <contrasena en tu .env local, no en el repositorio>
 2. Should login successfully
 3. Verify user role displayed correctly
 ```
@@ -201,9 +201,9 @@ npm run serve
 ### Demo Accounts:
 | Email | Password | Role | Use For |
 |-------|----------|------|---------|
-| client@demo.com | demo123 | Client | Booking guards |
-| guard1@demo.com | demo123 | Guard | Accepting jobs |
-| guard2@demo.com | demo123 | Guard | Testing availability |
+| client@demo.com | <contrasena en tu .env local, no en el repositorio> | Client | Booking guards |
+| guard1@demo.com | <contrasena en tu .env local, no en el repositorio> | Guard | Accepting jobs |
+| guard2@demo.com | <contrasena en tu .env local, no en el repositorio> | Guard | Testing availability |
 | admin@demo.com | admin123 | Admin | User management |
 | company@demo.com | company123 | Company | Managing guards |
 

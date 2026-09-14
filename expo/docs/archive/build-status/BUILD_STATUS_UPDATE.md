@@ -113,7 +113,7 @@ Don't worry! Common issues are easily fixable:
 ### 2. Login to Test
 ```
 Email: client@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 ```
 
 ### 3. Test Core Features

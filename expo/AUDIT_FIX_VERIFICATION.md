@@ -16,7 +16,7 @@ npm start
 
 # 2. Login with demo account:
 # Email: guard1@demo.com
-# Password: demo123
+# Password: <contrasena en tu .env local, no en el repositorio>
 
 # 3. Check logs for SUCCESS indicators:
 ✅ "[SignIn] Login successful - index.tsx will handle navigation"

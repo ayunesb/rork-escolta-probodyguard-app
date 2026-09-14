@@ -108,7 +108,7 @@ Just tap it! The app will:
 ### Step 3: Login and Test
 ```
 Email: client@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 ```
 
 ---

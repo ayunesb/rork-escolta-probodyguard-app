@@ -18,7 +18,7 @@ if [ $? -eq 0 ]; then
     echo "📝 Next steps:"
     echo "1. Clear your app cache"
     echo "2. Reload the app"
-    echo "3. Try logging in with: client@demo.com / demo123"
+    echo "3. Try logging in with: client@demo.com / <contrasena en tu .env local, no en el repositorio>"
     echo ""
     echo "🔍 Monitor console logs for [Auth] messages"
 else

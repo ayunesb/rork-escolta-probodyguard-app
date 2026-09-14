@@ -50,11 +50,11 @@ bun run scripts/seed-firebase.ts
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Client** | client@demo.com | demo123 |
-| **Guard 1** | guard1@demo.com | demo123 |
-| **Guard 2** | guard2@demo.com | demo123 |
-| **Company** | company@demo.com | demo123 |
-| **Admin** | admin@demo.com | demo123 |
+| **Client** | client@demo.com | <contrasena en tu .env local, no en el repositorio> |
+| **Guard 1** | guard1@demo.com | <contrasena en tu .env local, no en el repositorio> |
+| **Guard 2** | guard2@demo.com | <contrasena en tu .env local, no en el repositorio> |
+| **Company** | company@demo.com | <contrasena en tu .env local, no en el repositorio> |
+| **Admin** | admin@demo.com | <contrasena en tu .env local, no en el repositorio> |
 
 ---
 
@@ -188,7 +188,7 @@ bun start
 
 # 2. Sign in as client
 Email: client@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 
 # 3. Create a booking
 - Select guard
@@ -199,7 +199,7 @@ Password: demo123
 
 # 4. Sign in as guard
 Email: guard1@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 
 # 5. Accept booking
 - Go to Bookings tab

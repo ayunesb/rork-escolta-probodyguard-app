@@ -38,7 +38,7 @@ node recreate-guards.cjs
 
 This will:
 - ✅ Create new Firebase Auth accounts
-- ✅ Set password to `Demo123!`
+- ✅ Set password to `<contrasena en tu .env local, no en el repositorio>`
 - ✅ Create complete Firestore documents
 - ✅ Set all required fields (role, name, phone, etc.)
 - ✅ Mark accounts as verified and approved

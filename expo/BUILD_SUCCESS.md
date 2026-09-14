@@ -83,7 +83,7 @@ When app opens, grant:
 
 ### Priority 1: Background Location (CRITICAL)
 
-**Test Account**: guard1@demo.com / DemoGuard123!
+**Test Account**: guard1@demo.com / Demo<contrasena en tu .env local, no en el repositorio>
 
 **Steps**:
 1. Login as guard1
@@ -288,11 +288,11 @@ https://sandbox.braintreegateway.com/
 
 | Role | Email | Password | Purpose |
 |------|-------|----------|---------|
-| Guard | guard1@demo.com | DemoGuard123! | Background location |
-| Guard | guard2@demo.com | DemoGuard123! | Second guard |
+| Guard | guard1@demo.com | Demo<contrasena en tu .env local, no en el repositorio> | Background location |
+| Guard | guard2@demo.com | Demo<contrasena en tu .env local, no en el repositorio> | Second guard |
 | Client | client1@demo.com | DemoClient123! | Booking/payment |
 | Client | client2@demo.com | DemoClient123! | Second client |
-| Admin | admin@demo.com | DemoAdmin123! | Full access |
+| Admin | admin@demo.com | Demo<contrasena en tu .env local, no en el repositorio> | Full access |
 
 ---
 

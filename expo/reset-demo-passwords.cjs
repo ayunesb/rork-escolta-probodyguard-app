@@ -16,7 +16,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const PASSWORD = 'demo123';
+const PASSWORD = '<contrasena en tu .env local, no en el repositorio>';
 
 const users = [
   { email: 'client@demo.com', role: 'client', name: 'Demo Client' },
@@ -69,7 +69,7 @@ async function resetUser(email, role, name) {
       console.log('   3. Authentication → Users');
       console.log(`   4. Find: ${email}`);
       console.log('   5. Click "..." menu → "Reset password"');
-      console.log('   6. Set password to: demo123');
+      console.log('   6. Set password to: <contrasena en tu .env local, no en el repositorio>');
       console.log('');
       console.log('   OR DELETE AND RECREATE:');
       console.log(`   4. Find: ${email}`);
@@ -138,7 +138,7 @@ async function main() {
     console.log('');
   }
   
-  console.log('\nPassword for all accounts: demo123\n');
+  console.log('\nPassword for all accounts: <contrasena en tu .env local, no en el repositorio>\n');
   
   process.exit(0);
 }

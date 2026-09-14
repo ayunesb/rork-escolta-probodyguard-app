@@ -5,7 +5,7 @@
 ### Client Account
 ```
 Email: client@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Role: Client
 Status: Verified & KYC Approved
 ```
@@ -13,13 +13,13 @@ Status: Verified & KYC Approved
 ### Guard Accounts
 ```
 Email: guard1@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Role: Guard (Freelance)
 Status: Verified & KYC Approved
 Specialties: Armed, Armored Vehicle, Spanish
 
 Email: guard2@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Role: Guard (Freelance)
 Status: Verified & KYC Approved
 Specialties: Unarmed, Standard Vehicle, English
@@ -28,7 +28,7 @@ Specialties: Unarmed, Standard Vehicle, English
 ### Company Account
 ```
 Email: company@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Role: Company
 Status: Verified & KYC Approved
 Guards: 5 roster guards
@@ -37,7 +37,7 @@ Guards: 5 roster guards
 ### Admin Account
 ```
 Email: admin@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Role: Admin
 Access: Full platform access
 ```

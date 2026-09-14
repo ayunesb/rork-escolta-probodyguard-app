@@ -19,7 +19,7 @@ async function createDemoUsers() {
     const clientUser = await auth.createUser({
       uid: 'jTcSgWOn7HYYA4uLvX2ocjmVGfLG',
       email: 'client@demo.com',
-      password: 'demo123',
+      password: '<contrasena en tu .env local, no en el repositorio>',
       displayName: 'Demo Client',
       emailVerified: true,
     });
@@ -39,7 +39,7 @@ async function createDemoUsers() {
     const guardUser = await auth.createUser({
       uid: '3dbaQP01KvZ9U8qa0CRpSn73U20J',
       email: 'guard1@demo.com',
-      password: 'demo123',
+      password: '<contrasena en tu .env local, no en el repositorio>',
       displayName: 'Demo Guard',
       emailVerified: true,
     });
@@ -58,8 +58,8 @@ async function createDemoUsers() {
 
     console.log('🎉 Demo users created successfully!\n');
     console.log('📋 Login credentials:');
-    console.log('   Client: client@demo.com / demo123');
-    console.log('   Guard: guard1@demo.com / demo123\n');
+    console.log('   Client: client@demo.com / <contrasena en tu .env local, no en el repositorio>');
+    console.log('   Guard: guard1@demo.com / <contrasena en tu .env local, no en el repositorio>\n');
 
     process.exit(0);
   } catch (error) {

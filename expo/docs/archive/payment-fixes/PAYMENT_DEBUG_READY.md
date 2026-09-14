@@ -97,7 +97,7 @@ Or shake the simulator and tap "Reload"
 
 ### 2. Try Payment Again
 
-1. Login as `client@demo.com` / `demo123`
+1. Login as `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. Create a booking
 3. Click "Proceed to Payment"
 4. Fill in card details:

@@ -1,6 +1,6 @@
 # All Users Verification Report
 **Date**: October 21, 2025
-**Verified Password**: `Demo123!` (8+ chars, uppercase, special char)
+**Verified Password**: `<contrasena en tu .env local, no en el repositorio>` (8+ chars, uppercase, special char)
 
 ## Verification Results
 
@@ -8,7 +8,7 @@
 
 #### client@demo.com
 - **Status**: ✅ FULLY WORKING
-- **Password**: `Demo123!` ✅
+- **Password**: `<contrasena en tu .env local, no en el repositorio>` ✅
 - **UID**: `qlDzWsluu1c9JOfmgUTV5amzaZu2`
 - **Role**: `client` ✅
 - **Email Verified**: Yes ✅
@@ -25,16 +25,16 @@
 
 #### guard1@demo.com
 - **Status**: ❌ PASSWORD MISMATCH
-- **Current Password**: Unknown (not `Demo123!`)
+- **Current Password**: Unknown (not `<contrasena en tu .env local, no en el repositorio>`)
 - **Account Exists**: Yes (confirmed)
-- **Issue**: Password does not match `Demo123!`
+- **Issue**: Password does not match `<contrasena en tu .env local, no en el repositorio>`
 - **Solution**: Manual password reset required
 
 #### guard2@demo.com
 - **Status**: ❌ PASSWORD MISMATCH  
-- **Current Password**: Unknown (not `Demo123!`)
+- **Current Password**: Unknown (not `<contrasena en tu .env local, no en el repositorio>`)
 - **Account Exists**: Yes (confirmed)
-- **Issue**: Password does not match `Demo123!`
+- **Issue**: Password does not match `<contrasena en tu .env local, no en el repositorio>`
 - **Solution**: Manual password reset required
 
 ---
@@ -43,9 +43,9 @@
 
 ### What We Discovered
 
-1. **client@demo.com** was updated to use `Demo123!` (strong password)
+1. **client@demo.com** was updated to use `<contrasena en tu .env local, no en el repositorio>` (strong password)
 2. **guard1@demo.com** and **guard2@demo.com** exist in Firebase Auth but have different passwords
-3. They were likely created with `demo123` originally and never updated
+3. They were likely created with `<contrasena en tu .env local, no en el repositorio>` originally and never updated
 
 ### Why This Happened
 
@@ -54,7 +54,7 @@ When password requirements were updated to require:
 - Uppercase letter
 - Special character
 
-The client account was updated to `Demo123!`, but guard accounts were not.
+The client account was updated to `<contrasena en tu .env local, no en el repositorio>`, but guard accounts were not.
 
 ---
 
@@ -69,7 +69,7 @@ The client account was updated to `Demo123!`, but guard accounts were not.
 4. Find `guard1@demo.com`:
    - Click the three dots (⋮)
    - Select **Reset password**
-   - Set password to: `Demo123!`
+   - Set password to: `<contrasena en tu .env local, no en el repositorio>`
 5. Repeat for `guard2@demo.com`
 6. Run verification: `node verify-all-users.cjs`
 
@@ -89,7 +89,7 @@ The client account was updated to `Demo123!`, but guard accounts were not.
 ### Option 3: Update Password Requirements 🔓
 
 **If you want to keep old password:**
-1. Update guards to use `demo123` instead
+1. Update guards to use `<contrasena en tu .env local, no en el repositorio>` instead
 2. Update DEMO_USERS in `verify-all-users.cjs`
 3. Update documentation
 
@@ -114,17 +114,17 @@ Then test in the app:
 
 ### 1. Test Client Login ✅ (Already Works)
 - Open app
-- Login: `client@demo.com` / `Demo123!`
+- Login: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - Should work immediately
 
 ### 2. Test Guard 1 Login
 - Open app (or different device/simulator)
-- Login: `guard1@demo.com` / `Demo123!`
+- Login: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - Should see guard dashboard
 
 ### 3. Test Guard 2 Login
 - Open app (or different device/simulator)  
-- Login: `guard2@demo.com` / `Demo123!`
+- Login: `guard2@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - Should see guard dashboard
 
 ### 4. Test Chat/Messaging
@@ -139,7 +139,7 @@ Then test in the app:
 
 | Account | Auth | Password | Firestore | Role | Status |
 |---------|------|----------|-----------|------|--------|
-| client@demo.com | ✅ | `Demo123!` | ✅ | client | ✅ READY |
+| client@demo.com | ✅ | `<contrasena en tu .env local, no en el repositorio>` | ✅ | client | ✅ READY |
 | guard1@demo.com | ⚠️ | ❓ Unknown | ❓ | guard | ❌ NEEDS RESET |
 | guard2@demo.com | ⚠️ | ❓ Unknown | ❓ | guard | ❌ NEEDS RESET |
 
@@ -149,7 +149,7 @@ Then test in the app:
 
 **IMMEDIATE (You need to do this):**
 1. ✅ Open Firebase Console
-2. ✅ Reset passwords for guard1 and guard2 to `Demo123!`
+2. ✅ Reset passwords for guard1 and guard2 to `<contrasena en tu .env local, no en el repositorio>`
 3. ✅ Run `node verify-all-users.cjs` to confirm all working
 4. ✅ Test guard login in the app
 
@@ -165,8 +165,8 @@ Then test in the app:
 
 The following files have been updated with correct password:
 
-- ✅ `DEMO_ACCOUNTS.md` - Updated to show `Demo123!`
-- ✅ `verify-all-users.cjs` - Using `Demo123!`
+- ✅ `DEMO_ACCOUNTS.md` - Updated to show `<contrasena en tu .env local, no en el repositorio>`
+- ✅ `verify-all-users.cjs` - Using `<contrasena en tu .env local, no en el repositorio>`
 - ✅ `reset-guard-passwords.cjs` - Created to help fix guard accounts
 
 ---

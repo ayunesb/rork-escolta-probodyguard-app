@@ -69,7 +69,7 @@ adb uninstall com.escolta.pro
 **Check**:
 1. **Internet connection** - Firebase Auth requires internet
 2. **Correct credentials**:
-   - Guard: guard1@demo.com / DemoGuard123!
+   - Guard: guard1@demo.com / Demo<contrasena en tu .env local, no en el repositorio>
    - Client: client1@demo.com / DemoClient123!
 3. **Email verification** - Accounts must be verified
 
@@ -297,7 +297,7 @@ Before reporting an issue, verify:
 **QR Code**: See below
 
 **Test Accounts**:
-- Guard: guard1@demo.com / DemoGuard123!
+- Guard: guard1@demo.com / Demo<contrasena en tu .env local, no en el repositorio>
 - Client: client1@demo.com / DemoClient123!
 
 ---

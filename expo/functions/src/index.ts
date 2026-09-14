@@ -1177,14 +1177,27 @@ export const resetDemoPasswords = onCall(async (request: CallableRequest) => {
   }
   
   try {
+    // Las contrasenas salen del entorno de la funcion, nunca del codigo. Antes
+    // estaban escritas aqui, en un repositorio publico, y esta misma funcion
+    // las volvia a poner despues de cambiarlas en la consola.
+    // Se configuran con: firebase functions:config o variables de entorno.
+    const clave = (nombre: string): string | null => {
+      const v = process.env[nombre];
+      return v && v.length >= 12 ? v : null;
+    };
     const demoAccounts = [
-      { email: 'client@demo.com', password: 'Demo123!' },
-      { email: 'admin@demo.com', password: 'Admin123!' },
-      { email: 'company@demo.com', password: 'Company123!' },
-      { email: 'bodyguard@demo.com', password: 'Guard123!' },
-      { email: 'guard1@demo.com', password: 'Guard123!' },
-      { email: 'guard2@demo.com', password: 'Guard123!' }
-    ];
+      { email: 'client@demo.com', password: clave('DEMO_PASS_CLIENT') },
+      { email: 'admin@demo.com', password: clave('DEMO_PASS_ADMIN') },
+      { email: 'company@demo.com', password: clave('DEMO_PASS_COMPANY') },
+      { email: 'bodyguard@demo.com', password: clave('DEMO_PASS_GUARD') },
+      { email: 'guard1@demo.com', password: clave('DEMO_PASS_GUARD') },
+      { email: 'guard2@demo.com', password: clave('DEMO_PASS_GUARD') }
+    ].filter((c): c is { email: string; password: string } => c.password !== null);
+
+    if (demoAccounts.length === 0) {
+      throw new HttpsError('failed-precondition',
+        'No hay contrasenas demo configuradas en el entorno (DEMO_PASS_*, minimo 12 caracteres)');
+    }
 
     console.log('[ResetDemoPasswords] Starting password reset for all demo accounts');
     const results: any[] = [];

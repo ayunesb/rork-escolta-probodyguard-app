@@ -6,7 +6,7 @@
 Press `r` in Metro terminal
 
 ### 2️⃣ Try Payment
-- Login: `client@demo.com` / `demo123`
+- Login: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - Create booking → Payment
 - Card: `4111 1111 1111 1111`
 - Name: `Test User`

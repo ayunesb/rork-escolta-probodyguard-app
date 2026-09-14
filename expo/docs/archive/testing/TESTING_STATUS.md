@@ -12,8 +12,8 @@
   - Pub/Sub Emulator: http://localhost:8085 ✅
 
 - ✅ **Demo Users Created**
-  - Client: `client@demo.com` / `demo123` (UID: jTcSgWOn7HYYA4uLvX2ocjmVGfLG)
-  - Guard: `guard1@demo.com` / `demo123` (UID: 3dbaQP01KvZ9U8qa0CRpSn73U20J)
+  - Client: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (UID: jTcSgWOn7HYYA4uLvX2ocjmVGfLG)
+  - Guard: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>` (UID: 3dbaQP01KvZ9U8qa0CRpSn73U20J)
 
 - ✅ **Environment Configuration**
   - Local IP: `192.168.0.42`
@@ -73,7 +73,7 @@ npx expo start --dev-client
 ```
 
 ### Test Flow Checklist
-**Login as Client**: `client@demo.com` / `demo123`
+**Login as Client**: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - [ ] Browse available guards
 - [ ] Create a booking
 - [ ] Enter payment: Card `4111 1111 1111 1111`, CVV `123`, Exp `12/26`, Zip `12345`
@@ -81,7 +81,7 @@ npx expo start --dev-client
 - [ ] View booking details (check start code)
 - [ ] Test chat with guard
 
-**Login as Guard**: `guard1@demo.com` / `demo123`
+**Login as Guard**: `guard1@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 - [ ] View pending bookings
 - [ ] Accept booking
 - [ ] Enter start code (from client's booking)
@@ -283,7 +283,7 @@ Once you get to the payment form in a mobile app/simulator:
 
 To complete testing:
 1. Run the app in iOS Simulator or Android Emulator
-2. Login with `client@demo.com` / `demo123`
+2. Login with `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 3. Create a booking
 4. Click "Proceed to Payment"
 5. Fill out payment form with test card

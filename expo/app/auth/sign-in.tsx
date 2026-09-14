@@ -21,8 +21,10 @@ export default function SignInScreen() {
   const router = useRouter();
   const { signIn, resendVerificationEmail } = useAuth(); // ✅ Added resendVerificationEmail
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState(__DEV__ ? 'client@demo.com' : ''); // Precarga solo en desarrollo
-  const [password, setPassword] = useState(__DEV__ ? 'Demo123!' : ''); // Precarga solo en desarrollo
+  // Precarga solo en desarrollo, y solo si tu .env local las define. Antes
+  // estaban escritas aqui, y este repositorio es publico.
+  const [email, setEmail] = useState(__DEV__ ? (process.env.EXPO_PUBLIC_DEMO_EMAIL ?? '') : '');
+  const [password, setPassword] = useState(__DEV__ ? (process.env.EXPO_PUBLIC_DEMO_PASSWORD ?? '') : '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showResendVerification, setShowResendVerification] = useState(false);
@@ -238,24 +240,16 @@ export default function SignInScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Las credenciales demo solo se muestran en desarrollo. En un build
-            publicado darian acceso de administrador a cualquiera con la URL. */}
-        {__DEV__ && (
+        {/* Las credenciales demo ya no viven en el codigo. Este repositorio es
+            publico: cualquiera que lo leyera tenia las cuatro cuentas, incluida
+            la de administrador. Ahora salen de tu .env local, que no se sube. */}
+        {__DEV__ && !!process.env.EXPO_PUBLIC_DEMO_EMAIL && (
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Demo Accounts:
+              Modo desarrollo: cuenta precargada desde .env
             </Text>
             <Text style={styles.footerText}>
-              Client: client@demo.com / Demo123!
-            </Text>
-            <Text style={styles.footerText}>
-              Company: company@demo.com / Company123!
-            </Text>
-            <Text style={styles.footerText}>
-              Admin: admin@demo.com / Admin123!
-            </Text>
-            <Text style={styles.footerText}>
-              Escolta: bodyguard@demo.com / Guard123!
+              {process.env.EXPO_PUBLIC_DEMO_EMAIL}
             </Text>
           </View>
         )}

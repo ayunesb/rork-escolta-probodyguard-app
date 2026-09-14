@@ -9,7 +9,7 @@ Complete guide to test all features of the Escolta Pro app with demo accounts.
 ### 👤 Client Account
 ```
 Email: client@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Role: Client
 ```
 **Can do:**
@@ -23,7 +23,7 @@ Role: Client
 ### 🛡️ Guard Account #1
 ```
 Email: guard1@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Name: Mike Security
 Role: Guard
 ```
@@ -38,7 +38,7 @@ Role: Guard
 ### 🛡️ Guard Account #2
 ```
 Email: guard2@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Name: Sarah Protection
 Role: Guard
 ```
@@ -49,7 +49,7 @@ Role: Guard
 ### 🏢 Company Account
 ```
 Email: company@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Name: Elite Security
 Role: Company
 ```
@@ -63,7 +63,7 @@ Role: Company
 ### 👨‍💼 Admin Account
 ```
 Email: admin@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 Role: Admin
 ```
 **Can do:**
@@ -97,7 +97,7 @@ Role: Admin
 #### Test Sign In
 1. Sign out if logged in
 2. Tap "Sign In"
-3. Enter: `client@demo.com` / `demo123`
+3. Enter: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 4. Tap "Sign In"
 5. ✅ Should redirect to home screen
 6. ✅ Should see user name in profile

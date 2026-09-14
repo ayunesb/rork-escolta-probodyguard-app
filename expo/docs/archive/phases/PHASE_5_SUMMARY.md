@@ -101,11 +101,11 @@
 
 ### Demo Accounts
 ```
-client@demo.com   | demo123 | Client
-guard1@demo.com   | demo123 | Guard (Freelance)
-guard2@demo.com   | demo123 | Guard (Freelance)
-company@demo.com  | demo123 | Company
-admin@demo.com    | demo123 | Admin
+client@demo.com   | <contrasena en tu .env local, no en el repositorio> | Client
+guard1@demo.com   | <contrasena en tu .env local, no en el repositorio> | Guard (Freelance)
+guard2@demo.com   | <contrasena en tu .env local, no en el repositorio> | Guard (Freelance)
+company@demo.com  | <contrasena en tu .env local, no en el repositorio> | Company
+admin@demo.com    | <contrasena en tu .env local, no en el repositorio> | Admin
 ```
 
 ### Test Cards

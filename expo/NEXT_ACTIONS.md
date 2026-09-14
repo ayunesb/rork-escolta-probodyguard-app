@@ -42,7 +42,7 @@ Or visit: https://expo.dev/accounts/ayunesb/projects/escolta-pro/builds/33aa849f
 
 ### Background Location Test
 
-1. **Login as guard**: guard1@demo.com / DemoGuard123!
+1. **Login as guard**: guard1@demo.com / Demo<contrasena en tu .env local, no en el repositorio>
 2. **Go to bookings** → Accept any booking
 3. **Start tracking** → Grant "Always Allow" location
 4. **Put app in background** (home button)

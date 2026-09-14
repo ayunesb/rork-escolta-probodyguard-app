@@ -42,14 +42,14 @@ const db = getFirestore(app);
 const GUARD_USERS = [
   { 
     email: 'guard1@demo.com', 
-    password: 'Demo123!',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     firstName: 'Guard',
     lastName: 'One',
     phone: '+1234567801'
   },
   { 
     email: 'guard2@demo.com', 
-    password: 'Demo123!',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     firstName: 'Guard',
     lastName: 'Two',
     phone: '+1234567802'
@@ -139,17 +139,17 @@ async function setupGuardAccount(guardInfo) {
       
     } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
       console.log('❌ Wrong password or account locked');
-      console.log('   Current password in script: Demo123!');
+      console.log('   Current password in script: <contrasena en tu .env local, no en el repositorio>');
       console.log('   Solutions:');
       console.log('   1. Go to Firebase Console → Authentication → Users');
       console.log(`   2. Find ${guardInfo.email}`);
-      console.log('   3. Reset password to: Demo123!');
+      console.log('   3. Reset password to: <contrasena en tu .env local, no en el repositorio>');
       console.log('   4. OR delete the user and run this script again');
       return { success: false, error: 'Wrong password - needs manual reset' };
       
     } else if (error.code === 'auth/email-already-in-use') {
       console.log('⚠️  Email already in use but password is wrong');
-      console.log('   This means the account exists but password does not match Demo123!');
+      console.log('   This means the account exists but password does not match <contrasena en tu .env local, no en el repositorio>');
       console.log('   You need to reset the password in Firebase Console');
       return { success: false, error: 'Email exists with different password' };
       
@@ -164,7 +164,7 @@ async function setupGuardAccount(guardInfo) {
 async function main() {
   console.log('\n🔐 GUARD PASSWORD RESET TOOL');
   console.log('================================\n');
-  console.log('This will ensure guard accounts are set up with password: Demo123!\n');
+  console.log('This will ensure guard accounts are set up with password: <contrasena en tu .env local, no en el repositorio>\n');
   
   const results = [];
   
@@ -197,13 +197,13 @@ async function main() {
     console.log('   Go to: https://console.firebase.google.com/');
     console.log('   → Select project: escolta-pro-fe90e');
     console.log('   → Authentication → Users');
-    console.log('   → Find the failed accounts and reset passwords to: Demo123!');
+    console.log('   → Find the failed accounts and reset passwords to: <contrasena en tu .env local, no en el repositorio>');
     console.log('   → Then run this script again\n');
   } else {
     console.log('✅ All guard accounts are ready!');
     console.log('   You can now login with:');
-    console.log('   - guard1@demo.com / Demo123!');
-    console.log('   - guard2@demo.com / Demo123!\n');
+    console.log('   - guard1@demo.com / <contrasena en tu .env local, no en el repositorio>');
+    console.log('   - guard2@demo.com / <contrasena en tu .env local, no en el repositorio>\n');
   }
 }
 

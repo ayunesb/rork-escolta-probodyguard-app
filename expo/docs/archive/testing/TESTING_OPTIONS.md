@@ -51,7 +51,7 @@ npx expo start --dev-client
 
 ### Then:
 1. Press **`i`** to open iOS Simulator
-2. Login: `client@demo.com` / `demo123`
+2. Login: `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 3. Create booking → Test payment
 4. Done! ✅
 
@@ -151,8 +151,8 @@ http://localhost:4000  # Firebase UI
 
 ### Test Credentials
 ```
-Client: client@demo.com / demo123
-Guard: guard1@demo.com / demo123
+Client: client@demo.com / <contrasena en tu .env local, no en el repositorio>
+Guard: guard1@demo.com / <contrasena en tu .env local, no en el repositorio>
 Card: 4111 1111 1111 1111 (CVV: 123, Exp: 12/26)
 ```
 

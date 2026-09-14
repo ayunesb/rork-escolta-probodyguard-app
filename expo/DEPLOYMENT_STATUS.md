@@ -195,9 +195,9 @@ firebase deploy --only functions
 
 ### Test Accounts Available
 ```
-Guard:  guard1@demo.com / DemoGuard123!
+Guard:  guard1@demo.com / Demo<contrasena en tu .env local, no en el repositorio>
 Client: client1@demo.com / DemoClient123!
-Admin:  admin@demo.com / DemoAdmin123!
+Admin:  admin@demo.com / Demo<contrasena en tu .env local, no en el repositorio>
 ```
 
 ---

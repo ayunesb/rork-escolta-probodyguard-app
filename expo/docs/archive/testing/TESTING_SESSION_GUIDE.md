@@ -26,17 +26,17 @@ Use these to test different user roles:
 ```bash
 # CLIENT
 Email: client@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 → Can browse guards, create bookings, make payments
 
 # GUARD 1
 Email: guard1@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 → Can receive bookings, track location, chat with clients
 
 # GUARD 2
 Email: guard2@demo.com
-Password: demo123
+Password: <contrasena en tu .env local, no en el repositorio>
 → Another guard for testing multiple guards
 
 # ADMIN
@@ -64,7 +64,7 @@ Password: company123
 5. ✅ **Expected**: Receive verification email (check console logs)
 
 **Test Login**:
-1. Use `client@demo.com` / `demo123`
+1. Use `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. ✅ **Expected**: Redirect to dashboard
 3. ✅ **Expected**: See welcome message with user name
 

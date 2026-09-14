@@ -50,7 +50,7 @@
 ### Test Credentials
 ```
 Email: client@demo.com
-Password: Demo123!
+Password: <contrasena en tu .env local, no en el repositorio>
 ```
 
 ### Expected Flow

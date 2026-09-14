@@ -61,7 +61,7 @@ import { doc, setDoc } from 'firebase/firestore';
 const demoAccounts = [
   {
     email: 'client@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     role: 'client',
     firstName: 'Demo',
     lastName: 'Client',
@@ -69,7 +69,7 @@ const demoAccounts = [
   },
   {
     email: 'guard1@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     role: 'guard',
     firstName: 'Carlos',
     lastName: 'Rodriguez',
@@ -77,7 +77,7 @@ const demoAccounts = [
   },
   {
     email: 'guard2@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     role: 'guard',
     firstName: 'Miguel',
     lastName: 'Santos',
@@ -85,7 +85,7 @@ const demoAccounts = [
   },
   {
     email: 'company@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     role: 'company',
     firstName: 'Elite',
     lastName: 'Security',
@@ -93,7 +93,7 @@ const demoAccounts = [
   },
   {
     email: 'admin@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     role: 'admin',
     firstName: 'Admin',
     lastName: 'User',

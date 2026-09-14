@@ -188,10 +188,10 @@ Tests run automatically on:
 ### Test Accounts
 
 ```
-CLIENT: client@demo.com / demo123
-GUARD: guard1@demo.com / demo123
-COMPANY: company@demo.com / demo123
-ADMIN: admin@demo.com / demo123
+CLIENT: client@demo.com / <contrasena en tu .env local, no en el repositorio>
+GUARD: guard1@demo.com / <contrasena en tu .env local, no en el repositorio>
+COMPANY: company@demo.com / <contrasena en tu .env local, no en el repositorio>
+ADMIN: admin@demo.com / <contrasena en tu .env local, no en el repositorio>
 ```
 
 ### Test Scenarios

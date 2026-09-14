@@ -4,22 +4,22 @@
 
 ### Client Account
 - **Email**: `client@demo.com`
-- **Password**: `demo123`
+- **Password**: `<contrasena en tu .env local, no en el repositorio>`
 - **Role**: Client (Book security services)
 
 ### Guard (Freelancer) Account
 - **Email**: `guard@demo.com`
-- **Password**: `demo123`
+- **Password**: `<contrasena en tu .env local, no en el repositorio>`
 - **Role**: Guard (Accept and complete bookings)
 
 ### Company Account
 - **Email**: `company@demo.com`
-- **Password**: `demo123`
+- **Password**: `<contrasena en tu .env local, no en el repositorio>`
 - **Role**: Company (Manage guards and bookings)
 
 ### Admin Account
 - **Email**: `admin@demo.com`
-- **Password**: `demo123`
+- **Password**: `<contrasena en tu .env local, no en el repositorio>`
 - **Role**: Admin (Full system access)
 
 ## 🧪 Testing Scenarios

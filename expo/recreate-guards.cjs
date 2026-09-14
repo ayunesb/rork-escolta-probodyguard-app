@@ -45,7 +45,7 @@ const GUARDS = [
   {
     oldUid: 'G8G0YUdi1eWIqtWZTVdSFT5scZl2',
     email: 'guard1@demo.com',
-    password: 'Demo123!',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     firstName: 'Guard',
     lastName: 'One',
     phone: '+1234567894',
@@ -54,7 +54,7 @@ const GUARDS = [
   {
     oldUid: 'tuS4v80zBhgru0sUXXtFjilI7L2',
     email: 'guard2@demo.com',
-    password: 'Demo123!',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     firstName: 'Guard',
     lastName: 'Two',
     phone: '+1234567895',
@@ -204,8 +204,8 @@ async function main() {
   if (successCount === results.length) {
     console.log('🎉 ALL GUARDS RECREATED SUCCESSFULLY!');
     console.log('\n✅ You can now login with:');
-    console.log('   • guard1@demo.com / Demo123!');
-    console.log('   • guard2@demo.com / Demo123!');
+    console.log('   • guard1@demo.com / <contrasena en tu .env local, no en el repositorio>');
+    console.log('   • guard2@demo.com / <contrasena en tu .env local, no en el repositorio>');
     console.log('\n📝 IMPORTANT: Old UIDs have changed!');
     console.log('   If you had any bookings assigned to old guard UIDs,');
     console.log('   they will need to be updated or recreated.');

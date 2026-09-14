@@ -79,7 +79,7 @@ http://localhost:8081
 Use these demo credentials:
 ```
 Email: client@demo.com
-Password: Demo123!
+Password: <contrasena en tu .env local, no en el repositorio>
 ```
 
 ### 4. Expected Console Output

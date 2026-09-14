@@ -33,7 +33,7 @@ OR
 - **Press `i`** in Metro terminal to relaunch
 
 ### 4. Test Payment
-1. Login as `client@demo.com` / `demo123`
+1. Login as `client@demo.com` / `<contrasena en tu .env local, no en el repositorio>`
 2. Create new booking
 3. **Look for the new payment form with:**
    - ✅ Cardholder Name (optional)

@@ -38,7 +38,7 @@ These 8 files contain everything you need:
 
 5. **DEMO_ACCOUNTS.md** (4.2 KB)
    - Demo user credentials
-   - Password: `Demo123!`
+   - Password: `<contrasena en tu .env local, no en el repositorio>`
    - Account details
 
 6. **DEPLOYMENT_INSTRUCTIONS.md** (2.8 KB)
@@ -109,7 +109,7 @@ Redundant duplicates permanently removed:
 
 ### Current State
 - ✅ **Payment System**: Fully working (Braintree Hosted Fields)
-- ✅ **Client Account**: Working (client@demo.com / Demo123!)
+- ✅ **Client Account**: Working (client@demo.com / <contrasena en tu .env local, no en el repositorio>)
 - ⚠️ **Guard Accounts**: Need password reset (see QUICK_FIX_GUARDS.md)
 
 ### Next Steps

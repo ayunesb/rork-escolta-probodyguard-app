@@ -72,7 +72,7 @@
         const createMissingDemoUser = httpsCallable(functions, 'createMissingDemoUser');
         const result = await createMissingDemoUser({
           email: 'bodyguard@demo.com',
-          password: 'Guard123!',
+          password: '<contrasena en tu .env local, no en el repositorio>',
           role: 'bodyguard',
           firstName: 'Demo',
           lastName: 'Bodyguard'
@@ -85,7 +85,7 @@
           <p><strong>UID:</strong> ${result.data.uid}</p>
           <p><strong>Role:</strong> ${result.data.role}</p>
           <p>You can now login at <a href="http://localhost:8081">http://localhost:8081</a></p>
-          <p><strong>Credentials:</strong> bodyguard@demo.com / Guard123!</p>
+          <p><strong>Credentials:</strong> bodyguard@demo.com / <contrasena en tu .env local, no en el repositorio></p>
         `;
       } catch (error) {
         resultDiv.className = 'error';

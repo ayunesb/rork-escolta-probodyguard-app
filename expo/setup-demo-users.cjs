@@ -15,7 +15,7 @@ async function createDemoUsers() {
   const users = [
     {
       email: 'client@demo.com',
-      password: 'demo123',
+      password: '<contrasena en tu .env local, no en el repositorio>',
       displayName: 'Demo Client',
       role: 'client',
       firstName: 'Demo',
@@ -24,7 +24,7 @@ async function createDemoUsers() {
     },
     {
       email: 'guard1@demo.com',
-      password: 'demo123',
+      password: '<contrasena en tu .env local, no en el repositorio>',
       displayName: 'Demo Guard',
       role: 'guard',
       firstName: 'Demo',
@@ -74,11 +74,11 @@ async function createDemoUsers() {
   console.log('');
   console.log('📋 Available demo accounts:');
   console.log('   Email: client@demo.com');
-  console.log('   Password: demo123');
+  console.log('   Password: <contrasena en tu .env local, no en el repositorio>');
   console.log('   Role: client');
   console.log('');
   console.log('   Email: guard1@demo.com'); 
-  console.log('   Password: demo123');
+  console.log('   Password: <contrasena en tu .env local, no en el repositorio>');
   console.log('   Role: guard');
   console.log('');
   console.log('🚀 You can now sign in to your app with these credentials!');

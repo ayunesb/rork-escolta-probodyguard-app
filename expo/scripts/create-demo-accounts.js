@@ -17,7 +17,7 @@ const db = getFirestore(app);
 const demoAccounts = [
   {
     email: 'client@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     userData: {
       email: 'client@demo.com',
       role: 'client',
@@ -31,7 +31,7 @@ const demoAccounts = [
   },
   {
     email: 'guard1@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     userData: {
       email: 'guard1@demo.com',
       role: 'guard',
@@ -49,7 +49,7 @@ const demoAccounts = [
   },
   {
     email: 'company@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     userData: {
       email: 'company@demo.com',
       role: 'company',
@@ -65,7 +65,7 @@ const demoAccounts = [
   },
   {
     email: 'admin@demo.com',
-    password: 'demo123',
+    password: '<contrasena en tu .env local, no en el repositorio>',
     userData: {
       email: 'admin@demo.com',
       role: 'admin',
@@ -108,10 +108,10 @@ async function createDemoAccounts() {
   
   console.log('\n🎉 Demo accounts setup complete!');
   console.log('\nYou can now log in with:');
-  console.log('• Client: client@demo.com / demo123');
-  console.log('• Guard: guard1@demo.com / demo123');
-  console.log('• Company: company@demo.com / demo123');
-  console.log('• Admin: admin@demo.com / demo123');
+  console.log('• Client: client@demo.com / <contrasena en tu .env local, no en el repositorio>');
+  console.log('• Guard: guard1@demo.com / <contrasena en tu .env local, no en el repositorio>');
+  console.log('• Company: company@demo.com / <contrasena en tu .env local, no en el repositorio>');
+  console.log('• Admin: admin@demo.com / <contrasena en tu .env local, no en el repositorio>');
   
   process.exit(0);
 }

@@ -17,9 +17,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const DEMO_USERS = [
-  { email: 'client@demo.com', password: 'Demo123!', expectedRole: 'client' },
-  { email: 'guard1@demo.com', password: 'Demo123!', expectedRole: 'guard' },
-  { email: 'guard2@demo.com', password: 'Demo123!', expectedRole: 'guard' },
+  { email: 'client@demo.com', password: '<contrasena en tu .env local, no en el repositorio>', expectedRole: 'client' },
+  { email: 'guard1@demo.com', password: '<contrasena en tu .env local, no en el repositorio>', expectedRole: 'guard' },
+  { email: 'guard2@demo.com', password: '<contrasena en tu .env local, no en el repositorio>', expectedRole: 'guard' },
 ];
 
 async function verifyUser(email, password, expectedRole) {

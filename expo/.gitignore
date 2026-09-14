@@ -59,3 +59,7 @@ node_modules
 # los IDs de cliente OAuth. Se descargan de la consola y se guardan en local.
 google-services.json
 GoogleService-Info.plist
+
+# Cache local del despliegue de Firebase Hosting
+.firebase/
+dist/

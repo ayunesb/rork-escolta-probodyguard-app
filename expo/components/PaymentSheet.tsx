@@ -15,6 +15,8 @@ import { paymentService, PaymentBreakdown } from '@/services/paymentService';
 import { SavedPaymentMethod } from '@/types';
 import Colors from '@/constants/colors';
 import BraintreeHostedFields, { BraintreeHostedFieldsHandle, CardDetails } from './BraintreeHostedFields';
+import StripePaymentForm from './StripePaymentForm';
+import { stripeService } from '@/services/stripeService';
 
 const TEXT_COLOR = Colors.textPrimary;
 
@@ -178,6 +180,57 @@ export default function PaymentSheet({
       setLoading(false);
     }
   };
+
+  // Stripe cuando este configurado; si no, sigue el camino de Braintree.
+  // Se decide con la configuracion y no borrando codigo, para poder volver
+  // atras cambiando una variable de entorno y sin desplegar.
+  const usarStripe = stripeService.estaConfigurado() && stripeService.soportadoEnEstaPlataforma();
+
+  if (usarStripe) {
+    return (
+      <Modal visible={visible} animationType="slide" transparent>
+        <View style={styles.overlay}>
+          <View style={styles.sheet}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Pago</Text>
+              <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+                <X size={24} color={TEXT_COLOR} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+              <View style={styles.breakdownCard}>
+                <Text style={styles.breakdownTitle}>Desglose</Text>
+                <View style={styles.breakdownRow}>
+                  <Text style={styles.breakdownLabel}>Servicio</Text>
+                  <Text style={styles.breakdownValue}>
+                    {paymentService.formatMXN(breakdown.subtotal)}
+                  </Text>
+                </View>
+                <View style={styles.breakdownRow}>
+                  <Text style={styles.breakdownLabel}>Cargo por procesamiento</Text>
+                  <Text style={styles.breakdownValue}>
+                    {paymentService.formatMXN(breakdown.processingFee)}
+                  </Text>
+                </View>
+                <View style={[styles.breakdownRow, styles.totalRow]}>
+                  <Text style={styles.totalLabel}>Total</Text>
+                  <Text style={styles.totalValue}>{paymentService.formatMXN(amount)}</Text>
+                </View>
+              </View>
+
+              {visible && (
+                <StripePaymentForm
+                  bookingId={bookingId}
+                  onExito={(intentoId: string) => onSuccess(intentoId)}
+                />
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal visible={visible} animationType="slide" transparent>

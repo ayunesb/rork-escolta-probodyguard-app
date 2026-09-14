@@ -63,12 +63,12 @@ export default {
         meta: {
           'Content-Security-Policy': [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.braintreegateway.com https://checkout.paypal.com https://www.paypal.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://js.braintreegateway.com https://checkout.paypal.com https://www.paypal.com",
             "style-src 'self' 'unsafe-inline' https://checkout.paypal.com https://fonts.googleapis.com",
             "img-src 'self' data: https: https://checkout.paypal.com https://assets.braintreegateway.com",
-            "connect-src 'self' https://api.braintreegateway.com https://api.sandbox.braintreegateway.com https://firestore.googleapis.com https://firebase.googleapis.com wss://*.firebaseio.com",
+            "connect-src 'self' https://api.stripe.com https://*.vercel.app https://api.braintreegateway.com https://api.sandbox.braintreegateway.com https://firestore.googleapis.com https://firebase.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.tile.openstreetmap.org",
             "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com",
-            "frame-src https://checkout.paypal.com https://assets.braintreegateway.com",
+            "frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.paypal.com https://assets.braintreegateway.com",
             "object-src 'none'",
             "base-uri 'self'"
           ].join('; ')

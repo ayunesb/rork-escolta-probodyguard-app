@@ -1155,14 +1155,25 @@ export const createMissingDemoUser = onCall(async (request: CallableRequest) => 
  * ✅ SECURITY: Protected - only works in sandbox mode
  */
 export const resetDemoPasswords = onCall(async (request: CallableRequest) => {
-  // ✅ SECURITY: Only allow in development/sandbox environment
-  if (process.env.BRAINTREE_ENV === 'production') {
-    throw new HttpsError('permission-denied', 'Password reset is disabled in production');
+  // Falla cerrado. Antes la puerta era `BRAINTREE_ENV !== 'production'`, y como
+  // el entorno real esta en 'sandbox', la condicion estaba abierta de par en par.
+  // Ahora hay que encender el interruptor a proposito.
+  if (process.env.PERMITIR_RESET_DEMO !== 'true') {
+    throw new HttpsError('permission-denied', 'El reseteo de cuentas demo esta desactivado');
   }
-  
-  // ✅ SECURITY: Require authentication
+
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  // Solo un administrador. Antes bastaba con estar autenticado: cualquiera que
+  // se registrara con el boton "Create Account" podia llamar a esta funcion,
+  // devolver admin@demo.com a su contrasena publica y entrar como
+  // administrador. Cambiar las contrasenas en la consola no cerraba ese hueco,
+  // porque esta funcion las volvia a poner.
+  const perfilQuienLlama = await admin.firestore().doc(`users/${request.auth.uid}`).get();
+  if (perfilQuienLlama.data()?.role !== 'admin') {
+    throw new HttpsError('permission-denied', 'Solo un administrador puede resetear las cuentas demo');
   }
   
   try {
@@ -1220,3 +1231,9 @@ export const resetDemoPasswords = onCall(async (request: CallableRequest) => {
   }
 });
 
+
+// Avisos en tiempo real por cambio de estado de una reserva. Viven en su
+// propio archivo para no seguir engordando este. Solo llaman a admin.* dentro
+// del cuerpo de cada funcion, asi que no importa que este re-export se evalue
+// antes de admin.initializeApp().
+export { avisarCambioDeReserva, enviarAvisoEncolado, avisarEmergencia } from './notificaciones';

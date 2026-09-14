@@ -99,14 +99,12 @@ class GDPRService {
       }
     }
 
-    const userDocQuery = query(
-      collection(getDbInstance(), 'users'),
-      where('id', '==', userId)
-    );
-    const userSnapshot = await getDocs(userDocQuery);
-    for (const document of userSnapshot.docs) {
-      await deleteDoc(doc(getDbInstance(), 'users', document.id));
-    }
+    // Borrado directo por ID. La consulta anterior filtraba por el campo `id`,
+    // que es una operacion de lista y las reglas la niegan. Nota: borrar un
+    // usuario sigue estando reservado al administrador; el camino correcto
+    // para el usuario es dejar su peticion en `deletion_requests`, que ya
+    // tiene reglas, y que un administrador la ejecute.
+    await deleteDoc(doc(getDbInstance(), 'users', userId));
   }
 
   private async deleteStorageData(userId: string): Promise<void> {

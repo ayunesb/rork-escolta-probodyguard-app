@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { doc, updateDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db as getDbInstance } from '@/lib/firebase';
 import { UserRole } from '@/types';
 
@@ -164,34 +164,21 @@ export const pushNotificationService = {
     payload: PushNotificationPayload
   ): Promise<void> {
     try {
-      const userDoc = await getDocs(
-        query(collection(getDbInstance(), 'users'), where('id', '==', userId))
-      );
-
-      if (userDoc.empty) {
-        console.log('[Push] User not found');
-        return;
-      }
-
-      const userData = userDoc.docs[0].data();
-      const pushToken = userData.pushToken;
-
-      if (!pushToken) {
-        console.log('[Push] No push token for user');
-        return;
-      }
-
+      // Solo se encola. Antes esta funcion leia el documento del OTRO usuario
+      // para sacar su pushToken, y eso ya no se permite: un cliente no puede
+      // leer el padron. Ahora quien resuelve los tokens es la funcion de
+      // servidor `enviarAvisoEncolado`, que corre con Admin SDK y ademas
+      // atiende todos los aparatos del usuario, no solo el ultimo.
       await addDoc(collection(getDbInstance(), 'notifications'), {
         userId,
         title: payload.title,
         body: payload.body,
         data: payload.data || {},
-        pushToken,
         status: 'pending',
         createdAt: new Date().toISOString(),
       });
 
-      console.log('[Push] Notification queued for:', userId);
+      console.log('[Push] Aviso encolado para:', userId);
     } catch (error) {
       console.error('[Push] Error sending push notification:', error);
     }
@@ -403,12 +390,14 @@ export const pushNotificationService = {
     userId: string
   ): Promise<NotificationPreferences> {
     try {
-      const userDoc = await getDocs(
-        query(collection(getDbInstance(), 'users'), where('id', '==', userId))
-      );
+      // Lectura directa por ID. Antes consultaba la coleccion filtrando por el
+      // campo `id`, y una consulta asi es una operacion de lista: las reglas la
+      // niegan aunque el usuario pida sus propios datos, porque la regla mira
+      // el ID del documento, no un campo.
+      const userDoc = await getDoc(doc(getDbInstance(), 'users', userId));
 
-      if (!userDoc.empty) {
-        const userData = userDoc.docs[0].data();
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
         return userData.notificationPreferences || {
           bookingUpdates: true,
           chatMessages: true,

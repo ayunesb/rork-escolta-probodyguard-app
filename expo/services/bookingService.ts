@@ -209,19 +209,44 @@ export const bookingService = {
       bookings.push(booking);
       await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 
-      try {
-        const bookingsRef = ref(getRealtimeDb(), 'bookings');
-        const bookingsData = bookings.reduce((acc, b) => ({ ...acc, [b.id]: cleanUndefined(b) }), {});
-        await set(bookingsRef, bookingsData);
-        logger.log('[Booking] Synced to Firebase Realtime Database');
-
-        if (booking.guardId) {
-          await notificationService.notifyNewBookingRequest('Client', booking.id);
+        // Se escribe SOLO el nodo de esta reserva.
+        //
+        // Antes esto hacia `set` sobre /bookings entero, con la lista local del
+        // telefono. Dos problemas graves:
+        //
+        //  1. Las reglas dan permiso de escritura en /bookings/$bookingId, no en
+        //     /bookings. La escritura se rechazaba siempre con permission_denied,
+        //     el error se tragaba como "non-critical" y la app anunciaba exito.
+        //     La reserva quedaba solo en el AsyncStorage de ese telefono, sin que
+        //     el escolta ni el administrador la vieran nunca. De ahi que la base
+        //     tenga cero reservas.
+        //  2. Aunque las reglas lo hubieran permitido, era peor: cada cliente
+        //     habria sobreescrito la lista global con su copia local, borrando
+        //     las reservas de todos los demas.
+        //
+        // Si la escritura falla se deshace la copia local y se propaga el error:
+        // una reserva que nadie mas puede ver no es una reserva, y afirmar que si
+        // lo era fue justo lo que mantuvo esto oculto.
+        try {
+          await set(ref(getRealtimeDb(), `bookings/${booking.id}`), cleanUndefined(booking));
+          logger.log('[Booking] Guardada en Realtime Database:', { bookingId: booking.id });
+        } catch (firebaseError) {
+          logger.error('[Booking] No se pudo guardar la reserva en el servidor:', { error: firebaseError });
+          await AsyncStorage.setItem(
+            BOOKINGS_KEY,
+            JSON.stringify(bookings.filter((b) => b.id !== booking.id))
+          );
+          throw new Error('No se pudo guardar la reserva en el servidor. Intenta de nuevo.');
         }
-      } catch (firebaseError) {
-        logger.error('[Booking] Firebase sync error (non-critical):', { error: firebaseError });
-      }
 
+        // El aviso al escolta va aparte: que falle no invalida la reserva.
+        if (booking.guardId) {
+          try {
+            await notificationService.notifyNewBookingRequest('Client', booking.id);
+          } catch (avisoError) {
+            logger.error('[Booking] La reserva se guardo pero no se pudo avisar al escolta:', { error: avisoError });
+          }
+        }
       logger.log('[Booking] Created booking:', { 
         bookingId: booking.id, 
         guardId: booking.guardId, 

@@ -235,7 +235,7 @@ describe('AuthContext - Sign Up Flow', () => {
     await act(async () => {
       signUpResult = await result.current.signUp(
         'newuser@example.com',
-        'StrongPassword123!',
+        'Rt7kQz2mVx9#',
         'John',
         'Doe',
         '+1234567890',
@@ -251,7 +251,7 @@ describe('AuthContext - Sign Up Flow', () => {
     expect(firebaseAuth.createUserWithEmailAndPassword).toHaveBeenCalledWith(
       expect.anything(),
       'newuser@example.com',
-      'StrongPassword123!'
+      'Rt7kQz2mVx9#'
     );
     expect(firebaseAuth.sendEmailVerification).toHaveBeenCalled();
     expect(firestore.setDoc).toHaveBeenCalled();
@@ -306,7 +306,7 @@ describe('AuthContext - Sign Up Flow', () => {
     await act(async () => {
       signUpResult = await result.current.signUp(
         'existing@example.com',
-        'StrongPassword123!',
+        'Rt7kQz2mVx9#',
         'John',
         'Doe',
         '+1234567890',
@@ -440,14 +440,45 @@ describe('AuthContext - Session Management', () => {
   });
 
   it('should update user data successfully', async () => {
-    const mockUser = {
-      id: 'test-user-123',
+    // Antes esta prueba "iniciaba sesion" asignando `result.current.user = ...`.
+    // Eso no hace nada: result.current es una foto del valor que devolvio el
+    // hook, no el estado del contexto. El usuario nunca entraba, updateUser
+    // salia en su primera linea (`if (!user) return`) y updateDoc no se
+    // llamaba jamas.
+    //
+    // AuthContext solo llena el usuario dentro del callback de
+    // onAuthStateChanged, que es como se comporta Firebase de verdad. Asi que
+    // aqui se hace que el mock dispare ese callback, que es lo que la prueba
+    // deberia haber hecho desde el principio.
+    const mockAuthUser = {
+      uid: 'test-user-123',
       email: 'test@example.com',
+      emailVerified: true,
+    };
+    const mockUserData = {
+      email: 'test@example.com',
+      role: 'client',
       firstName: 'Test',
       lastName: 'User',
-      role: 'client' as const,
+      phone: '+1234567890',
+      language: 'en',
+      kycStatus: 'approved',
+      createdAt: '2024-01-01T00:00:00Z',
+      isActive: true,
+      emailVerified: true,
+      updatedAt: '2024-01-01T00:00:00Z',
     };
 
+    (firebaseAuth.onAuthStateChanged as jest.Mock).mockImplementation(
+      (_auth: unknown, callback: (u: unknown) => void) => {
+        callback(mockAuthUser);
+        return () => {};
+      }
+    );
+    (firestore.getDoc as jest.Mock).mockResolvedValue({
+      exists: () => true,
+      data: () => mockUserData,
+    });
     (firestore.updateDoc as jest.Mock).mockResolvedValue(undefined);
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -456,10 +487,9 @@ describe('AuthContext - Session Management', () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    // Set initial user
+    // Deja que el callback de autenticacion y su lectura de Firestore terminen.
     await act(async () => {
-      // Simulate user being set from auth state change
-      (result.current as any).user = mockUser;
+      await Promise.resolve();
     });
 
     await act(async () => {

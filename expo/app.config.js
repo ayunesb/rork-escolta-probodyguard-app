@@ -1,4 +1,13 @@
 import 'dotenv/config';
+import fs from 'fs';
+
+// Los archivos de credenciales de Firebase para movil no estan en el repo
+// (es publico). Se declaran solo si existen, para que la compilacion web y
+// el arranque en desarrollo sigan funcionando sin ellos.
+const archivoAndroid = './google-services.json';
+const archivoIOS = './GoogleService-Info.plist';
+const hayAndroid = fs.existsSync(archivoAndroid);
+const hayIOS = fs.existsSync(archivoIOS);
 
 export default {
   expo: {
@@ -18,6 +27,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.escolta.pro",
+      ...(hayIOS ? { googleServicesFile: archivoIOS } : {}),
       infoPlist: {
         NSAppTransportSecurity: {
           NSAllowsArbitraryLoads: false,
@@ -41,7 +51,9 @@ export default {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff'
       },
-      package: 'com.escolta.pro'
+      package: 'com.escolta.pro',
+      ...(hayAndroid ? { googleServicesFile: archivoAndroid } : {}),
+      permissions: ['NOTIFICATIONS', 'POST_NOTIFICATIONS']
     },
     web: {
       favicon: './assets/favicon.png',
@@ -83,10 +95,17 @@ export default {
         projectId: '7cee6c31-9a1c-436d-9baf-57fc8a43b651'
       }
     },
+    notification: {
+      icon: './assets/icon.png',
+      color: '#C9A227',
+      androidMode: 'default'
+    },
     plugins: [
-      'expo-web-browser'
+      'expo-web-browser',
+      ['expo-notifications', {
+        icon: './assets/icon.png',
+        color: '#C9A227'
+      }]
     ]
   }
-  ,
-  scheme: 'nobodyguard'
 };

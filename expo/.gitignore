@@ -53,3 +53,9 @@ android/
 core
 node_modules
 .expo
+
+# Credenciales de Firebase para movil. Este repositorio es PUBLICO: estos dos
+# archivos traen el identificador del proyecto, la llave de API de Android y
+# los IDs de cliente OAuth. Se descargan de la consola y se guardan en local.
+google-services.json
+GoogleService-Info.plist

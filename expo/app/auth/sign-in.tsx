@@ -19,7 +19,7 @@ import Colors from '@/constants/colors';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, resendVerificationEmail } = useAuth(); // ✅ Added resendVerificationEmail
+  const { signIn, resendVerificationEmail, user } = useAuth();
   const insets = useSafeAreaInsets();
   // Precarga solo en desarrollo, y solo si tu .env local las define. Antes
   // estaban escritas aqui, y este repositorio es publico.
@@ -30,13 +30,26 @@ export default function SignInScreen() {
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
-  // ✅ FIX: Navigation is now handled by app/index.tsx
-  // Removing navigation logic from this component to prevent infinite loop
-  // The AuthContext will update user state → index.tsx will detect it → route properly
+  // Quien enruta despues del acceso.
+  //
+  // Antes esta pantalla decia "index.tsx se encarga" y index.tsx decia "sign-in
+  // se encarga". Ninguno lo hacia, y como index.tsx solo se monta en la ruta "/",
+  // despues de un acceso correcto no pasaba nada: el boton se quedaba girando
+  // para siempre con la sesion ya iniciada.
+  //
+  // Ahora: en cuanto AuthContext tiene usuario, esta pantalla manda a "/" y
+  // index.tsx hace el reparto por rol. No hay ciclo, porque solo se va a "/"
+  // cuando el usuario ya existe, que es justo lo que index.tsx necesita.
+  useEffect(() => {
+    if (user) {
+      console.log('[SignIn] Usuario listo, paso el control al enrutador');
+      router.replace('/');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     checkBiometric();
-  }, []); // Only depend on user.uid to prevent object reference changes
+  }, []);
 
   const checkBiometric = async () => {
     const available = await biometricService.isAvailable();
@@ -63,9 +76,9 @@ export default function SignInScreen() {
       const result = await signIn(trimmedEmail, trimmedPassword);
 
       if (result.success) {
-        console.log('[SignIn] Login successful - index.tsx will handle navigation');
-        // ✅ Navigation is automatic via AuthContext → index.tsx routing
-        // No need to navigate here or wait for user to load
+        // No se apaga el spinner aqui a proposito: sigue girando hasta que
+        // AuthContext entregue el usuario y el efecto de arriba navegue.
+        console.log('[SignIn] Acceso correcto, esperando el usuario');
       } else if (result.emailNotVerified) {
         // Show resend verification option
         setError(result.error || 'Email not verified');

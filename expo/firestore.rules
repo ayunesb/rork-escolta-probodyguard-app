@@ -25,12 +25,17 @@ service cloud.firestore {
 
     // === USERS COLLECTION ===
     match /users/{userId} {
-      // Allow users to read their own document (no role check needed to avoid circular dependency)
-      // CRITICAL: This must work WITHOUT calling getUserData() to avoid infinite recursion
-      allow get: if isAuthenticated() && request.auth.uid == userId;
-      
-      // Allow list for admins and companies (checking role after user doc exists)
-      allow list: if isAuthenticated();
+    // `read` cubre get y list en una sola regla. Una consulta que un usuario
+    // hace sobre su propio documento pasa; una lista sin filtro solo la
+    // permiten admin y empresa. Antes eran dos reglas y la de `list` decia
+    // `if isAuthenticated()`, o sea que cualquier registrado descargaba el
+    // padron completo. Se comprobo en vivo: un cliente veia los 8 usuarios.
+    // Este es el mismo patron que usa /bookings mas abajo.
+    allow read: if isAuthenticated() && (
+      request.auth.uid == userId ||
+      hasRole('admin') ||
+      hasRole('company')
+    );
       
       // Allow users to create their own document with minimum required fields
       // This is critical for new user sign-up flow
@@ -200,6 +205,132 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // Once colecciones que el cliente ya usaba y que nunca tuvieron reglas.
+    // Sin bloque, Firestore niega por defecto: el pago al escolta, las
+    // calificaciones, los reportes de incidente y el borrado de cuenta
+    // estaban muertos en produccion. El patron es el mismo que /bookings:
+    // `read` cubre get y list, asi una consulta filtrada por el dueno pasa
+    // y una lista sin filtro se niega.
+    // =========================================================================
+
+    // === PAYOUTS: el pago al escolta ===
+    match /payouts/{payoutId} {
+      allow read: if isAuthenticated() && (
+        resource.data.guardId == request.auth.uid || hasRole('admin')
+      );
+      // El escolta solo puede pedir SU pago, y solo con KYC aprobado.
+      // Aqui es donde isKYCApproved() deja de ser una funcion muerta.
+      allow create: if isAuthenticated() &&
+        request.resource.data.guardId == request.auth.uid &&
+        isKYCApproved() &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.keys().hasAll(['guardId', 'amount', 'bookingIds', 'status', 'createdAt']);
+      // Marcar un pago como completado es del administrador, no del cobrador.
+      allow update: if hasRole('admin');
+      allow delete: if false;
+    }
+
+    // === LEDGER: libro de ganancias del escolta ===
+    match /ledger/{entryId} {
+      allow read: if isAuthenticated() && (
+        resource.data.guardId == request.auth.uid || hasRole('admin')
+      );
+      // Solo lectura para el escolta: no puede inventarse ganancias.
+      allow create: if hasRole('admin');
+      allow update, delete: if false;
+    }
+
+    // === REVIEWS: las escribe el cliente de esa reserva ===
+    match /reviews/{reviewId} {
+      // Legibles por cualquier usuario autenticado: son la reputacion publica
+      // del escolta. Contienen clientId, asi que no se abren sin sesion.
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.clientId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['bookingId', 'guardId', 'clientId', 'rating']) &&
+        request.resource.data.rating is number &&
+        request.resource.data.rating >= 1 &&
+        request.resource.data.rating <= 5;
+      allow update: if isAuthenticated() && (
+        resource.data.clientId == request.auth.uid || hasRole('admin')
+      );
+      allow delete: if hasRole('admin');
+    }
+
+    // === INCIDENT REPORTS ===
+    match /incidentReports/{reportId} {
+      allow read: if isAuthenticated() && (
+        resource.data.reportedBy == request.auth.uid || hasRole('admin') || hasRole('company')
+      );
+      allow create: if isAuthenticated() &&
+        request.resource.data.reportedBy == request.auth.uid &&
+        request.resource.data.keys().hasAll(['bookingId', 'reportedBy', 'type', 'severity', 'status']);
+      // Quien reporta puede completar su reporte; cerrarlo es del administrador.
+      allow update: if isAuthenticated() && (
+        resource.data.reportedBy == request.auth.uid || hasRole('admin')
+      );
+      allow delete: if false;
+    }
+
+    // === DELETION REQUESTS: obligacion legal, no funcion opcional ===
+    match /deletion_requests/{requestId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if hasRole('admin');
+      allow delete: if false;
+    }
+
+    // === KYC AUDIT LOG: solo se agrega, nunca se edita ni se borra ===
+    match /kyc_audit_log/{entryId} {
+      allow read: if hasRole('admin');
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // === REFUNDS: solo administracion ===
+    // backend/trpc/routes/payments/braintree/refund/route.ts los escribe con el
+    // SDK de cliente. Si esa ruta no corre autenticada como admin va a seguir
+    // fallando, y la solucion correcta es moverla a Cloud Functions con Admin
+    // SDK, no abrir esta regla a cualquier usuario.
+    match /refunds/{refundId} {
+      allow read: if hasRole('admin');
+      allow create: if hasRole('admin');
+      allow update, delete: if false;
+    }
+
+    // === TYPING: indicador efimero de chat (id = bookingId_userId) ===
+    match /typing/{typingId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // === TELEMETRIA: la escribe el cliente, solo la lee el administrador ===
+    match /usage_metrics/{metricId} {
+      allow read: if hasRole('admin');
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    match /cost_alerts/{alertId} {
+      allow read: if hasRole('admin');
+      allow create: if isAuthenticated();
+      allow update: if hasRole('admin');
+      allow delete: if false;
+    }
+
+    // Nota: el limitador de peticiones vive en el cliente, asi que este registro
+    // es evidencia, no un control. Un control real va en Cloud Functions.
+    match /rateLimitViolations/{violationId} {
+      allow read: if hasRole('admin');
+      allow create, update: if isAuthenticated();
       allow delete: if false;
     }
 

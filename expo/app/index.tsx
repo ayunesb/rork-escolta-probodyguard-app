@@ -23,7 +23,7 @@ export default function Index() {
       console.log('[Index] User authenticated, redirecting based on role:', user.role);
       switch (user.role) {
         case 'client':
-        case 'bodyguard':
+        case 'guard':
           router.replace('/(tabs)/home');
           break;
         case 'company':

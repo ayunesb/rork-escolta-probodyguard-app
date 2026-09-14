@@ -27,7 +27,14 @@ class MonitoringService {
   private flushInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
-    this.startFlushInterval();
+    // Bajo Jest no se arranca el temporizador. Seguia vivo despues de que la
+    // prueba terminaba y, al disparar flush() contra un modulo de Firebase ya
+    // desmontado, tumbaba al corredor entero con
+    // "(0 , _firebase.auth) is not a function". Por eso `npx jest` no llegaba
+    // a imprimir resultados.
+    if (process.env.NODE_ENV !== 'test') {
+      this.startFlushInterval();
+    }
   }
 
   private startFlushInterval() {
@@ -90,7 +97,16 @@ class MonitoringService {
   async flush(): Promise<void> {
     if (!this.enabled || this.logBuffer.length === 0) return;
 
-    if (!getAuthInstance().currentUser) {
+    // getAuthInstance() puede no estar disponible (arranque, o un modulo ya
+    // desmontado): si falla, se descarta el buffer en vez de propagar.
+    let usuarioActual = null;
+    try {
+      usuarioActual = getAuthInstance().currentUser;
+    } catch {
+      this.logBuffer = [];
+      return;
+    }
+    if (!usuarioActual) {
       this.logBuffer = [];
       return;
     }

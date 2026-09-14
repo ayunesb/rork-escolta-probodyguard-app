@@ -255,7 +255,7 @@ export default function SignInScreen() {
               Admin: admin@demo.com / Admin123!
             </Text>
             <Text style={styles.footerText}>
-              Guards: guard1@demo.com / Guard123!
+              Escolta: bodyguard@demo.com / Guard123!
             </Text>
           </View>
         )}

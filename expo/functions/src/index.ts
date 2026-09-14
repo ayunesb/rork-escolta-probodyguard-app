@@ -21,6 +21,30 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { gateway, isGatewayConfigured, getConfigurationError } from './config/braintree';
 
+/**
+ * Verdadero solo dentro de una corrida de Jest en una maquina de desarrollo.
+ *
+ * Cinco endpoints de pago de este archivo tienen un atajo que devuelve exito
+ * falso para que las pruebas corran sin credenciales de Braintree. Antes
+ * bastaban dos variables de entorno para activarlo: si NODE_ENV=test y
+ * JEST_WORKER_ID aparecian por accidente en un entorno desplegado, esos cinco
+ * endpoints confirmaban cobros que nunca ocurrieron.
+ *
+ * Ahora exige ademas que NO estemos en la nube. Cloud Functions v2 y Cloud Run
+ * siempre inyectan K_SERVICE, y Cloud Functions inyecta FUNCTION_TARGET, asi
+ * que en cualquier despliegue real esta funcion devuelve false pase lo que
+ * pase con las otras variables.
+ */
+function esPruebaUnitariaJest(): boolean {
+  const enLaNube = Boolean(
+    process.env.K_SERVICE ||       // Cloud Run y Cloud Functions v2
+    process.env.FUNCTION_TARGET || // Cloud Functions
+    process.env.GAE_ENV            // App Engine
+  );
+  if (enLaNube) return false;
+  return process.env.NODE_ENV === 'test' && Boolean(process.env.JEST_WORKER_ID);
+}
+
 admin.initializeApp();
 
 const app = express();
@@ -38,7 +62,7 @@ app.get('/payments/client-token', async (req: Request, res: Response): Promise<v
     }
 
     // Mock token for automated testing only
-    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+    if (esPruebaUnitariaJest()) {
       console.warn('[ClientToken] Test environment - returning mock token');
       res.json({ clientToken: 'mock-client-token-for-testing' });
       return;
@@ -297,7 +321,7 @@ app.post('/payments/process', async (req: Request, res: Response) => {
       return;
     }
     
-    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+    if (esPruebaUnitariaJest()) {
       console.warn('[ProcessPayment] Jest test mode active, returning mock payment result');
       res.json({
         success: true,
@@ -480,7 +504,7 @@ export async function handleCreatePaymentMethod(req: Request, res: Response): Pr
     // credenciales de Braintree, asi que la validacion de abajo respondia 500
     // y este bloque nunca se alcanzaba. Devuelve 201 con la misma forma que la
     // ruta real de exito, no 200 con otra forma.
-    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+    if (esPruebaUnitariaJest()) {
       console.warn('[PaymentMethod] Jest test mode active, returning mock payment method token');
       res.status(201).json({ success: true, token: 'unit-test-token', type: 'CreditCard' });
       return;
@@ -551,7 +575,7 @@ app.get('/payments/methods/:userId', async (req: Request, res: Response) => {
     }
 
     // Only use mock in explicit Jest test environment
-    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+    if (esPruebaUnitariaJest()) {
       console.warn('[ListPaymentMethods] Jest test mode active, returning mock payment methods');
       res.json({ 
         success: true, 
@@ -616,7 +640,7 @@ app.delete('/payments/methods/:userId/:token', async (req: Request, res: Respons
     }
     
     // Only use mock in explicit Jest test environment
-    if (process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID) {
+    if (esPruebaUnitariaJest()) {
       console.warn('[DeleteMethod] Jest test mode active, returning mock success');
       res.json({ success: true });
       return;
@@ -931,7 +955,7 @@ export const createDemoUsers = onCall(async (request: CallableRequest) => {
     },
     {
       email: 'bodyguard@demo.com',
-      role: 'bodyguard',
+      role: 'guard',
       firstName: 'Demo',
       lastName: 'Guard',
       phone: '+1234567891',
@@ -955,7 +979,7 @@ export const createDemoUsers = onCall(async (request: CallableRequest) => {
     },
     {
       email: 'guard1@demo.com',
-      role: 'bodyguard',
+      role: 'guard',
       firstName: 'Guard',
       lastName: 'One',
       phone: '+1234567894',
@@ -963,7 +987,7 @@ export const createDemoUsers = onCall(async (request: CallableRequest) => {
     },
     {
       email: 'guard2@demo.com',
-      role: 'bodyguard',
+      role: 'guard',
       firstName: 'Guard',
       lastName: 'Two',
       phone: '+1234567895',

@@ -51,9 +51,11 @@ export default function HomeScreen() {
     };
   }, [user]);
   
+  // Centro del mapa: Playa del Carmen. Antes era 40.7580 / -73.9855, o sea
+  // Manhattan, que es donde aterrizaba el mapa de todos los usuarios.
   const centerLocation = {
-    latitude: 40.7580,
-    longitude: -73.9855,
+    latitude: 20.6296,
+    longitude: -87.0739,
   };
 
   if (user?.role === 'guard') {

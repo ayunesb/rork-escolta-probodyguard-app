@@ -170,8 +170,8 @@ export default function TrackingScreen() {
           provider={PROVIDER_DEFAULT}
           style={styles.map}
           initialRegion={{
-            latitude: currentLocation?.latitude || guard.latitude || 40.7580,
-            longitude: currentLocation?.longitude || guard.longitude || -73.9855,
+            latitude: currentLocation?.latitude || guard.latitude || 20.6296,
+            longitude: currentLocation?.longitude || guard.longitude || -87.0739,
             latitudeDelta: 0.02,
             longitudeDelta: 0.02,
           }}

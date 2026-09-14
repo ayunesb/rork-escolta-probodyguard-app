@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import * as Haptics from 'expo-haptics';
+import * as Location from 'expo-location';
 import {
   View,
   Text,
@@ -47,10 +48,15 @@ export default function CreateBookingScreen() {
   const [scheduledTime, setScheduledTime] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
-  const [pickupCoords, setPickupCoords] = useState<{ latitude: number; longitude: number }>({ 
-    latitude: 40.7580, 
-    longitude: -73.9855 
+  // Playa del Carmen mientras llega la ubicacion real. Antes decia
+  // 40.7580 / -73.9855, que es Manhattan: TODAS las reservas se guardaban con
+  // coordenadas de Nueva York sin importar la direccion escrita, y eso rompe
+  // distancias, emparejamiento por cercania y el seguimiento en vivo.
+  const [pickupCoords, setPickupCoords] = useState<{ latitude: number; longitude: number }>({
+    latitude: 20.6296,
+    longitude: -87.0739,
   });
+  const [ubicacionResuelta, setUbicacionResuelta] = useState<boolean>(false);
   const [showMap, setShowMap] = useState<boolean>(false);
   const [pickupAddress, setPickupAddress] = useState<string>('');
   const [destinationAddress, setDestinationAddress] = useState<string>('');
@@ -58,6 +64,32 @@ export default function CreateBookingScreen() {
   const [showRouteBuilder, setShowRouteBuilder] = useState<boolean>(false);
   const [newStopAddress, setNewStopAddress] = useState<string>('');
   const [showPayment, setShowPayment] = useState<boolean>(false);
+
+  // Ubicacion real del dispositivo. En web expo-location usa la geolocalizacion
+  // del navegador. Si el usuario la niega o falla, se queda el centro de Playa
+  // del Carmen, que al menos esta en el pais correcto.
+  useEffect(() => {
+    let cancelado = false;
+    (async () => {
+      try {
+        const permiso = await Location.requestForegroundPermissionsAsync();
+        if (permiso.status !== 'granted') {
+          console.log('[Booking] Sin permiso de ubicacion, se usa el centro por defecto');
+          return;
+        }
+        const posicion = await Location.getCurrentPositionAsync({});
+        if (cancelado) return;
+        setPickupCoords({
+          latitude: posicion.coords.latitude,
+          longitude: posicion.coords.longitude,
+        });
+        setUbicacionResuelta(true);
+      } catch (error) {
+        console.log('[Booking] No se pudo obtener la ubicacion:', error);
+      }
+    })();
+    return () => { cancelado = true; };
+  }, []);
   const [tempBookingId, setTempBookingId] = useState<string>('');
   const { user } = useAuth();
 

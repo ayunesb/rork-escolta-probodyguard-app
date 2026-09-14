@@ -310,7 +310,7 @@ function BookingCreateScreen() {
             <Text style={styles.label}>City *</Text>
             <TextInput
               style={styles.input}
-              placeholder="New York, NY"
+              placeholder="Playa del Carmen, Q. Roo"
               placeholderTextColor={Colors.textTertiary}
               value={city}
               onChangeText={setCity}
@@ -322,7 +322,7 @@ function BookingCreateScreen() {
             <View style={styles.locationInputContainer}>
               <TextInput
                 style={[styles.input, styles.locationInput]}
-                placeholder="123 Main St, New York, NY 10001"
+                placeholder="Av. Constituyentes 120, Playa del Carmen"
                 placeholderTextColor={Colors.textTertiary}
                 value={pickupAddress}
                 onChangeText={setPickupAddress}
@@ -340,7 +340,7 @@ function BookingCreateScreen() {
             <Text style={styles.label}>Destination Address (Optional)</Text>
             <TextInput
               style={styles.input}
-              placeholder="456 Park Ave, New York, NY 10022"
+              placeholder="Quinta Avenida 45, Playa del Carmen"
               placeholderTextColor={Colors.textTertiary}
               value={destinationAddress}
               onChangeText={setDestinationAddress}

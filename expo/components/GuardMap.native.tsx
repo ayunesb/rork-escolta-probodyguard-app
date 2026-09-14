@@ -32,8 +32,8 @@ export default function GuardMap({ guards, clientLocation }: GuardMapProps) {
         <Marker
           key={guard.id}
           coordinate={{
-            latitude: guard.latitude || 40.7580,
-            longitude: guard.longitude || -73.9855,
+            latitude: guard.latitude || 20.6296,
+            longitude: guard.longitude || -87.0739,
           }}
           onPress={() => router.push({ pathname: '/guard-detail', params: { id: guard.id } } as any)}
         >

@@ -52,12 +52,23 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.auth.uid == userId && 
         request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName', 'phone', 'language', 'kycStatus', 'createdAt', 'isActive', 'emailVerified', 'updatedAt']);
       
-      // Allow update: user can update own document, or admin can update any
+      // Allow update: user can update own document, admin can update any, and
+      // a company can update ONLY the KYC document/photo fields of ITS OWN
+      // guard (companyId == su uid) — es lo que permite que la empresa suba
+      // la documentacion completa de su personal en su nombre, sin poder
+      // tocar role/isActive/companyId/hourlyRate de ese escolta.
       // Use direct check instead of hasRole() for self-updates to avoid recursion
       allow update: if isAuthenticated() && (
         request.auth.uid == userId ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (resource.data.role == 'guard' &&
+         resource.data.companyId == request.auth.uid &&
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'company' &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+           ['photos', 'governmentIdUrls', 'licenseUrls', 'insuranceUrls', 'vehicleDocUrls', 'outfitPhotos', 'kycStatus', 'updatedAt']
+         ))
       );
       
       // Allow delete only for admins

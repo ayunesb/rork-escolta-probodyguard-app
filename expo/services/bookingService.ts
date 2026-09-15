@@ -4,6 +4,7 @@ import { ref, set, onValue, off, update, get } from 'firebase/database';
 import { realtimeDb as getRealtimeDb } from '@/lib/firebase';
 import { notificationService } from './notificationService';
 import { rateLimitService } from './rateLimitService';
+import { userService } from './userService';
 import { AppState, AppStateStatus } from 'react-native';
 import { logger } from '@/utils/logger';
 
@@ -207,6 +208,51 @@ export const bookingService = {
 
   subscribeToClientBookings(clientId: string, callback: BookingListener): () => void {
     return this._subscribeViaIndex('clientBookingIndex', clientId, 'client', callback);
+  },
+
+  // Une el guardBookingIndex de cada escolta de la empresa en una sola lista.
+  // Las reglas de RTDB no dejan listar /bookings completo salvo a admin, y
+  // una empresa no tiene su propio indice de reservas (las reservas son de
+  // sus escoltas, no de ella), asi que se compone a partir de los indices de
+  // cada escolta que ya existen.
+  _subscribeToGuardIndices(guardIds: string[], callback: BookingListener): () => void {
+    if (guardIds.length === 0) {
+      callback([]);
+      return () => {};
+    }
+
+    const bookingsByGuard = new Map<string, Booking[]>();
+    const emit = () => callback(Array.from(bookingsByGuard.values()).flat());
+
+    const unsubscribes = guardIds.map((guardId) =>
+      this._subscribeViaIndex('guardBookingIndex', guardId, 'company-guard', (bookings) => {
+        bookingsByGuard.set(guardId, bookings);
+        emit();
+      })
+    );
+
+    return () => unsubscribes.forEach((unsub) => unsub());
+  },
+
+  subscribeToCompanyBookings(companyId: string, callback: BookingListener): () => void {
+    let cancelled = false;
+    let cleanup: () => void = () => {};
+
+    userService
+      .listGuardsForCompany(companyId)
+      .then((guards) => {
+        if (cancelled) return;
+        cleanup = this._subscribeToGuardIndices(guards.map((g) => g.id), callback);
+      })
+      .catch((error) => {
+        logger.error('[Booking] Failed to load company guards for booking subscription:', error);
+        callback([]);
+      });
+
+    return () => {
+      cancelled = true;
+      cleanup();
+    };
   },
 
   async createBooking(

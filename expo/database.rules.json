@@ -17,7 +17,7 @@
     },
     "guardBookingIndex": {
       "$guardId": {
-        ".read": "auth != null && auth.uid === $guardId",
+        ".read": "auth != null && (auth.uid === $guardId || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && root.child('users').child($guardId).child('companyId').val() === auth.uid))",
         ".write": "auth != null"
       }
     },

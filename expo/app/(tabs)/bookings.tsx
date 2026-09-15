@@ -30,7 +30,8 @@ export default function BookingsScreen() {
       // clientBookingIndex): las reglas de RTDB solo dejan listar /bookings
       // completo al admin, asi que un cliente o escolta que use
       // subscribeToBookings aqui se queda leyendo su cache local viejo en
-      // vez del servidor en vivo.
+      // vez del servidor en vivo. Una empresa no tiene reservas propias (son
+      // de sus escoltas), asi que usa el indice combinado de su equipo.
       const unsubscribe =
         user.role === 'guard'
           ? bookingService.subscribeToGuardBookings(user.id, (bookings) => {
@@ -44,12 +45,15 @@ export default function BookingsScreen() {
               setUserBookings(bookings);
               setIsLoading(false);
             })
+          : user.role === 'company'
+          ? bookingService.subscribeToCompanyBookings(user.id, (bookings) => {
+              console.log('[Bookings] Real-time update - company bookings:', bookings.length);
+              setUserBookings(bookings);
+              setIsLoading(false);
+            })
           : bookingService.subscribeToBookings((allBookings) => {
-              const filteredBookings = allBookings.filter(b =>
-                user.role === 'company' ? b.clientId === user.id : true
-              );
-              console.log('[Bookings] Real-time update - user bookings:', filteredBookings.length);
-              setUserBookings(filteredBookings);
+              console.log('[Bookings] Real-time update - user bookings:', allBookings.length);
+              setUserBookings(allBookings);
               setIsLoading(false);
             });
 

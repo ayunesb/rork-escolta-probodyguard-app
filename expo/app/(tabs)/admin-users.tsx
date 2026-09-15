@@ -8,31 +8,40 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useFocusEffect } from 'expo-router';
 import { Users, Search, Shield, UserX, Edit } from 'lucide-react-native';
 import { userService } from '@/services/userService';
-import type { User, UserRole } from '@/types';
+import type { Guard, User, UserRole } from '@/types';
 import Colors from '@/constants/colors';
 
 interface AdminUserRow {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
   email: string;
   role: UserRole;
   status: 'active' | 'inactive';
   kycStatus?: string;
+  hourlyRate?: number;
 }
 
 function toRow(user: User): AdminUserRow {
   return {
     id: user.id,
     name: `${user.firstName} ${user.lastName}`.trim() || user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
     email: user.email,
     role: user.role,
     status: user.isActive ? 'active' : 'inactive',
     kycStatus: user.role === 'guard' ? user.kycStatus : undefined,
+    hourlyRate: user.role === 'guard' ? (user as Guard).hourlyRate : undefined,
   };
 }
 
@@ -42,6 +51,12 @@ export default function AdminUsersScreen() {
   const [selectedRole, setSelectedRole] = useState<'all' | 'client' | 'guard' | 'company'>('all');
   const [allUsers, setAllUsers] = useState<AdminUserRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState<AdminUserRow | null>(null);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editHourlyRate, setEditHourlyRate] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -70,20 +85,47 @@ export default function AdminUsersScreen() {
     return matchesSearch && matchesRole;
   });
 
-  const handleEditUser = (userId: string, userName: string) => {
-    Alert.alert(
-      'Edit User',
-      `Edit details for ${userName}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Edit',
-          onPress: () => {
-            Alert.alert('Info', 'User editing interface would open here');
-          },
-        },
-      ]
-    );
+  const handleEditUser = (row: AdminUserRow) => {
+    setEditingUser(row);
+    setEditFirstName(row.firstName);
+    setEditLastName(row.lastName);
+    setEditPhone(row.phone);
+    setEditHourlyRate(row.hourlyRate != null ? String(row.hourlyRate) : '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingUser) return;
+    if (!editFirstName.trim() || !editLastName.trim() || !editPhone.trim()) {
+      Alert.alert('Error', 'First name, last name and phone are required.');
+      return;
+    }
+    const hourlyRate = editingUser.role === 'guard' ? Number(editHourlyRate) : undefined;
+    if (editingUser.role === 'guard' && (!Number.isFinite(hourlyRate) || (hourlyRate as number) <= 0)) {
+      Alert.alert('Error', 'Enter a valid hourly rate.');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      await userService.updateUserFields(editingUser.id, {
+        firstName: editFirstName.trim(),
+        lastName: editLastName.trim(),
+        phone: editPhone.trim(),
+        ...(hourlyRate != null ? { hourlyRate } : {}),
+      });
+      await loadUsers();
+      setEditingUser(null);
+      Alert.alert('Success', `${editFirstName} ${editLastName} was updated.`);
+    } catch (error) {
+      console.error('[AdminUsers] Failed to update user:', error);
+      Alert.alert('Error', 'Failed to update user. Please try again.');
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   const handleSuspendUser = (userId: string, userName: string, isActive: boolean) => {
@@ -240,7 +282,7 @@ export default function AdminUsersScreen() {
               <View style={styles.userActions}>
                 <TouchableOpacity
                   style={styles.editButton}
-                  onPress={() => handleEditUser(user.id, user.name)}
+                  onPress={() => handleEditUser(user)}
                 >
                   <Edit size={16} color={Colors.textPrimary} />
                   <Text style={styles.editButtonText}>Edit</Text>
@@ -259,6 +301,76 @@ export default function AdminUsersScreen() {
           ))
         )}
       </ScrollView>
+
+      <Modal visible={!!editingUser} animationType="fade" transparent onRequestClose={handleCancelEdit}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.editModal}>
+            <Text style={styles.modalTitle}>Edit User</Text>
+            <Text style={styles.modalSubtitle}>{editingUser?.email}</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>First Name</Text>
+              <TextInput
+                style={styles.input}
+                value={editFirstName}
+                onChangeText={setEditFirstName}
+                placeholderTextColor={Colors.textTertiary}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Last Name</Text>
+              <TextInput
+                style={styles.input}
+                value={editLastName}
+                onChangeText={setEditLastName}
+                placeholderTextColor={Colors.textTertiary}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Phone</Text>
+              <TextInput
+                style={styles.input}
+                value={editPhone}
+                onChangeText={setEditPhone}
+                keyboardType="phone-pad"
+                placeholderTextColor={Colors.textTertiary}
+              />
+            </View>
+
+            {editingUser?.role === 'guard' && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Hourly Rate</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editHourlyRate}
+                  onChangeText={setEditHourlyRate}
+                  keyboardType="numeric"
+                  placeholderTextColor={Colors.textTertiary}
+                />
+              </View>
+            )}
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelButton} onPress={handleCancelEdit} disabled={isSavingEdit}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSaveButton, isSavingEdit && styles.modalSaveButtonDisabled]}
+                onPress={handleSaveEdit}
+                disabled={isSavingEdit}
+              >
+                {isSavingEdit ? (
+                  <ActivityIndicator size="small" color={Colors.background} />
+                ) : (
+                  <Text style={styles.modalSaveText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -456,5 +568,82 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
     textAlign: 'center' as const,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  editModal: {
+    backgroundColor: Colors.background,
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 14,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 15,
+    color: Colors.textPrimary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalCancelText: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: Colors.textSecondary,
+  },
+  modalSaveButton: {
+    flex: 1,
+    backgroundColor: Colors.gold,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalSaveButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalSaveText: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: Colors.background,
   },
 });

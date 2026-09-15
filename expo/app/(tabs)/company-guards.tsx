@@ -14,8 +14,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack, useFocusEffect } from 'expo-router';
-import { UserPlus, Mail, Shield, CheckCircle, XCircle, Upload, FileText, Copy } from 'lucide-react-native';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import { UserPlus, Mail, Shield, CheckCircle, XCircle, Upload, FileText, Copy, FolderOpen } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userService';
 import { functions as getFunctions, auth as getAuth } from '@/lib/firebase';
@@ -74,6 +74,7 @@ function parseGuardsCSV(text: string): { rows: NewGuardInput[]; errors: string[]
 
 export default function CompanyGuardsScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteFirstName, setInviteFirstName] = useState('');
@@ -426,6 +427,13 @@ export default function CompanyGuardsScreen() {
                     </Text>
                   </View>
                   <TouchableOpacity
+                    style={styles.documentsButton}
+                    onPress={() => router.push(`/company-guard-documents/${guard.id}` as any)}
+                  >
+                    <FolderOpen size={14} color={Colors.gold} />
+                    <Text style={styles.documentsButtonText}>Documents</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={styles.removeButton}
                     onPress={() => handleRemoveGuard(guard.id, `${guard.firstName} ${guard.lastName}`)}
                   >
@@ -688,8 +696,25 @@ const styles = StyleSheet.create({
   },
   guardActions: {
     flexDirection: 'row',
+    flexWrap: 'wrap' as const,
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
+  },
+  documentsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+  },
+  documentsButtonText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: Colors.gold,
   },
   kycBadge: {
     flexDirection: 'row',

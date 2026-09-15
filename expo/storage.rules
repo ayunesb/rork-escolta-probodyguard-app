@@ -35,19 +35,30 @@ service firebase.storage {
          firestore.get(/databases/(default)/documents/users/$(userId)).data.companyId == request.auth.uid)
       );
 
+      // El dueno siempre puede subir los suyos; admin o la empresa dueña de
+      // ese escolta (companyId == su uid) tambien, para poder llenar la
+      // documentacion completa del personal en su nombre.
       allow write: if isAuthenticated() &&
-                     isOwner(userId) &&
                      isValidDocumentFile() &&
-                     isValidSize(5);
+                     isValidSize(5) && (
+                       isOwner(userId) ||
+                       firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+                       (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'company' &&
+                        firestore.get(/databases/(default)/documents/users/$(userId)).data.companyId == request.auth.uid)
+                     );
     }
-    
+
     match /photos/{userId}/{photo} {
       allow read: if isAuthenticated();
-      
-      allow write: if isAuthenticated() && 
-                     isOwner(userId) &&
+
+      allow write: if isAuthenticated() &&
                      isValidImageFile() &&
-                     isValidSize(5);
+                     isValidSize(5) && (
+                       isOwner(userId) ||
+                       firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+                       (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'company' &&
+                        firestore.get(/databases/(default)/documents/users/$(userId)).data.companyId == request.auth.uid)
+                     );
     }
     
     match /bookings/{bookingId}/{file} {

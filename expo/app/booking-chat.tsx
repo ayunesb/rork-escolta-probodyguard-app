@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
 import type { ChatMessage } from '@/types';
 import { chatService, TypingIndicator } from '@/services/chatService';
+import { bookingService } from '@/services/bookingService';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export default function BookingChatScreen() {
@@ -34,8 +35,18 @@ export default function BookingChatScreen() {
   const [inputText, setInputText] = useState('');
   const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [participants, setParticipants] = useState<{ clientId: string; guardId?: string } | null>(null);
   const debouncedInputText = useDebounce(inputText, 300);
   const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  useEffect(() => {
+    if (!bookingId) return;
+    bookingService.getBookingById(bookingId).then((booking) => {
+      if (booking) {
+        setParticipants({ clientId: booking.clientId, guardId: booking.guardId });
+      }
+    });
+  }, [bookingId]);
 
   useEffect(() => {
     if (!bookingId || !user) return;
@@ -90,7 +101,7 @@ export default function BookingChatScreen() {
   }, [debouncedInputText, bookingId, user, inputText.length]);
 
   const handleSend = useCallback(async () => {
-    if (!inputText.trim() || !user || !bookingId) return;
+    if (!inputText.trim() || !user || !bookingId || !participants) return;
 
     const messageText = inputText.trim();
     setInputText('');
@@ -101,15 +112,16 @@ export default function BookingChatScreen() {
         user.id,
         user.role as 'client' | 'guard',
         messageText,
-        user.language
+        user.language,
+        participants
       );
-      
+
       chatService.setTyping(bookingId, user.id, `${user.firstName} ${user.lastName}`, false);
     } catch (error) {
       console.error('[Chat] Error sending message:', error);
       setInputText(messageText);
     }
-  }, [inputText, user, bookingId]);
+  }, [inputText, user, bookingId, participants]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);

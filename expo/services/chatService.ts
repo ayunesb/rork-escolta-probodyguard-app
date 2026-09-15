@@ -27,7 +27,8 @@ export const chatService = {
     senderId: string,
     senderRole: 'client' | 'guard',
     text: string,
-    originalLanguage: Language
+    originalLanguage: Language,
+    participants: { clientId: string; guardId?: string }
   ): Promise<void> {
     try {
       const rateLimitCheck = await rateLimitService.checkRateLimit('chat', `${bookingId}_${senderId}`);
@@ -36,7 +37,13 @@ export const chatService = {
         console.log('[Chat] Rate limit exceeded for user:', senderId);
         throw new Error(errorMessage);
       }
-      
+
+      // clientId/guardId se guardan en el mensaje porque las reglas de
+      // Firestore no pueden leer la reserva (vive en Realtime Database) para
+      // saber quien es parte de la conversacion. Antes la regla de lectura
+      // decia `resource.data.bookingId != null`, que es cierto en todo
+      // mensaje real: cualquier autenticado leia el chat de cualquier
+      // reserva.
       const messageData = {
         bookingId,
         senderId,
@@ -44,6 +51,8 @@ export const chatService = {
         text,
         originalLanguage,
         timestamp: Timestamp.now(),
+        clientId: participants.clientId,
+        guardId: participants.guardId ?? null,
       };
 
       await addDoc(collection(getDbInstance(), 'messages'), messageData);

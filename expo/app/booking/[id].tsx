@@ -97,7 +97,8 @@ export default function BookingDetailScreen() {
         user.id,
         user.role === 'client' ? 'client' : 'guard',
         message.trim(),
-        user.language
+        user.language,
+        { clientId: booking.clientId, guardId: booking.guardId }
       );
       setMessage('');
     } catch (error) {

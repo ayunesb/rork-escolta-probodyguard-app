@@ -208,6 +208,7 @@ const styles = StyleSheet.create({
   },
   codeInput: {
     flex: 1,
+    minWidth: 0,
     height: 56,
     borderRadius: 12,
     backgroundColor: Colors.surface,

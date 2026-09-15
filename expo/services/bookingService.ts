@@ -452,11 +452,26 @@ export const bookingService = {
   },
 
   async getBookingById(id: string): Promise<Booking | null> {
+    // Antes esto SOLO leia el cache local (AsyncStorage), nunca el
+    // servidor. Un escolta que entra desde un dispositivo que nunca
+    // sincronizo esa reserva veia "Booking not found" aunque la reserva
+    // existiera y las reglas le dieran permiso de leerla — comprobado en
+    // vivo: la pantalla de detalle, el codigo de inicio y el chat dependen
+    // todos de esta funcion.
+    try {
+      const snap = await get(ref(getRealtimeDb(), `bookings/${id}`));
+      if (snap.exists()) {
+        return snap.val() as Booking;
+      }
+    } catch (error) {
+      logger.error(`[Booking] Server read failed for ${id}, falling back to local cache:`, error);
+    }
+
     try {
       const bookings = await this.getAllBookings();
       return bookings.find((b) => b.id === id) || null;
     } catch (error) {
-      logger.error('[Booking] Error getting booking:', error);
+      logger.error('[Booking] Error getting booking from local cache:', error);
       return null;
     }
   },

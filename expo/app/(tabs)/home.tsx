@@ -48,7 +48,6 @@ export default function HomeScreen() {
     setIsLoadingJobs(true);
 
     const unsubscribe = bookingService.subscribeToGuardBookings(user.id, (bookings) => {
-      console.log('[Home] DEBUG raw bookings from index:', JSON.stringify(bookings.map(b => ({ id: b.id, status: b.status }))));
       // 'confirmed' = pagado, esperando que el escolta acepte. El pago pasa
       // el estado de 'pending' a 'confirmed' directamente, nunca a
       // 'accepted' — sin esto, ninguna reserva ya pagada aparecia aqui.

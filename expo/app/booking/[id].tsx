@@ -181,6 +181,32 @@ export default function BookingDetailScreen() {
     );
   };
 
+  const handleCompleteService = async () => {
+    if (!booking) return;
+
+    Alert.alert(
+      'Complete Service',
+      'Are you sure you want to mark this service as completed?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Complete',
+          onPress: async () => {
+            try {
+              await bookingService.updateBookingStatus(booking.id, 'completed');
+              const updatedBooking = await bookingService.getBookingById(booking.id);
+              setBooking(updatedBooking);
+              Alert.alert('Success', 'Service marked as completed.');
+            } catch (error) {
+              console.error('[BookingDetail] Error completing booking:', error);
+              Alert.alert('Error', 'Failed to complete the service. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleExtendBooking = async (hours: number) => {
     if (!booking || !user) return;
 
@@ -473,6 +499,13 @@ export default function BookingDetailScreen() {
                 Contact the client through the chat below for any questions or updates.
               </Text>
             </View>
+          )}
+
+          {isGuardView && booking.status === 'active' && (
+            <TouchableOpacity style={styles.acceptButton} onPress={handleCompleteService}>
+              <Check size={20} color={Colors.background} />
+              <Text style={styles.acceptButtonText}>Complete Service</Text>
+            </TouchableOpacity>
           )}
 
           {!isPending && (

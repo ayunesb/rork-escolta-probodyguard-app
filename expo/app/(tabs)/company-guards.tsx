@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Clipboard from 'expo-clipboard';
+import { httpsCallable } from 'firebase/functions';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import {
   View,
   Text,
@@ -11,44 +14,146 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import { UserPlus, Mail, Shield, CheckCircle, XCircle, Upload, FileText } from 'lucide-react-native';
+import { Stack, useFocusEffect } from 'expo-router';
+import { UserPlus, Mail, Shield, CheckCircle, XCircle, Upload, FileText, Copy } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockGuards } from '@/mocks/guards';
+import { userService } from '@/services/userService';
+import { functions as getFunctions, auth as getAuth } from '@/lib/firebase';
+import type { Guard } from '@/types';
 import Colors from '@/constants/colors';
+
+const CSV_TEMPLATE = 'firstName,lastName,email,phone,hourlyRate\nJuan,Perez,juan.perez@example.com,+525512345678,180';
+
+interface NewGuardInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  hourlyRate: number;
+}
+
+interface CreateGuardResult {
+  email: string;
+  success: boolean;
+  uid?: string;
+  error?: string;
+}
+
+function parseGuardsCSV(text: string): { rows: NewGuardInput[]; errors: string[] } {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const errors: string[] = [];
+  if (lines.length < 2) {
+    return { rows: [], errors: ['The file has no data rows.'] };
+  }
+
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  const required = ['firstname', 'lastname', 'email', 'phone', 'hourlyrate'];
+  const missing = required.filter(r => !headers.includes(r));
+  if (missing.length > 0) {
+    return { rows: [], errors: [`Missing column(s): ${missing.join(', ')}`] };
+  }
+
+  const rows: NewGuardInput[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cells = lines[i].split(',').map(c => c.trim());
+    const get = (key: string) => cells[headers.indexOf(key)] ?? '';
+    const hourlyRate = Number(get('hourlyrate'));
+    const firstName = get('firstname');
+    const lastName = get('lastname');
+    const email = get('email');
+    const phone = get('phone');
+
+    if (!firstName || !lastName || !email || !phone || !Number.isFinite(hourlyRate) || hourlyRate <= 0) {
+      errors.push(`Row ${i + 1}: missing or invalid data`);
+      continue;
+    }
+    rows.push({ firstName, lastName, email, phone, hourlyRate });
+  }
+  return { rows, errors };
+}
 
 export default function CompanyGuardsScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteFirstName, setInviteFirstName] = useState('');
+  const [inviteLastName, setInviteLastName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteName, setInviteName] = useState('');
+  const [invitePhone, setInvitePhone] = useState('');
+  const [inviteRate, setInviteRate] = useState('');
+  const [isInviting, setIsInviting] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importedFile, setImportedFile] = useState<any>(null);
   const [importing, setImporting] = useState(false);
+  const [companyGuards, setCompanyGuards] = useState<Guard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const companyGuards = mockGuards.filter(g => g.companyId === user?.id);
+  const loadGuards = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const result = await userService.listGuardsForCompany(user.id);
+      setCompanyGuards(result as Guard[]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
 
-  const handleSendInvite = () => {
-    if (!inviteEmail || !inviteName) {
-      Alert.alert('Error', 'Please fill in all fields');
+  useFocusEffect(
+    useCallback(() => {
+      loadGuards();
+    }, [loadGuards])
+  );
+
+  const createGuardsRemote = async (guards: NewGuardInput[]): Promise<CreateGuardResult[]> => {
+    const call = httpsCallable(getFunctions(), 'createCompanyGuards');
+    const response = await call({ guards });
+    const data = response.data as { results: CreateGuardResult[] };
+
+    // Firebase Auth sends this email itself, free, using its built-in
+    // template — no third-party email service needed. Admin SDK can create
+    // the account but can't trigger that email, only the client SDK can.
+    await Promise.all(
+      data.results
+        .filter(r => r.success)
+        .map(r => sendPasswordResetEmail(getAuth(), r.email).catch((e) =>
+          console.error('[CompanyGuards] Failed to send reset email to', r.email, e)
+        ))
+    );
+
+    return data.results;
+  };
+
+  const handleSendInvite = async () => {
+    const hourlyRate = Number(inviteRate);
+    if (!inviteFirstName || !inviteLastName || !inviteEmail || !invitePhone || !Number.isFinite(hourlyRate) || hourlyRate <= 0) {
+      Alert.alert('Error', 'Please fill in all fields with a valid hourly rate.');
       return;
     }
 
-    Alert.alert(
-      'Invitation Sent',
-      `An invitation has been sent to ${inviteEmail}. They will receive an email with instructions to join your company.`,
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            setInviteEmail('');
-            setInviteName('');
-            setShowInviteForm(false);
-          },
-        },
-      ]
-    );
+    setIsInviting(true);
+    try {
+      const [result] = await createGuardsRemote([
+        { firstName: inviteFirstName, lastName: inviteLastName, email: inviteEmail, phone: invitePhone, hourlyRate },
+      ]);
+      if (result.success) {
+        setInviteFirstName('');
+        setInviteLastName('');
+        setInviteEmail('');
+        setInvitePhone('');
+        setInviteRate('');
+        setShowInviteForm(false);
+        await loadGuards();
+        Alert.alert('Guard Added', `${inviteEmail} was created and sent an email to set their password.`);
+      } else {
+        Alert.alert('Error', result.error || 'Failed to create guard account.');
+      }
+    } catch (error: any) {
+      console.error('[CompanyGuards] Failed to create guard:', error);
+      Alert.alert('Error', error.message || 'Failed to create guard account.');
+    } finally {
+      setIsInviting(false);
+    }
   };
 
   const handleRemoveGuard = (guardId: string, guardName: string) => {
@@ -60,8 +165,15 @@ export default function CompanyGuardsScreen() {
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert('Success', `${guardName} has been removed from your company.`);
+          onPress: async () => {
+            try {
+              await userService.removeGuardFromCompany(guardId);
+              await loadGuards();
+              Alert.alert('Success', `${guardName} has been removed from your company.`);
+            } catch (error) {
+              console.error('[CompanyGuards] Failed to remove guard:', error);
+              Alert.alert('Error', `Failed to remove ${guardName}. Please try again.`);
+            }
           },
         },
       ]
@@ -86,27 +198,41 @@ export default function CompanyGuardsScreen() {
     }
   };
 
+  const handleCopyFormat = async () => {
+    await Clipboard.setStringAsync(CSV_TEMPLATE);
+    Alert.alert('Copied', 'The required CSV format was copied to your clipboard.');
+  };
+
   const handleImportCSV = async () => {
     if (!importedFile) return;
 
     setImporting(true);
     try {
+      const text = await fetch(importedFile.uri).then(r => r.text());
+      const { rows, errors: parseErrors } = parseGuardsCSV(text);
+
+      if (rows.length === 0) {
+        Alert.alert('Nothing to Import', parseErrors[0] || 'No valid rows found in the file.');
+        return;
+      }
+
+      const results = await createGuardsRemote(rows);
+      const successCount = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success);
+      const failedLines = [...parseErrors, ...failed.map(f => `${f.email}: ${f.error}`)];
+
+      await loadGuards();
+      setShowImportModal(false);
+      setImportedFile(null);
+
       Alert.alert(
-        'Import Successful',
-        `CSV file "${importedFile.name}" has been queued for processing. Guards will be added after validation.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setShowImportModal(false);
-              setImportedFile(null);
-            },
-          },
-        ]
+        successCount > 0 ? 'Import Complete' : 'Import Failed',
+        `${successCount} of ${rows.length} guard(s) created.` +
+          (failedLines.length > 0 ? `\n\nIssues:\n${failedLines.join('\n')}` : '')
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('[CSV Import] Error:', error);
-      Alert.alert('Error', 'Failed to import CSV file');
+      Alert.alert('Error', error.message || 'Failed to import CSV file');
     } finally {
       setImporting(false);
     }
@@ -143,19 +269,30 @@ export default function CompanyGuardsScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {showInviteForm && (
           <View style={styles.inviteForm}>
-            <Text style={styles.formTitle}>Invite New Guard</Text>
+            <Text style={styles.formTitle}>Add New Guard</Text>
             <Text style={styles.formSubtitle}>
-              Send an invitation to a security professional to join your company
+              Creates their account now and emails them a link to set their password.
             </Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name</Text>
+              <Text style={styles.inputLabel}>First Name</Text>
               <TextInput
                 style={styles.input}
-                placeholder="John Doe"
+                placeholder="Juan"
                 placeholderTextColor={Colors.textTertiary}
-                value={inviteName}
-                onChangeText={setInviteName}
+                value={inviteFirstName}
+                onChangeText={setInviteFirstName}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Last Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Perez"
+                placeholderTextColor={Colors.textTertiary}
+                value={inviteLastName}
+                onChangeText={setInviteLastName}
               />
             </View>
 
@@ -172,23 +309,58 @@ export default function CompanyGuardsScreen() {
               />
             </View>
 
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Phone</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="+525512345678"
+                placeholderTextColor={Colors.textTertiary}
+                value={invitePhone}
+                onChangeText={setInvitePhone}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Hourly Rate (MXN)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="180"
+                placeholderTextColor={Colors.textTertiary}
+                value={inviteRate}
+                onChangeText={setInviteRate}
+                keyboardType="numeric"
+              />
+            </View>
+
             <View style={styles.formActions}>
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => {
                   setShowInviteForm(false);
+                  setInviteFirstName('');
+                  setInviteLastName('');
                   setInviteEmail('');
-                  setInviteName('');
+                  setInvitePhone('');
+                  setInviteRate('');
                 }}
+                disabled={isInviting}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.sendButton}
+                style={[styles.sendButton, isInviting && styles.modalImportButtonDisabled]}
                 onPress={handleSendInvite}
+                disabled={isInviting}
               >
-                <Mail size={18} color={Colors.background} />
-                <Text style={styles.sendButtonText}>Send Invitation</Text>
+                {isInviting ? (
+                  <ActivityIndicator size="small" color={Colors.background} />
+                ) : (
+                  <>
+                    <Mail size={18} color={Colors.background} />
+                    <Text style={styles.sendButtonText}>Create Account</Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -196,7 +368,11 @@ export default function CompanyGuardsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Guards</Text>
-          {companyGuards.length === 0 ? (
+          {isLoading ? (
+            <View style={styles.emptyState}>
+              <ActivityIndicator size="large" color={Colors.gold} />
+            </View>
+          ) : companyGuards.length === 0 ? (
             <View style={styles.emptyState}>
               <Shield size={48} color={Colors.textTertiary} />
               <Text style={styles.emptyText}>No guards yet</Text>
@@ -279,12 +455,14 @@ export default function CompanyGuardsScreen() {
 
             <View style={styles.csvInstructions}>
               <Text style={styles.instructionsTitle}>Required CSV Format:</Text>
-              <Text style={styles.instructionsText}>
-                firstName, lastName, email, phone, hourlyRate
-              </Text>
+              <Text style={styles.instructionsText}>{CSV_TEMPLATE}</Text>
               <Text style={styles.instructionsNote}>
-                Guards will receive invitation emails to complete their profiles
+                Each guard is created with an account and emailed a link to set their password.
               </Text>
+              <TouchableOpacity style={styles.copyFormatButton} onPress={handleCopyFormat}>
+                <Copy size={14} color={Colors.gold} />
+                <Text style={styles.copyFormatText}>Copy Format</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.modalActions}>
@@ -634,6 +812,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     fontStyle: 'italic' as const,
+    marginBottom: 12,
+  },
+  copyFormatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start' as const,
+  },
+  copyFormatText: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: Colors.gold,
   },
   modalActions: {
     flexDirection: 'row',

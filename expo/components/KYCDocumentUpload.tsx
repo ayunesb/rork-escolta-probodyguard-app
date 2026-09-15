@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Upload, X, CheckCircle, FileText } from 'lucide-react-native';
+import { kycAuditService } from '@/services/kycAuditService';
 import Colors from '@/constants/colors';
 
-export type DocumentType = 'id' | 'license' | 'vehicle' | 'insurance' | 'outfit';
+export type DocumentType = 'id' | 'license' | 'vehicle' | 'insurance' | 'outfit' | 'photo';
 
 interface KYCDocumentUploadProps {
+  userId: string;
   documentType: DocumentType;
   label: string;
   description?: string;
@@ -15,7 +18,19 @@ interface KYCDocumentUploadProps {
   initialImages?: string[];
 }
 
+async function uploadToStorage(userId: string, documentType: DocumentType, localUri: string): Promise<string> {
+  const response = await fetch(localUri);
+  const blob = await response.blob();
+  const path = `documents/${userId}/${documentType}_${Date.now()}.jpg`;
+  const fileRef = storageRef(getStorage(), path);
+  await uploadBytes(fileRef, blob, { contentType: blob.type || 'image/jpeg' });
+  const url = await getDownloadURL(fileRef);
+  await kycAuditService.logDocumentUpload(userId, path, documentType, `${blob.size}b`);
+  return url;
+}
+
 export default function KYCDocumentUpload({
+  userId,
   documentType,
   label,
   description,
@@ -69,13 +84,14 @@ export default function KYCDocumentUpload({
       });
 
       if (!result.canceled && result.assets[0]) {
-        const newImages = [...images, result.assets[0].uri];
+        const remoteUrl = await uploadToStorage(userId, documentType, result.assets[0].uri);
+        const newImages = [...images, remoteUrl];
         setImages(newImages);
         onUpload(newImages);
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image. Please try again.');
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -117,13 +133,14 @@ export default function KYCDocumentUpload({
       });
 
       if (!result.canceled && result.assets[0]) {
-        const newImages = [...images, result.assets[0].uri];
+        const remoteUrl = await uploadToStorage(userId, documentType, result.assets[0].uri);
+        const newImages = [...images, remoteUrl];
         setImages(newImages);
         onUpload(newImages);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      Alert.alert('Error', 'Failed to upload photo. Please try again.');
     } finally {
       setUploading(false);
     }

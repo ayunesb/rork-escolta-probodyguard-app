@@ -8,10 +8,17 @@
       }
     },
     "bookings": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       "$bookingId": {
         ".read": "auth != null && (data.child('clientId').val() === auth.uid || data.child('guardId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && root.child('users').child(data.child('guardId').val()).child('companyId').val() === auth.uid))",
         ".write": "auth != null",
         ".indexOn": ["clientId", "guardId", "status", "scheduledDateTime"]
+      }
+    },
+    "guardBookingIndex": {
+      "$guardId": {
+        ".read": "auth != null && auth.uid === $guardId",
+        ".write": "auth != null"
       }
     },
     "users": {

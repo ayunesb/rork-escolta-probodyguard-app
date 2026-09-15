@@ -33,8 +33,8 @@ import * as Clipboard from 'expo-clipboard';
 import Colors from '@/constants/colors';
 import { bookingService } from '@/services/bookingService';
 import { chatService } from '@/services/chatService';
-import { mockGuards } from '@/mocks/guards';
-import type { Booking, ChatMessage } from '@/types';
+import { guardService } from '@/services/guardService';
+import type { Booking, ChatMessage, Guard } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function BookingDetailScreen() {
@@ -77,7 +77,15 @@ export default function BookingDetailScreen() {
 
 
 
-  const guard = booking ? mockGuards.find((g) => g.id === booking.guardId) : null;
+  const [guard, setGuard] = useState<Guard | null>(null);
+
+  useEffect(() => {
+    if (!booking?.guardId) {
+      setGuard(null);
+      return;
+    }
+    guardService.getGuardById(booking.guardId).then(setGuard);
+  }, [booking?.guardId]);
 
   const handleSendMessage = useCallback(async () => {
     if (!message.trim() || !booking || !user || isSending) return;

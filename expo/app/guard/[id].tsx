@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -24,7 +25,8 @@ import {
   MessageCircle,
   Mic,
 } from 'lucide-react-native';
-import { mockGuards } from '@/mocks/guards';
+import { guardService } from '@/services/guardService';
+import type { Guard } from '@/types';
 import Colors from '@/constants/colors';
 
 const { width } = Dimensions.get('window');
@@ -34,8 +36,28 @@ export default function GuardDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
+  const [guard, setGuard] = useState<Guard | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const guard = mockGuards.find((g) => g.id === id);
+  useEffect(() => {
+    if (!id) return;
+    setIsLoading(true);
+    guardService.getGuardById(id).then((result) => {
+      setGuard(result);
+      setIsLoading(false);
+    });
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.errorContainer}>
+          <ActivityIndicator size="large" color={Colors.gold} />
+        </View>
+      </View>
+    );
+  }
 
   if (!guard) {
     return (

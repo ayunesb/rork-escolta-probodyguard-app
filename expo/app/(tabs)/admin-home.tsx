@@ -12,13 +12,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useFocusEffect } from 'expo-router';
 import { Shield, Users, Calendar, DollarSign, AlertCircle, CheckCircle, Download } from 'lucide-react-native';
 import { bookingService } from '@/services/bookingService';
-import { mockGuards } from '@/mocks/guards';
+import { userService } from '@/services/userService';
 import Colors from '@/constants/colors';
-import type { Booking } from '@/types';
+import type { Booking, Guard } from '@/types';
 
 export default function AdminHomeScreen() {
   const insets = useSafeAreaInsets();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [guards, setGuards] = useState<Guard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -26,6 +27,8 @@ export default function AdminHomeScreen() {
     useCallback(() => {
       console.log('[AdminHome] Setting up real-time listener for all bookings');
       setIsLoading(true);
+
+      userService.listByRole('guard').then((result) => setGuards(result as Guard[]));
 
       const unsubscribe = bookingService.subscribeToBookings((allBookings) => {
         console.log('[AdminHome] Real-time update - all bookings:', allBookings.length);
@@ -40,15 +43,15 @@ export default function AdminHomeScreen() {
     }, [])
   );
 
-  const totalGuards = mockGuards.length;
-  const activeGuards = mockGuards.filter(g => g.availability).length;
+  const totalGuards = guards.length;
+  const activeGuards = guards.filter(g => g.availability).length;
   const totalBookings = bookings.length;
   const activeBookings = bookings.filter(b => b.status === 'active' || b.status === 'accepted').length;
   const completedBookings = bookings.filter(b => b.status === 'completed').length;
   const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum: number, b: Booking) => sum + b.totalAmount, 0);
   const platformRevenue = bookings.filter(b => b.status === 'completed').reduce((sum: number, b: Booking) => sum + b.platformCut, 0);
 
-  const pendingKYC = mockGuards.filter(g => g.kycStatus === 'pending').length;
+  const pendingKYC = guards.filter(g => g.kycStatus === 'pending').length;
 
   const handleExportLedger = async () => {
     setIsExporting(true);
@@ -200,7 +203,7 @@ export default function AdminHomeScreen() {
                 <View style={styles.overviewRow}>
                   <Text style={styles.overviewLabel}>Approved Guards</Text>
                   <Text style={styles.overviewValue}>
-                    {mockGuards.filter(g => g.kycStatus === 'approved').length}
+                    {guards.filter(g => g.kycStatus === 'approved').length}
                   </Text>
                 </View>
                 <View style={styles.overviewRow}>
@@ -230,7 +233,7 @@ export default function AdminHomeScreen() {
                 </View>
               ) : (
                 bookings.slice(0, 10).map((booking) => {
-                  const guard = mockGuards.find(g => g.id === booking.guardId);
+                  const guard = guards.find(g => g.id === booking.guardId);
                   const getStatusColor = (status: string) => {
                     switch (status) {
                       case 'completed': return Colors.success;

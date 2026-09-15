@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getDatabase, Database, connectDatabaseEmulator } from 'firebase/database';
+import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // App Check imports commented out - requires Firebase Console setup first
@@ -47,6 +48,7 @@ let app: FirebaseApp | undefined;
 let authInstance: Auth | undefined;
 let dbInstance: Firestore | undefined;
 let realtimeDbInstance: Database | undefined;
+let functionsInstance: Functions | undefined;
 let initialized = false;
 
 export const initializeFirebaseServices = async (): Promise<void> => {
@@ -135,6 +137,13 @@ export const initializeFirebaseServices = async (): Promise<void> => {
       console.error('[Firebase] Realtime DB init error:', _e);
     }
 
+    try {
+      functionsInstance = getFunctions(app as FirebaseApp);
+      console.log('[Firebase] Functions initialized');
+    } catch (_e) {
+      console.error('[Firebase] Functions init error:', _e);
+    }
+
     // Connect to emulators in development (only if EXPO_PUBLIC_USE_EMULATORS=1)
     if (__DEV__ && process.env.EXPO_PUBLIC_USE_EMULATORS === '1' && authInstance && dbInstance && realtimeDbInstance) {
       try {
@@ -156,6 +165,15 @@ export const initializeFirebaseServices = async (): Promise<void> => {
         console.log('[Firebase] Connected to Realtime Database emulator');
       } catch {
         console.log('[Firebase] Database emulator already connected or unavailable');
+      }
+
+      if (functionsInstance) {
+        try {
+          connectFunctionsEmulator(functionsInstance, '127.0.0.1', 5001);
+          console.log('[Firebase] Connected to Functions emulator');
+        } catch {
+          console.log('[Firebase] Functions emulator already connected or unavailable');
+        }
       }
     } else if (__DEV__) {
       console.log('[Firebase] Using production Firebase (emulators disabled)');
@@ -199,5 +217,16 @@ export const realtimeDb = (): Database => {
     return fallback;
   } catch {
     throw new Error('[Firebase] Realtime Database not initialized and fallback failed. Call initializeFirebaseServices() first.');
+  }
+};
+
+export const functions = (): Functions => {
+  if (functionsInstance) return functionsInstance;
+  try {
+    const fallback = getFunctions(getApp());
+    console.warn('[Firebase] Functions was not initialized via initializeFirebaseServices(); returning getFunctions() fallback');
+    return fallback;
+  } catch {
+    throw new Error('[Firebase] Functions not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
 };

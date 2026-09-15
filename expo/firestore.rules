@@ -30,11 +30,21 @@ service cloud.firestore {
     // permiten admin y empresa. Antes eran dos reglas y la de `list` decia
     // `if isAuthenticated()`, o sea que cualquier registrado descargaba el
     // padron completo. Se comprobo en vivo: un cliente veia los 8 usuarios.
-    // Este es el mismo patron que usa /bookings mas abajo.
+    // Este es el mismo patron que usa /bookings mas abajo: la empresa solo
+    // lee SUS escoltas (companyId == su uid), no el padron completo. Antes
+    // `hasRole('company')` bastaba sola, y cualquier empresa listaba a los
+    // clientes y escoltas de las demas.
+    //
+    // El perfil de un escolta (role == 'guard') si es publico para cualquier
+    // autenticado: un cliente tiene que poder listarlos y ver el detalle
+    // antes de reservar. Sin esto la pantalla de "Book Protection" no tiene
+    // forma de mostrar escoltas reales — por eso seguia mostrando datos de
+    // mocks/guards.ts.
     allow read: if isAuthenticated() && (
       request.auth.uid == userId ||
       hasRole('admin') ||
-      hasRole('company')
+      resource.data.role == 'guard' ||
+      (hasRole('company') && resource.data.companyId == request.auth.uid)
     );
       
       // Allow users to create their own document with minimum required fields

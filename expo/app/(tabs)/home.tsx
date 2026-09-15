@@ -13,9 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Shield, Star, MapPin, Languages, Award, ChevronRight, Map as MapIcon, List, Calendar, Clock, DollarSign } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockGuards } from '@/mocks/guards';
+import { guardService } from '@/services/guardService';
 import { bookingService } from '@/services/bookingService';
-import { Booking } from '@/types';
+import { Booking, Guard } from '@/types';
 import Colors from '@/constants/colors';
 import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
 
@@ -29,8 +29,17 @@ export default function HomeScreen() {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [availableGuards, setAvailableGuards] = useState<Guard[]>([]);
+  const [isLoadingGuards, setIsLoadingGuards] = useState(true);
 
-  const availableGuards = mockGuards.filter(g => g.availability);
+  useEffect(() => {
+    if (user?.role === 'guard') return;
+    setIsLoadingGuards(true);
+    guardService.listAvailableGuards().then((guards) => {
+      setAvailableGuards(guards.filter(g => g.availability));
+      setIsLoadingGuards(false);
+    });
+  }, [user]);
 
   useEffect(() => {
     if (!user || user.role !== 'guard') return;
@@ -289,9 +298,18 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {isLoadingGuards ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.gold} />
+          </View>
+        ) : availableGuards.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.rateLabel}>No guards available right now.</Text>
+          </View>
+        ) : null}
         {availableGuards.map((guard) => (
-          <TouchableOpacity 
-            key={guard.id} 
+          <TouchableOpacity
+            key={guard.id}
             style={styles.guardCard}
             onPress={() => router.push(`/guard/${guard.id}`)}
             accessible={true}

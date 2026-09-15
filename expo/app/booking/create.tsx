@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,9 +25,9 @@ import {
   MapPin,
   CreditCard,
 } from 'lucide-react-native';
-import { mockGuards } from '@/mocks/guards';
+import { guardService } from '@/services/guardService';
 import Colors from '@/constants/colors';
-import type { VehicleType, ProtectionType, DressCode, RouteStop } from '@/types';
+import type { VehicleType, ProtectionType, DressCode, RouteStop, Guard } from '@/types';
 import MapView, { Marker, PROVIDER_DEFAULT } from '@/components/MapView';
 import PaymentSheet from '@/components/PaymentSheet';
 import { paymentService } from '@/services/paymentService';
@@ -107,7 +108,28 @@ export default function CreateBookingScreen() {
     }
   }, []);
 
-  const guard = mockGuards.find((g) => g.id === guardId);
+  const [guard, setGuard] = useState<Guard | null>(null);
+  const [isLoadingGuard, setIsLoadingGuard] = useState(true);
+
+  useEffect(() => {
+    if (!guardId) return;
+    setIsLoadingGuard(true);
+    guardService.getGuardById(guardId).then((result) => {
+      setGuard(result);
+      setIsLoadingGuard(false);
+    });
+  }, [guardId]);
+
+  if (isLoadingGuard) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.errorContainer}>
+          <ActivityIndicator size="large" color={Colors.gold} />
+        </View>
+      </View>
+    );
+  }
 
   if (!guard) {
     return (

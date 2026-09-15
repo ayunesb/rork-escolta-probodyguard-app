@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -7,28 +7,61 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import { Users, Search, Shield, UserX, Edit } from 'lucide-react-native';
-import { mockGuards } from '@/mocks/guards';
+import { userService } from '@/services/userService';
+import type { User, UserRole } from '@/types';
 import Colors from '@/constants/colors';
+
+interface AdminUserRow {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: 'active' | 'inactive';
+  kycStatus?: string;
+}
+
+function toRow(user: User): AdminUserRow {
+  return {
+    id: user.id,
+    name: `${user.firstName} ${user.lastName}`.trim() || user.email,
+    email: user.email,
+    role: user.role,
+    status: user.isActive ? 'active' : 'inactive',
+    kycStatus: user.role === 'guard' ? user.kycStatus : undefined,
+  };
+}
 
 export default function AdminUsersScreen() {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<'all' | 'client' | 'guard' | 'company'>('all');
+  const [allUsers, setAllUsers] = useState<AdminUserRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const allUsers = [
-    ...mockGuards.map(g => ({
-      id: g.id,
-      name: `${g.firstName} ${g.lastName}`,
-      email: g.email,
-      role: 'guard' as const,
-      status: g.availability ? 'active' : 'inactive',
-      kycStatus: g.kycStatus,
-    })),
-  ];
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [clients, guards, companies] = await Promise.all([
+        userService.listByRole('client'),
+        userService.listByRole('guard'),
+        userService.listByRole('company'),
+      ]);
+      setAllUsers([...clients, ...guards, ...companies].map(toRow));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUsers();
+    }, [loadUsers])
+  );
 
   const filteredUsers = allUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -53,17 +86,27 @@ export default function AdminUsersScreen() {
     );
   };
 
-  const handleSuspendUser = (userId: string, userName: string) => {
+  const handleSuspendUser = (userId: string, userName: string, isActive: boolean) => {
+    const verb = isActive ? 'suspend' : 'reactivate';
     Alert.alert(
-      'Suspend User',
-      `Are you sure you want to suspend ${userName}? They will not be able to access the platform.`,
+      isActive ? 'Suspend User' : 'Reactivate User',
+      isActive
+        ? `Are you sure you want to suspend ${userName}? They will not be able to access the platform.`
+        : `Reactivate ${userName}'s access to the platform?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Suspend',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert('Success', `${userName} has been suspended.`);
+          text: isActive ? 'Suspend' : 'Reactivate',
+          style: isActive ? 'destructive' : 'default',
+          onPress: async () => {
+            try {
+              await userService.setUserActive(userId, !isActive);
+              await loadUsers();
+              Alert.alert('Success', `${userName} has been ${isActive ? 'suspended' : 'reactivated'}.`);
+            } catch (error) {
+              console.error(`[AdminUsers] Failed to ${verb} user:`, error);
+              Alert.alert('Error', `Failed to ${verb} ${userName}.`);
+            }
           },
         },
       ]
@@ -149,12 +192,18 @@ export default function AdminUsersScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {filteredUsers.length === 0 ? (
+        {isLoading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color={Colors.gold} />
+          </View>
+        ) : filteredUsers.length === 0 ? (
           <View style={styles.emptyState}>
             <Users size={48} color={Colors.textTertiary} />
             <Text style={styles.emptyText}>No users found</Text>
             <Text style={styles.emptySubtext}>
-              Try adjusting your search or filters
+              {allUsers.length === 0
+                ? 'No real accounts exist yet besides your own.'
+                : 'Try adjusting your search or filters'}
             </Text>
           </View>
         ) : (
@@ -198,10 +247,12 @@ export default function AdminUsersScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.suspendButton}
-                  onPress={() => handleSuspendUser(user.id, user.name)}
+                  onPress={() => handleSuspendUser(user.id, user.name, user.status === 'active')}
                 >
                   <UserX size={16} color={Colors.error} />
-                  <Text style={styles.suspendButtonText}>Suspend</Text>
+                  <Text style={styles.suspendButtonText}>
+                    {user.status === 'active' ? 'Suspend' : 'Reactivate'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>

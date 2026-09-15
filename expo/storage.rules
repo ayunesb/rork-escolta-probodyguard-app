@@ -24,9 +24,18 @@ service firebase.storage {
     }
     
     match /documents/{userId}/{document} {
-      allow read: if isAuthenticated() && isOwner(userId);
-      
-      allow write: if isAuthenticated() && 
+      // El dueno siempre puede ver sus propios documentos. Admin revisa KYC
+      // de cualquiera; una empresa solo revisa los de SUS escoltas
+      // (companyId == su uid), mismo patron que ya usan firestore.rules y
+      // database.rules.json para /users y /bookings.
+      allow read: if isAuthenticated() && (
+        isOwner(userId) ||
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'company' &&
+         firestore.get(/databases/(default)/documents/users/$(userId)).data.companyId == request.auth.uid)
+      );
+
+      allow write: if isAuthenticated() &&
                      isOwner(userId) &&
                      isValidDocumentFile() &&
                      isValidSize(5);

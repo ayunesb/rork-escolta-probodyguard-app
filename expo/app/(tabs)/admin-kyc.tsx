@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -7,66 +7,143 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import { FileText, CheckCircle, XCircle, Eye, Shield } from 'lucide-react-native';
-import { mockGuards } from '@/mocks/guards';
+import { userService } from '@/services/userService';
+import { kycAuditService } from '@/services/kycAuditService';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Guard } from '@/types';
 import Colors from '@/constants/colors';
+
+function guardDocuments(guard: Guard): { label: string; url: string }[] {
+  const docs: { label: string; url: string }[] = [];
+  if (guard.governmentIdUrls?.length) {
+    guard.governmentIdUrls.forEach((url, i) => docs.push({ label: `Government ID ${i + 1}`, url }));
+  }
+  if (guard.licenseUrls?.length) {
+    guard.licenseUrls.forEach((url, i) => docs.push({ label: `Security License ${i + 1}`, url }));
+  }
+  if (guard.insuranceUrls?.length) {
+    guard.insuranceUrls.forEach((url, i) => docs.push({ label: `Insurance ${i + 1}`, url }));
+  }
+  if (guard.vehicleDocUrls?.length) {
+    guard.vehicleDocUrls.forEach((url, i) => docs.push({ label: `Vehicle Document ${i + 1}`, url }));
+  }
+  if (guard.outfitPhotos?.length) {
+    guard.outfitPhotos.forEach((url, i) => docs.push({ label: `Outfit Photo ${i + 1}`, url }));
+  }
+  return docs;
+}
 
 export default function AdminKYCScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [guards, setGuards] = useState<Guard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const pendingGuards = mockGuards.filter(g => g.kycStatus === 'pending');
-  const approvedGuards = mockGuards.filter(g => g.kycStatus === 'approved');
-  const rejectedGuards = mockGuards.filter(g => g.kycStatus === 'rejected');
+  const loadGuards = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const result = await userService.listByRole('guard');
+      setGuards(result as Guard[]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const handleApprove = (guardId: string, guardName: string) => {
+  useFocusEffect(
+    useCallback(() => {
+      loadGuards();
+    }, [loadGuards])
+  );
+
+  const pendingGuards = guards.filter(g => g.kycStatus === 'pending');
+  const approvedGuards = guards.filter(g => g.kycStatus === 'approved');
+  const rejectedGuards = guards.filter(g => g.kycStatus === 'rejected');
+
+  const reviewKYC = async (guard: Guard, decision: 'approved' | 'rejected') => {
+    try {
+      await userService.setKYCStatus(guard.id, decision);
+      if (user) {
+        await kycAuditService.logDocumentReview(
+          guard.id,
+          `${guard.id}-kyc`,
+          user.id,
+          user.role,
+          decision === 'approved' ? 'approve' : 'reject',
+          guard.kycStatus,
+          decision
+        );
+      }
+      await loadGuards();
+      Alert.alert(
+        decision === 'approved' ? 'Success' : 'Rejected',
+        decision === 'approved'
+          ? `KYC approved for ${guard.firstName} ${guard.lastName}. They can now accept bookings.`
+          : `KYC rejected for ${guard.firstName} ${guard.lastName}. They will be notified.`
+      );
+    } catch (error) {
+      console.error('[AdminKYC] Failed to review KYC:', error);
+      Alert.alert('Error', 'Failed to update KYC status. Please try again.');
+    }
+  };
+
+  const handleApprove = (guard: Guard) => {
     Alert.alert(
       'Approve KYC',
-      `Are you sure you want to approve KYC for ${guardName}?`,
+      `Are you sure you want to approve KYC for ${guard.firstName} ${guard.lastName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Approve',
-          onPress: () => {
-            Alert.alert('Success', `KYC approved for ${guardName}. They can now accept bookings.`);
-          },
-        },
+        { text: 'Approve', onPress: () => reviewKYC(guard, 'approved') },
       ]
     );
   };
 
-  const handleReject = (guardId: string, guardName: string) => {
+  const handleReject = (guard: Guard) => {
     Alert.alert(
       'Reject KYC',
-      `Are you sure you want to reject KYC for ${guardName}?`,
+      `Are you sure you want to reject KYC for ${guard.firstName} ${guard.lastName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reject',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert('Rejected', `KYC rejected for ${guardName}. They will be notified.`);
-          },
-        },
+        { text: 'Reject', style: 'destructive', onPress: () => reviewKYC(guard, 'rejected') },
       ]
     );
   };
 
-  const handleViewDocuments = (guardName: string) => {
+  const handleViewDocuments = (guard: Guard) => {
+    const docs = guardDocuments(guard);
+    if (docs.length === 0) {
+      Alert.alert(
+        'No Documents',
+        `${guard.firstName} ${guard.lastName} has not uploaded any KYC documents yet.`
+      );
+      return;
+    }
     Alert.alert(
       'KYC Documents',
-      `Viewing documents for ${guardName}:\n\n• Government ID\n• Security License\n• Background Check\n• Certifications`,
-      [{ text: 'Close' }]
+      docs.map(d => d.label).join('\n'),
+      [
+        ...docs.slice(0, 3).map(d => ({ text: `Open ${d.label}`, onPress: () => Linking.openURL(d.url) })),
+        { text: 'Close', style: 'cancel' as const },
+      ]
     );
   };
 
-  const renderGuardCard = (guard: any) => (
+  const renderGuardCard = (guard: Guard) => (
     <View key={guard.id} style={styles.guardCard}>
       <View style={styles.guardHeader}>
-        <Image source={{ uri: guard.photos[0] }} style={styles.guardPhoto} />
+        {guard.photos?.[0] ? (
+          <Image source={{ uri: guard.photos[0] }} style={styles.guardPhoto} />
+        ) : (
+          <View style={[styles.guardPhoto, styles.guardPhotoPlaceholder]}>
+            <Shield size={24} color={Colors.textTertiary} />
+          </View>
+        )}
         <View style={styles.guardInfo}>
           <Text style={styles.guardName}>
             {guard.firstName} {guard.lastName}
@@ -74,25 +151,27 @@ export default function AdminKYCScreen() {
           <Text style={styles.guardEmail}>{guard.email}</Text>
           <View style={styles.guardMeta}>
             <Text style={styles.guardMetaText}>
-              {guard.completedJobs} jobs • {guard.rating.toFixed(1)} rating
+              {guard.completedJobs ?? 0} jobs • {(guard.rating ?? 0).toFixed(1)} rating
             </Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.certifications}>
-        {guard.certifications.slice(0, 3).map((cert: string, idx: number) => (
-          <View key={idx} style={styles.certBadge}>
-            <Shield size={12} color={Colors.gold} />
-            <Text style={styles.certText}>{cert}</Text>
-          </View>
-        ))}
-      </View>
+      {(guard.certifications?.length ?? 0) > 0 && (
+        <View style={styles.certifications}>
+          {guard.certifications.slice(0, 3).map((cert: string, idx: number) => (
+            <View key={idx} style={styles.certBadge}>
+              <Shield size={12} color={Colors.gold} />
+              <Text style={styles.certText}>{cert}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={styles.guardActions}>
         <TouchableOpacity
           style={styles.viewButton}
-          onPress={() => handleViewDocuments(`${guard.firstName} ${guard.lastName}`)}
+          onPress={() => handleViewDocuments(guard)}
         >
           <Eye size={16} color={Colors.textPrimary} />
           <Text style={styles.viewButtonText}>View Documents</Text>
@@ -102,14 +181,14 @@ export default function AdminKYCScreen() {
           <View style={styles.actionButtons}>
             <TouchableOpacity
               style={styles.rejectButton}
-              onPress={() => handleReject(guard.id, `${guard.firstName} ${guard.lastName}`)}
+              onPress={() => handleReject(guard)}
             >
               <XCircle size={16} color={Colors.error} />
               <Text style={styles.rejectButtonText}>Reject</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.approveButton}
-              onPress={() => handleApprove(guard.id, `${guard.firstName} ${guard.lastName}`)}
+              onPress={() => handleApprove(guard)}
             >
               <CheckCircle size={16} color={Colors.background} />
               <Text style={styles.approveButtonText}>Approve</Text>
@@ -176,7 +255,11 @@ export default function AdminKYCScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {guardsList.length === 0 ? (
+        {isLoading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color={Colors.gold} />
+          </View>
+        ) : guardsList.length === 0 ? (
           <View style={styles.emptyState}>
             <FileText size={48} color={Colors.textTertiary} />
             <Text style={styles.emptyText}>No {selectedTab} applications</Text>
@@ -263,6 +346,10 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: Colors.surfaceLight,
     marginRight: 12,
+  },
+  guardPhotoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   guardInfo: {
     flex: 1,

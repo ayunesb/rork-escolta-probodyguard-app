@@ -20,9 +20,9 @@ import {
 } from 'lucide-react-native';
 import { useLocationTracking } from '@/contexts/LocationTrackingContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockGuards } from '@/mocks/guards';
+import { guardService } from '@/services/guardService';
 import { bookingService } from '@/services/bookingService';
-import { Booking } from '@/types';
+import { Booking, Guard } from '@/types';
 import Colors from '@/constants/colors';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from '@/components/MapView';
 import PanicButton from '@/components/PanicButton';
@@ -46,9 +46,18 @@ export default function TrackingScreen() {
   } = useLocationTracking();
 
   const [booking, setBooking] = useState<Booking | null>(null);
-  const [guardId] = useState<string>('guard-1');
   const [showStartCodeModal, setShowStartCodeModal] = useState(false);
-  const guard = mockGuards.find((g) => g.id === guardId);
+  const [guard, setGuard] = useState<Guard | null>(null);
+  const guardId = booking?.guardId ?? '';
+
+  useEffect(() => {
+    if (!guardId) {
+      setGuard(null);
+      return;
+    }
+    guardService.getGuardById(guardId).then(setGuard);
+  }, [guardId]);
+
   const guardLocation = getGuardLocation(guardId);
 
   useEffect(() => {

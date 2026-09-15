@@ -1245,8 +1245,136 @@ export const resetDemoPasswords = onCall(async (request: CallableRequest) => {
 });
 
 
+interface NuevoEscoltaInput {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  hourlyRate?: number;
+  language?: string;
+}
+
+interface ResultadoEscoltaCreado {
+  email: string;
+  success: boolean;
+  uid?: string;
+  error?: string;
+}
+
+/**
+ * Crea una o varias cuentas de escolta para la empresa que llama. Sirve tanto
+ * al alta uno-por-uno como a la importacion masiva por CSV: ambas mandan un
+ * arreglo, uno con un solo elemento.
+ *
+ * Existe porque el SDK de cliente no puede crear cuentas de Firebase Auth
+ * para otra persona (solo un admin.auth().createUser() del lado del
+ * servidor puede) — antes de esto, "Invite" y la importacion CSV en
+ * company-guards.tsx solo mostraban un Alert de exito sin crear nada.
+ *
+ * No manda correo desde aqui: el Admin SDK no envia el email de
+ * restablecer-contrasena, solo el SDK de cliente lo hace (gratis, con la
+ * plantilla que ya trae Firebase Auth). El cliente llama a
+ * sendPasswordResetEmail() por cada cuenta creada con exito.
+ */
+export const createCompanyGuards = onCall(async (request: CallableRequest) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  const perfilQuienLlama = await admin.firestore().doc(`users/${request.auth.uid}`).get();
+  if (perfilQuienLlama.data()?.role !== 'company') {
+    throw new HttpsError('permission-denied', 'Solo una cuenta de empresa puede dar de alta escoltas');
+  }
+  const companyId = request.auth.uid;
+
+  const guards: NuevoEscoltaInput[] = Array.isArray(request.data?.guards) ? request.data.guards : [];
+  if (guards.length === 0) {
+    throw new HttpsError('invalid-argument', 'No guards provided');
+  }
+  if (guards.length > 100) {
+    throw new HttpsError('invalid-argument', 'Maximum 100 guards per import');
+  }
+
+  const results: ResultadoEscoltaCreado[] = [];
+  const now = new Date().toISOString();
+
+  for (const raw of guards) {
+    const email = raw.email?.trim().toLowerCase();
+    const firstName = raw.firstName?.trim();
+    const lastName = raw.lastName?.trim();
+    const phone = raw.phone?.trim();
+    const hourlyRate = Number(raw.hourlyRate);
+
+    if (!email || !firstName || !lastName || !phone || !Number.isFinite(hourlyRate) || hourlyRate <= 0) {
+      results.push({ email: email || '(sin email)', success: false, error: 'Missing or invalid required field' });
+      continue;
+    }
+
+    try {
+      // Contrasena temporal e inutilizable: nadie la ve ni la necesita, el
+      // escolta entra por primera vez con el correo de restablecer que manda
+      // el cliente justo despues de que esta funcion responde.
+      const tempPassword = admin.firestore().collection('_').doc().id + 'Aa1!';
+
+      const userRecord = await admin.auth().createUser({
+        email,
+        password: tempPassword,
+        emailVerified: false,
+        displayName: `${firstName} ${lastName}`,
+        disabled: false,
+      });
+
+      const guardDoc = {
+        email,
+        role: 'guard',
+        firstName,
+        lastName,
+        phone,
+        language: raw.language || 'es',
+        kycStatus: 'pending',
+        createdAt: now,
+        isActive: true,
+        emailVerified: false,
+        updatedAt: now,
+        bio: '',
+        height: 0,
+        weight: 0,
+        languages: [raw.language || 'es'],
+        hourlyRate,
+        photos: [],
+        outfitPhotos: [],
+        governmentIdUrls: [],
+        licenseUrls: [],
+        vehicleDocUrls: [],
+        insuranceUrls: [],
+        certifications: [],
+        rating: 0,
+        completedJobs: 0,
+        isFreelancer: false,
+        companyId,
+        availability: false,
+      };
+
+      await admin.firestore().collection('users').doc(userRecord.uid).set(guardDoc);
+
+      results.push({ email, success: true, uid: userRecord.uid });
+    } catch (error: any) {
+      const message = error.code === 'auth/email-already-exists'
+        ? 'An account with this email already exists'
+        : error.message || 'Unknown error';
+      results.push({ email, success: false, error: message });
+    }
+  }
+
+  const successCount = results.filter(r => r.success).length;
+  console.log(`[CreateCompanyGuards] company=${companyId} created ${successCount}/${guards.length}`);
+
+  return { results, successCount, totalProcessed: guards.length };
+});
+
 // Avisos en tiempo real por cambio de estado de una reserva. Viven en su
 // propio archivo para no seguir engordando este. Solo llaman a admin.* dentro
 // del cuerpo de cada funcion, asi que no importa que este re-export se evalue
 // antes de admin.initializeApp().
 export { avisarCambioDeReserva, enviarAvisoEncolado, avisarEmergencia } from './notificaciones';
+export { espejarRolARealtimeDB } from './syncUserRole';

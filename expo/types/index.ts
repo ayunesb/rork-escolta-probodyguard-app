@@ -49,6 +49,7 @@ export interface Guard extends User {
   hourlyRate: number;
   photos: string[];
   outfitPhotos: string[];
+  governmentIdUrls?: string[];
   licenseUrls: string[];
   vehicleDocUrls: string[];
   insuranceUrls: string[];

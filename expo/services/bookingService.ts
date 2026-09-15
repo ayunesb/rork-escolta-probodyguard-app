@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Booking, BookingStatus, BookingType } from '@/types';
-import { ref, set, onValue, off, update } from 'firebase/database';
+import { ref, set, onValue, off, update, get } from 'firebase/database';
 import { realtimeDb as getRealtimeDb } from '@/lib/firebase';
 import { notificationService } from './notificationService';
 import { rateLimitService } from './rateLimitService';
@@ -86,18 +86,30 @@ export const bookingService = {
   subscribeToBookings(callback: BookingListener): () => void {
     const bookingsRef = ref(getRealtimeDb(), 'bookings');
 
-    onValue(bookingsRef, async (snapshot) => {
-      try {
-        const data = snapshot.val();
-        const bookings: Booking[] = data ? Object.values(data) : [];
+    onValue(
+      bookingsRef,
+      async (snapshot) => {
+        try {
+          const data = snapshot.val();
+          const bookings: Booking[] = data ? Object.values(data) : [];
 
-        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-        logger.log('[Booking] Real-time update received:', { count: bookings.length });
-        callback(bookings);
-      } catch (error) {
-        logger.error('[Booking] Error processing real-time update:', error);
+          await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+          logger.log('[Booking] Real-time update received:', { count: bookings.length });
+          callback(bookings);
+        } catch (error) {
+          logger.error('[Booking] Error processing real-time update:', error);
+          callback(await this.getAllBookings());
+        }
+      },
+      (error) => {
+        // Without this, a denied read (e.g. no rule grants a list read of
+        // /bookings for this role) leaves callers waiting on isLoading
+        // forever instead of ever hearing back. Fall back to the last
+        // locally cached snapshot so the screen can at least render.
+        logger.error('[Booking] subscribeToBookings denied or failed:', error);
+        this.getAllBookings().then(callback);
       }
-    });
+    );
 
     return () => {
       off(bookingsRef);
@@ -148,27 +160,43 @@ export const bookingService = {
   },
 
   subscribeToGuardBookings(guardId: string, callback: BookingListener): () => void {
-    const bookingsRef = ref(getRealtimeDb(), 'bookings');
+    // No lee /bookings completo: las reglas solo dejan leer un booking a la
+    // vez (ahi viven direcciones de clientes, no se puede listar sin
+    // filtro). En vez de eso, lee el indice guardBookingIndex/{guardId} que
+    // createBooking/acceptBooking mantienen, y trae cada reserva por su ID.
+    const indexRef = ref(getRealtimeDb(), `guardBookingIndex/${guardId}`);
 
-    onValue(bookingsRef, async (snapshot) => {
-      try {
-        const data = snapshot.val();
-        const allBookings: Booking[] = data ? Object.values(data) : [];
-        const guardBookings = allBookings.filter(
-          (b) =>
-            ((b.status === 'pending' || b.status === 'confirmed') && (!b.guardId || b.guardId === guardId)) ||
-            b.guardId === guardId
-        );
+    const loadFromIndex = async (bookingIds: string[]) => {
+      const results = await Promise.all(
+        bookingIds.map(async (id) => {
+          try {
+            const snap = await get(ref(getRealtimeDb(), `bookings/${id}`));
+            return snap.exists() ? (snap.val() as Booking) : null;
+          } catch (error) {
+            logger.error(`[Booking] Failed to load indexed booking ${id}:`, error);
+            return null;
+          }
+        })
+      );
+      const bookings = results.filter((b): b is Booking => b !== null);
+      logger.log('[Booking] Guard real-time update:', { count: bookings.length, guardId });
+      callback(bookings);
+    };
 
-        logger.log('[Booking] Guard real-time update:', { count: guardBookings.length, guardId });
-        callback(guardBookings);
-      } catch (error) {
-        logger.error('[Booking] Error processing guard real-time update:', error);
+    onValue(
+      indexRef,
+      (snapshot) => {
+        const ids = snapshot.exists() ? Object.keys(snapshot.val()) : [];
+        loadFromIndex(ids);
+      },
+      (error) => {
+        logger.error('[Booking] subscribeToGuardBookings denied or failed:', error);
+        callback([]);
       }
-    });
+    );
 
     return () => {
-      off(bookingsRef);
+      off(indexRef);
       logger.log('[Booking] Unsubscribed from guard real-time updates');
     };
   },
@@ -230,6 +258,20 @@ export const bookingService = {
         try {
           await set(ref(getRealtimeDb(), `bookings/${booking.id}`), cleanUndefined(booking));
           logger.log('[Booking] Guardada en Realtime Database:', { bookingId: booking.id });
+
+          // Indice para que el escolta pueda listar sus propias reservas.
+          // Las reglas solo dejan leer /bookings/$id uno por uno, nunca la
+          // lista completa (con razon: ahi viven direcciones de clientes).
+          // Sin este indice el escolta no tenia como enterarse de que IDs
+          // buscar, y su pantalla de trabajos se quedaba vacia o pensando
+          // para siempre.
+          if (booking.guardId) {
+            try {
+              await set(ref(getRealtimeDb(), `guardBookingIndex/${booking.guardId}/${booking.id}`), true);
+            } catch (indexError) {
+              logger.error('[Booking] No se pudo indexar la reserva para el escolta:', { error: indexError });
+            }
+          }
         } catch (firebaseError) {
           logger.error('[Booking] No se pudo guardar la reserva en el servidor:', { error: firebaseError });
           await AsyncStorage.setItem(
@@ -285,6 +327,7 @@ export const bookingService = {
       await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
       const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
       await update(bookingsRef, cleanUndefined(bookings[idx]));
+      await set(ref(getRealtimeDb(), `guardBookingIndex/${guardId}/${bookingId}`), true);
     }
   },
 

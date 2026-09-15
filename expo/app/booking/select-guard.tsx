@@ -24,7 +24,7 @@ import {
 import Colors from '@/constants/colors';
 import { bookingService } from '@/services/bookingService';
 import { searchService } from '@/services/searchService';
-import { mockGuards } from '@/mocks/guards';
+import { guardService } from '@/services/guardService';
 import type { Booking, Guard } from '@/types';
 
 export default function SelectGuardScreen() {
@@ -46,8 +46,9 @@ export default function SelectGuardScreen() {
         setBooking(bookingData);
 
         if (bookingData) {
+          const allGuards = await guardService.listAvailableGuards();
           const results = searchService.searchGuards(
-            mockGuards,
+            allGuards,
             {
               availability: true,
               sortBy: 'rating',

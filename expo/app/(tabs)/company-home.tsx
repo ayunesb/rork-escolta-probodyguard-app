@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,15 @@ import { Stack, useFocusEffect } from 'expo-router';
 import { Shield, Users, Calendar, DollarSign, TrendingUp, Award } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { bookingService } from '@/services/bookingService';
-import { mockGuards } from '@/mocks/guards';
+import { userService } from '@/services/userService';
 import Colors from '@/constants/colors';
-import type { Booking } from '@/types';
+import type { Booking, Guard } from '@/types';
 
 export default function CompanyHomeScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
+  const [companyGuards, setCompanyGuards] = useState<Guard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useFocusEffect(
@@ -29,14 +30,13 @@ export default function CompanyHomeScreen() {
       console.log('[CompanyHome] Setting up real-time listener for company:', user.id);
       setIsLoading(true);
 
-      const unsubscribe = bookingService.subscribeToBookings((allBookings) => {
-        const companyGuards = mockGuards.filter(g => g.companyId === user.id);
-        const guardIds = companyGuards.map(g => g.id);
-        const companyBookings = allBookings.filter(b => 
-          b.guardId && guardIds.includes(b.guardId)
-        );
-        console.log('[CompanyHome] Real-time update - company bookings:', companyBookings.length);
-        setBookings(companyBookings);
+      userService.listGuardsForCompany(user.id).then((guards) => {
+        setCompanyGuards(guards as Guard[]);
+      });
+
+      const unsubscribe = bookingService.subscribeToBookings((bookings) => {
+        console.log('[CompanyHome] Real-time update - bookings:', bookings.length);
+        setAllBookings(bookings);
         setIsLoading(false);
       });
 
@@ -47,7 +47,11 @@ export default function CompanyHomeScreen() {
     }, [user])
   );
 
-  const companyGuards = mockGuards.filter(g => g.companyId === user?.id);
+  const bookings = useMemo(() => {
+    const guardIds = new Set(companyGuards.map(g => g.id));
+    return allBookings.filter(b => b.guardId && guardIds.has(b.guardId));
+  }, [allBookings, companyGuards]);
+
   const activeBookings = bookings.filter(b => b.status === 'active' || b.status === 'accepted');
   const completedBookings = bookings.filter(b => b.status === 'completed');
   const totalRevenue = completedBookings.reduce((sum, b) => sum + b.guardPayout, 0);
@@ -174,7 +178,7 @@ export default function CompanyHomeScreen() {
                 </View>
               ) : (
                 bookings.slice(0, 5).map((booking) => {
-                  const guard = mockGuards.find(g => g.id === booking.guardId);
+                  const guard = companyGuards.find(g => g.id === booking.guardId);
                   const getStatusColor = (status: string) => {
                     switch (status) {
                       case 'completed': return Colors.success;

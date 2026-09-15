@@ -63,3 +63,4 @@ GoogleService-Info.plist
 # Cache local del despliegue de Firebase Hosting
 .firebase/
 dist/
+firebase-debug*.log

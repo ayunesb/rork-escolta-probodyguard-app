@@ -14,7 +14,10 @@ import { initSentry } from "@/services/sentryService";
 import { analyticsService } from "@/services/analyticsService";
 import { appCheckService } from "@/services/appCheckService";
 import { initializeFirebaseServices } from "@/lib/firebase";
+import { installAlertWebPolyfill } from "@/utils/alertWebPolyfill";
 import Colors from "@/constants/colors";
+
+installAlertWebPolyfill();
 
 const queryClient = new QueryClient({
   defaultOptions: {

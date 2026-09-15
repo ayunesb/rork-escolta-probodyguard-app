@@ -5,6 +5,7 @@ import { Stack, useRouter } from 'expo-router';
 import { User, Mail, Phone, Globe, Shield, LogOut, CheckCircle, AlertCircle, Trash2, Download } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { gdprService } from '@/services/gdprService';
+import { confirm } from '@/utils/confirm';
 import Colors from '@/constants/colors';
 
 export default function ProfileScreen() {
@@ -70,22 +71,17 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/auth/sign-in' as any);
-          },
-        },
-      ]
+  const handleSignOut = async () => {
+    const ok = await confirm(
+      'Cerrar sesion',
+      'Seguro que quieres cerrar sesion?',
+      'Cerrar sesion',
+      'Cancelar',
+      true
     );
+    if (!ok) return;
+    await signOut();
+    router.replace('/auth/sign-in' as any);
   };
 
   const getKYCStatusColor = () => {
@@ -177,9 +173,14 @@ export default function ProfileScreen() {
                 ? 'Verification failed. Please contact support.'
                 : 'Your documents are under review'}
             </Text>
-            {user?.kycStatus === 'pending' && (
-              <TouchableOpacity style={styles.uploadButton}>
-                <Text style={styles.uploadButtonText}>Upload Documents</Text>
+            {user?.role === 'guard' && (
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={() => router.push('/kyc-documents' as any)}
+              >
+                <Text style={styles.uploadButtonText}>
+                  {user?.kycStatus === 'approved' ? 'View My Documents' : 'Upload Documents'}
+                </Text>
               </TouchableOpacity>
             )}
           </View>

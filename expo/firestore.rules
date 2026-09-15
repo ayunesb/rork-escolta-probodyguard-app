@@ -100,13 +100,25 @@ service cloud.firestore {
       // cualquier mensaje real: cualquier autenticado leia el chat de
       // cualquier reserva de la plataforma. La reserva vive en Realtime
       // Database, no en Firestore, asi que estas reglas no pueden
-      // consultarla — por eso el mensaje guarda su propio clientId/guardId.
-      allow read: if isAuthenticated() && (
-        resource.data.senderId == request.auth.uid ||
-        resource.data.clientId == request.auth.uid ||
-        resource.data.guardId == request.auth.uid ||
-        hasRole('admin')
-      );
+      // consultarla — por eso el mensaje guarda su propio participantIds.
+      //
+      // Tiene que ser participantIds (array-contains), no clientId/guardId
+      // sueltos: Firestore exige que una consulta de lista solo use en su
+      // regla campos que tambien esten en el filtro de la consulta misma.
+      // El chat se lista filtrando por bookingId + participantIds
+      // array-contains — si la regla usara otro campo, Firestore rechaza la
+      // lista completa con "Property ... is undefined" antes de revisar un
+      // solo documento (comprobado en el emulador).
+      //
+      // Sin `|| hasRole('admin')` a proposito: se probo en produccion y ese
+      // get() adicional envenena el analisis de seguridad de TODA la regla
+      // para efectos de lista, aunque la rama de participantIds sola sea
+      // segura — la consulta del chat volvia a caer en "permission-denied"
+      // en cuanto se agregaba. Ningun admin lista mensajes hoy; el dia que
+      // haga falta, un visor de chat para admin necesita su propia consulta
+      // filtrada (p. ej. por bookingId nada mas, con su propio indice), no
+      // colgarse de esta misma regla.
+      allow read: if isAuthenticated() && request.auth.uid in resource.data.participantIds;
 
       // Allow creating messages if authenticated and sender is current user
       allow create: if isAuthenticated() &&

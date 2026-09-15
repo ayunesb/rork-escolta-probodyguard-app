@@ -1377,4 +1377,4 @@ export const createCompanyGuards = onCall(async (request: CallableRequest) => {
 // del cuerpo de cada funcion, asi que no importa que este re-export se evalue
 // antes de admin.initializeApp().
 export { avisarCambioDeReserva, enviarAvisoEncolado, avisarEmergencia } from './notificaciones';
-export { espejarRolARealtimeDB } from './syncUserRole';
+export { espejarRolARealtimeDB, backfillRoleMirrors } from './syncUserRole';

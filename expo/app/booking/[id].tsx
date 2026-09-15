@@ -66,7 +66,8 @@ export default function BookingDetailScreen() {
       user.language,
       (updatedMessages) => {
         setMessages(updatedMessages);
-      }
+      },
+      user.id
     );
 
     return () => {

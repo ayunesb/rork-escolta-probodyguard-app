@@ -12,7 +12,36 @@
  * Firestore, en vez de consultarse en el momento.
  */
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onCall, CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
+
+/**
+ * El disparador de abajo solo corre hacia adelante, desde que se desplego.
+ * Las cuentas que ya existian (todas las demo, y cualquier usuario real de
+ * antes de hoy) se quedan sin espejo hasta que alguien vuelva a escribir su
+ * documento. Esta funcion es el barrido de una sola vez para ponerlas al
+ * dia; se puede volver a correr sin riesgo, no hace nada destructivo.
+ */
+export const backfillRoleMirrors = onCall(async (request: CallableRequest) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+  const perfilQuienLlama = await admin.firestore().doc(`users/${request.auth.uid}`).get();
+  if (perfilQuienLlama.data()?.role !== 'admin') {
+    throw new HttpsError('permission-denied', 'Solo un administrador puede correr el barrido');
+  }
+
+  const snapshot = await admin.firestore().collection('users').get();
+  const updates: Record<string, unknown> = {};
+  snapshot.docs.forEach((docSnap) => {
+    const data = docSnap.data();
+    updates[docSnap.id] = { role: data.role ?? null, companyId: data.companyId ?? null };
+  });
+
+  await admin.database().ref('users').update(updates);
+
+  return { mirrored: snapshot.size };
+});
 
 export const espejarRolARealtimeDB = onDocumentWritten('users/{userId}', async (event) => {
   const userId = event.params.userId;

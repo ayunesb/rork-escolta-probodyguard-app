@@ -58,7 +58,8 @@ export default function BookingChatScreen() {
       (updatedMessages) => {
         setMessages(updatedMessages);
         setIsLoading(false);
-      }
+      },
+      user.id
     );
 
     const unsubscribeTyping = chatService.subscribeToTyping(

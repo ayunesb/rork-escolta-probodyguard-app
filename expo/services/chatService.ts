@@ -44,6 +44,15 @@ export const chatService = {
       // decia `resource.data.bookingId != null`, que es cierto en todo
       // mensaje real: cualquier autenticado leia el chat de cualquier
       // reserva.
+      //
+      // participantIds ademas de clientId/guardId sueltos: Firestore exige
+      // que una consulta "list" solo use en su regla de seguridad campos que
+      // tambien esten en el filtro de la propia consulta. La regla
+      // `clientId == uid || guardId == uid` nunca aparecia en el filtro (que
+      // solo llevaba bookingId), asi que Firestore rechazaba la lista entera
+      // con "Property ... is undefined" antes de mirar un solo documento.
+      // Con `participantIds` como filtro `array-contains` Y como condicion
+      // de la regla, coinciden y la consulta se permite.
       const messageData = {
         bookingId,
         senderId,
@@ -53,6 +62,9 @@ export const chatService = {
         timestamp: Timestamp.now(),
         clientId: participants.clientId,
         guardId: participants.guardId ?? null,
+        participantIds: [participants.clientId, participants.guardId].filter(
+          (id): id is string => Boolean(id)
+        ),
       };
 
       await addDoc(collection(getDbInstance(), 'messages'), messageData);
@@ -66,12 +78,14 @@ export const chatService = {
   subscribeToMessages(
     bookingId: string,
     userLanguage: Language,
-    onMessagesUpdate: (messages: ChatMessage[]) => void
+    onMessagesUpdate: (messages: ChatMessage[]) => void,
+    currentUserId: string
   ): () => void {
     try {
       const messagesQuery = query(
         collection(getDbInstance(), 'messages'),
-        where('bookingId', '==', bookingId)
+        where('bookingId', '==', bookingId),
+        where('participantIds', 'array-contains', currentUserId)
       );
 
       const unsubscribe = onSnapshot(messagesQuery, async (snapshot) => {

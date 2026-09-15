@@ -262,6 +262,12 @@ export default function BookingDetailScreen() {
   const isGuardView = user?.role === 'guard';
   const isClientView = user?.role === 'client';
   const isPending = booking.status === 'pending';
+  // 'confirmed' = pagado, esperando que el escolta acepte. El pago pasa el
+  // estado de 'pending' a 'confirmed' directamente (confirmBookingPayment),
+  // nunca a 'accepted' — asi que el escolta tiene que poder actuar en
+  // cualquiera de los dos, o toda reserva pagada queda huerfana sin boton
+  // de aceptar ni de rechazar.
+  const awaitingGuardAction = booking.status === 'pending' || booking.status === 'confirmed';
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -303,7 +309,7 @@ export default function BookingDetailScreen() {
             </Text>
           </View>
 
-          {isGuardView && isPending && (
+          {isGuardView && awaitingGuardAction && (
             <View style={styles.actionButtons}>
               <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptBooking}>
                 <Check size={20} color={Colors.background} />
@@ -450,7 +456,7 @@ export default function BookingDetailScreen() {
             </View>
           )}
 
-          {(booking.status === 'pending' || booking.status === 'accepted') && (
+          {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'accepted') && (
             <TouchableOpacity style={styles.cancelBookingButton} onPress={handleCancelBooking}>
               <X size={20} color={Colors.error} />
               <Text style={styles.cancelBookingText}>Cancel Booking</Text>

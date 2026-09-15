@@ -48,7 +48,10 @@ export default function HomeScreen() {
     setIsLoadingJobs(true);
 
     const unsubscribe = bookingService.subscribeToGuardBookings(user.id, (bookings) => {
-      const pending = bookings.filter(b => b.status === 'pending');
+      // 'confirmed' = pagado, esperando que el escolta acepte. El pago pasa
+      // el estado de 'pending' a 'confirmed' directamente, nunca a
+      // 'accepted' — sin esto, ninguna reserva ya pagada aparecia aqui.
+      const pending = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
       console.log('[Home] Firebase update - pending jobs:', pending.length);
       setPendingBookings(pending);
       setIsLoadingJobs(false);

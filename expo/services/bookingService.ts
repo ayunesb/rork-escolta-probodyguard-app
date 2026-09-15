@@ -324,6 +324,43 @@ export const bookingService = {
     }
   },
 
+  // Todas las mutaciones (aceptar, rechazar, cancelar, confirmar pago...)
+  // buscaban la reserva SOLO en el cache local (AsyncStorage) antes de
+  // escribir nada — si esta reserva no llego a ese dispositivo por otro
+  // camino (p. ej. el escolta que la va a aceptar, en un dispositivo que
+  // nunca la habia visto), `findIndex` daba -1, el bloque entero se
+  // saltaba, y no se escribia nada en el servidor ni se avisaba del
+  // fallo. Confirmado en vivo: un escolta real no podia aceptar una
+  // reserva real. Estas dos funciones son el reemplazo: leen del
+  // servidor primero (cae al cache solo si el servidor falla) y escriben
+  // siempre al servidor, cache aparte.
+  async _fetchBookingForMutation(id: string): Promise<Booking | null> {
+    try {
+      const snap = await get(ref(getRealtimeDb(), `bookings/${id}`));
+      if (snap.exists()) return snap.val() as Booking;
+    } catch (error) {
+      logger.error(`[Booking] Server read failed while mutating ${id}:`, error);
+    }
+    const bookings = await this.getAllBookings();
+    return bookings.find((b) => b.id === id) || null;
+  },
+
+  async _writeBookingUpdate(id: string, patch: Partial<Booking>, current: Booking): Promise<Booking> {
+    const merged = { ...current, ...patch };
+    try {
+      const bookings = await this.getAllBookings();
+      const idx = bookings.findIndex((b) => b.id === id);
+      if (idx !== -1) bookings[idx] = merged;
+      else bookings.push(merged);
+      await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    } catch (error) {
+      logger.error(`[Booking] Failed to update local cache for ${id} (non-critical):`, error);
+    }
+    const bookingRef = ref(getRealtimeDb(), `bookings/${id}`);
+    await update(bookingRef, cleanUndefined(patch));
+    return merged;
+  },
+
   // --- Compatibility wrappers ---
   async getPendingBookingsForGuard(guardId: string): Promise<Booking[]> {
     const all = await this.getAllBookings();
@@ -331,17 +368,19 @@ export const bookingService = {
   },
 
   async acceptBooking(bookingId: string, guardId: string): Promise<void> {
-    await this.updateBookingStatus(bookingId, 'accepted');
-    // assign guard
-    const bookings = await this.getAllBookings();
-    const idx = bookings.findIndex((b) => b.id === bookingId);
-    if (idx !== -1) {
-      bookings[idx].guardId = guardId;
-      await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-      const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
-      await update(bookingsRef, cleanUndefined(bookings[idx]));
-      await set(ref(getRealtimeDb(), `guardBookingIndex/${guardId}/${bookingId}`), true);
+    const current = await this._fetchBookingForMutation(bookingId);
+    if (!current) {
+      throw new Error('No se pudo aceptar: la reserva no existe en el servidor.');
     }
+    await this._writeBookingUpdate(
+      bookingId,
+      { status: 'accepted', acceptedAt: new Date().toISOString(), guardId },
+      current
+    );
+    await set(ref(getRealtimeDb(), `guardBookingIndex/${guardId}/${bookingId}`), true);
+    await Promise.resolve(notificationService.notifyBookingStatusChange(bookingId, 'accepted')).catch((error) =>
+      logger.error('[Booking] No se pudo avisar la aceptacion (no critico):', error)
+    );
   },
 
   async rejectBooking(bookingId: string, reason?: string): Promise<void> {
@@ -362,41 +401,35 @@ export const bookingService = {
       reason = cancelledByOrReason;
     }
 
-    try {
-      const bookings = await this.getAllBookings();
-      const idx = bookings.findIndex((b) => b.id === bookingId);
-      if (idx === -1) return;
-      const b = bookings[idx];
-      b.status = 'cancelled';
-      b.cancelledAt = new Date().toISOString();
-      if (cancelledBy) b.cancelledBy = cancelledBy as any;
-      if (reason) b.cancellationReason = reason;
-
-      await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-
-      try {
-        const bookingRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
-        await update(bookingRef, cleanUndefined(b));
-        logger.log('[Booking] Synced cancellation to Firebase');
-        await notificationService.notifyBookingStatusChange(bookingId, 'cancelled', cancelledBy as any, reason);
-      } catch {
-        logger.error('[Booking] Firebase sync error (non-critical)');
-      }
-    } catch (error) {
-      logger.error('[Booking] Error cancelling booking:', error);
-      throw error;
+    const current = await this._fetchBookingForMutation(bookingId);
+    if (!current) {
+      logger.error(`[Booking] Cannot cancel ${bookingId}: not found on server`);
+      return;
     }
+    const patch: Partial<Booking> = {
+      status: 'cancelled',
+      cancelledAt: new Date().toISOString(),
+    };
+    if (cancelledBy) patch.cancelledBy = cancelledBy;
+    if (reason) patch.cancellationReason = reason;
+
+    await this._writeBookingUpdate(bookingId, patch, current);
+    await Promise.resolve(notificationService.notifyBookingStatusChange(bookingId, 'cancelled', cancelledBy, reason)).catch((error) =>
+      logger.error('[Booking] No se pudo avisar la cancelacion (no critico):', error)
+    );
   },
 
   async extendBooking(bookingId: string, extraHours: number): Promise<void> {
-    const bookings = await this.getAllBookings();
-    const idx = bookings.findIndex((b) => b.id === bookingId);
-    if (idx === -1) return;
-    bookings[idx].extensionCount = (bookings[idx].extensionCount || 0) + 1;
-    bookings[idx].duration = (bookings[idx].duration || 0) + extraHours;
-    await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-    const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
-    await update(bookingsRef, cleanUndefined(bookings[idx]));
+    const current = await this._fetchBookingForMutation(bookingId);
+    if (!current) return;
+    await this._writeBookingUpdate(
+      bookingId,
+      {
+        extensionCount: (current.extensionCount || 0) + 1,
+        duration: (current.duration || 0) + extraHours,
+      },
+      current
+    );
   },
 
   async rateBooking(
@@ -405,25 +438,18 @@ export const bookingService = {
     ratingBreakdown?: { professionalism: number; punctuality: number; communication: number; languageClarity: number } | null,
     review?: string
   ): Promise<void> {
-    const bookings = await this.getAllBookings();
-    const idx = bookings.findIndex((b) => b.id === bookingId);
-    if (idx === -1) return;
-    bookings[idx].rating = rating;
-    if (ratingBreakdown) bookings[idx].ratingBreakdown = ratingBreakdown as any;
-    bookings[idx].review = review;
-    await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-    const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
-    await update(bookingsRef, cleanUndefined(bookings[idx]));
+    const current = await this._fetchBookingForMutation(bookingId);
+    if (!current) return;
+    const patch: Partial<Booking> = { rating, review };
+    if (ratingBreakdown) patch.ratingBreakdown = ratingBreakdown;
+    await this._writeBookingUpdate(bookingId, patch, current);
   },
 
   async reassignGuard(bookingId: string, guardId: string): Promise<void> {
-    const bookings = await this.getAllBookings();
-    const idx = bookings.findIndex((b) => b.id === bookingId);
-    if (idx === -1) return;
-    bookings[idx].guardId = guardId;
-    await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-    const bookingsRef = ref(getRealtimeDb(), `bookings/${bookingId}`);
-    await update(bookingsRef, cleanUndefined(bookings[idx]));
+    const current = await this._fetchBookingForMutation(bookingId);
+    if (!current) return;
+    await this._writeBookingUpdate(bookingId, { guardId }, current);
+    await set(ref(getRealtimeDb(), `guardBookingIndex/${guardId}/${bookingId}`), true);
   },
 
   shouldShowGuardLocation(booking: Booking): boolean {
@@ -489,68 +515,39 @@ export const bookingService = {
   },
 
   async updateBookingStatus(id: string, status: BookingStatus, rejectionReason?: string): Promise<void> {
-    try {
-      const bookings = await this.getAllBookings();
-      const index = bookings.findIndex((b) => b.id === id);
-
-      if (index !== -1) {
-        const b = bookings[index];
-        b.status = status;
-
-        if (status === 'accepted') b.acceptedAt = new Date().toISOString();
-        if (status === 'rejected') {
-          b.rejectedAt = new Date().toISOString();
-          b.rejectionReason = rejectionReason ?? undefined;
-        }
-        if (status === 'active') b.startedAt = new Date().toISOString();
-        if (status === 'completed') b.completedAt = new Date().toISOString();
-
-        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-
-        try {
-          const bookingRef = ref(getRealtimeDb(), `bookings/${id}`);
-          await update(bookingRef, cleanUndefined(b));
-          logger.log('[Booking] Synced status update to Firebase');
-          await notificationService.notifyBookingStatusChange(id, status, undefined, rejectionReason);
-        } catch {
-          logger.error('[Booking] Firebase sync error (non-critical)');
-        }
-
-        logger.log('[Booking] Updated booking status:', { id, status });
-      }
-    } catch (error) {
-      logger.error('[Booking] Error updating booking status:', error);
-      throw error;
+    const current = await this._fetchBookingForMutation(id);
+    if (!current) {
+      logger.error(`[Booking] Cannot update status for ${id}: not found on server`);
+      return;
     }
+
+    const patch: Partial<Booking> = { status };
+    if (status === 'accepted') patch.acceptedAt = new Date().toISOString();
+    if (status === 'rejected') {
+      patch.rejectedAt = new Date().toISOString();
+      patch.rejectionReason = rejectionReason ?? undefined;
+    }
+    if (status === 'active') patch.startedAt = new Date().toISOString();
+    if (status === 'completed') patch.completedAt = new Date().toISOString();
+
+    await this._writeBookingUpdate(id, patch, current);
+    await Promise.resolve(notificationService.notifyBookingStatusChange(id, status, undefined, rejectionReason)).catch((error) =>
+      logger.error('[Booking] No se pudo avisar el cambio de estado (no critico):', error)
+    );
   },
 
   async confirmBookingPayment(id: string, transactionId: string): Promise<void> {
-    try {
-      const bookings = await this.getAllBookings();
-      const index = bookings.findIndex((b) => b.id === id);
-
-      if (index !== -1) {
-        const b = bookings[index];
-        b.status = 'confirmed';
-        b.transactionId = transactionId;
-        b.confirmedAt = new Date().toISOString();
-
-        await AsyncStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-
-        try {
-          const bookingRef = ref(getRealtimeDb(), `bookings/${id}`);
-          await update(bookingRef, cleanUndefined(b));
-          logger.log('[Booking] Synced payment confirmation to Firebase');
-          await notificationService.notifyBookingStatusChange(id, 'confirmed');
-        } catch (firebaseError) {
-          logger.error('[Booking] Firebase sync error (non-critical):', { error: firebaseError });
-        }
-
-        logger.log('[Booking] Confirmed booking payment:', { bookingId: id, transactionId });
-      }
-    } catch (error) {
-      logger.error('[Booking] Error confirming booking payment:', error);
-      throw error;
+    const current = await this._fetchBookingForMutation(id);
+    if (!current) {
+      throw new Error('No se pudo confirmar el pago: la reserva no existe en el servidor.');
     }
+    await this._writeBookingUpdate(
+      id,
+      { status: 'confirmed', transactionId, confirmedAt: new Date().toISOString() },
+      current
+    );
+    await Promise.resolve(notificationService.notifyBookingStatusChange(id, 'confirmed')).catch((error) =>
+      logger.error('[Booking] No se pudo avisar la confirmacion de pago (no critico):', error)
+    );
   },
 };

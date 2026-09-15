@@ -26,20 +26,32 @@ export default function BookingsScreen() {
       console.log('[Bookings] Setting up real-time listener for user:', user.id, 'role:', user.role);
       setIsLoading(true);
 
-      const unsubscribe = bookingService.subscribeToBookings((allBookings) => {
-        const filteredBookings = allBookings.filter(b => {
-          if (user.role === 'client' || user.role === 'company') {
-            return b.clientId === user.id;
-          } else if (user.role === 'guard') {
-            return b.guardId === user.id;
-          } else {
-            return true;
-          }
-        });
-        console.log('[Bookings] Real-time update - user bookings:', filteredBookings.length);
-        setUserBookings(filteredBookings);
-        setIsLoading(false);
-      });
+      // Cliente y escolta leen su propio indice (guardBookingIndex /
+      // clientBookingIndex): las reglas de RTDB solo dejan listar /bookings
+      // completo al admin, asi que un cliente o escolta que use
+      // subscribeToBookings aqui se queda leyendo su cache local viejo en
+      // vez del servidor en vivo.
+      const unsubscribe =
+        user.role === 'guard'
+          ? bookingService.subscribeToGuardBookings(user.id, (bookings) => {
+              console.log('[Bookings] Real-time update - user bookings:', bookings.length);
+              setUserBookings(bookings);
+              setIsLoading(false);
+            })
+          : user.role === 'client'
+          ? bookingService.subscribeToClientBookings(user.id, (bookings) => {
+              console.log('[Bookings] Real-time update - user bookings:', bookings.length);
+              setUserBookings(bookings);
+              setIsLoading(false);
+            })
+          : bookingService.subscribeToBookings((allBookings) => {
+              const filteredBookings = allBookings.filter(b =>
+                user.role === 'company' ? b.clientId === user.id : true
+              );
+              console.log('[Bookings] Real-time update - user bookings:', filteredBookings.length);
+              setUserBookings(filteredBookings);
+              setIsLoading(false);
+            });
 
       return () => {
         console.log('[Bookings] Cleaning up real-time listener');

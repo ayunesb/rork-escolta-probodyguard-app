@@ -159,12 +159,12 @@ export const bookingService = {
     };
   },
 
-  subscribeToGuardBookings(guardId: string, callback: BookingListener): () => void {
-    // No lee /bookings completo: las reglas solo dejan leer un booking a la
-    // vez (ahi viven direcciones de clientes, no se puede listar sin
-    // filtro). En vez de eso, lee el indice guardBookingIndex/{guardId} que
-    // createBooking/acceptBooking mantienen, y trae cada reserva por su ID.
-    const indexRef = ref(getRealtimeDb(), `guardBookingIndex/${guardId}`);
+  // No lee /bookings completo: las reglas solo dejan leer un booking a la
+  // vez (ahi viven direcciones de clientes, no se puede listar sin filtro).
+  // En vez de eso, lee un indice {indexPath}/{ownerId} que createBooking
+  // mantiene, y trae cada reserva por su ID.
+  _subscribeViaIndex(indexPath: string, ownerId: string, label: string, callback: BookingListener): () => void {
+    const indexRef = ref(getRealtimeDb(), `${indexPath}/${ownerId}`);
 
     const loadFromIndex = async (bookingIds: string[]) => {
       const results = await Promise.all(
@@ -179,7 +179,7 @@ export const bookingService = {
         })
       );
       const bookings = results.filter((b): b is Booking => b !== null);
-      logger.log('[Booking] Guard real-time update:', { count: bookings.length, guardId });
+      logger.log(`[Booking] ${label} real-time update:`, { count: bookings.length, ownerId });
       callback(bookings);
     };
 
@@ -190,15 +190,23 @@ export const bookingService = {
         loadFromIndex(ids);
       },
       (error) => {
-        logger.error('[Booking] subscribeToGuardBookings denied or failed:', error);
+        logger.error(`[Booking] ${label} subscription denied or failed:`, error);
         callback([]);
       }
     );
 
     return () => {
       off(indexRef);
-      logger.log('[Booking] Unsubscribed from guard real-time updates');
+      logger.log(`[Booking] Unsubscribed from ${label} real-time updates`);
     };
+  },
+
+  subscribeToGuardBookings(guardId: string, callback: BookingListener): () => void {
+    return this._subscribeViaIndex('guardBookingIndex', guardId, 'guard', callback);
+  },
+
+  subscribeToClientBookings(clientId: string, callback: BookingListener): () => void {
+    return this._subscribeViaIndex('clientBookingIndex', clientId, 'client', callback);
   },
 
   async createBooking(
@@ -271,6 +279,11 @@ export const bookingService = {
             } catch (indexError) {
               logger.error('[Booking] No se pudo indexar la reserva para el escolta:', { error: indexError });
             }
+          }
+          try {
+            await set(ref(getRealtimeDb(), `clientBookingIndex/${booking.clientId}/${booking.id}`), true);
+          } catch (indexError) {
+            logger.error('[Booking] No se pudo indexar la reserva para el cliente:', { error: indexError });
           }
         } catch (firebaseError) {
           logger.error('[Booking] No se pudo guardar la reserva en el servidor:', { error: firebaseError });

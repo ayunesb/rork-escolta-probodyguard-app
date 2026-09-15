@@ -21,6 +21,12 @@
         ".write": "auth != null"
       }
     },
+    "clientBookingIndex": {
+      "$clientId": {
+        ".read": "auth != null && auth.uid === $clientId",
+        ".write": "auth != null"
+      }
+    },
     "users": {
       "$userId": {
         ".read": "auth != null && ($userId === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'company' && data.child('companyId').val() === auth.uid))",

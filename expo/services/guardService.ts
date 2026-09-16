@@ -62,6 +62,26 @@ export const guardService = {
     }
   },
 
+  // Igual que listAvailableGuards pero para el equipo de UNA empresa. Pasa
+  // por normalizeGuard a proposito: un escolta creado antes de que existiera
+  // tal o cual campo (o creado a mano en Firestore) no trae rating/
+  // completedJobs/availability, y company-guards.tsx truena en
+  // guard.rating.toFixed(1) si se le pasa el documento crudo.
+  async listGuardsForCompany(companyId: string): Promise<Guard[]> {
+    try {
+      const q = query(
+        collection(getDb(), 'users'),
+        where('role', '==', 'guard'),
+        where('companyId', '==', companyId)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((d) => normalizeGuard(d.id, d.data()));
+    } catch (error) {
+      logger.error(`[GuardService] Failed to list guards for company: ${companyId}`, error);
+      return [];
+    }
+  },
+
   async getGuardById(guardId: string): Promise<Guard | null> {
     try {
       const snapshot = await getDoc(doc(getDb(), 'users', guardId));

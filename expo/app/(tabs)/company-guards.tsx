@@ -18,6 +18,7 @@ import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { UserPlus, Mail, Shield, CheckCircle, XCircle, Upload, FileText, Copy, FolderOpen } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userService';
+import { guardService } from '@/services/guardService';
 import { secondaryAuth, secondaryDb } from '@/lib/firebase';
 import type { Guard } from '@/types';
 import Colors from '@/constants/colors';
@@ -99,7 +100,7 @@ export default function CompanyGuardsScreen() {
     if (!user) return;
     setIsLoading(true);
     try {
-      const result = await userService.listGuardsForCompany(user.id);
+      const result = await guardService.listGuardsForCompany(user.id);
       setCompanyGuards(result as Guard[]);
     } finally {
       setIsLoading(false);
@@ -145,9 +146,23 @@ export default function CompanyGuardsScreen() {
           isActive: true,
           emailVerified: false,
           updatedAt: now,
-          companyId: user.id,
+          bio: '',
+          height: 0,
+          weight: 0,
+          languages: ['es'],
           hourlyRate: g.hourlyRate,
+          photos: [],
+          outfitPhotos: [],
+          governmentIdUrls: [],
+          licenseUrls: [],
+          vehicleDocUrls: [],
+          insuranceUrls: [],
+          certifications: [],
+          rating: 0,
+          completedJobs: 0,
           isFreelancer: false,
+          companyId: user.id,
+          availability: false,
         });
 
         // Firebase Auth manda este correo el mismo, gratis, con su plantilla

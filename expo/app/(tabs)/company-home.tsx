@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,14 @@ import { Stack, useFocusEffect } from 'expo-router';
 import { Shield, Users, Calendar, DollarSign, TrendingUp, Award } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { bookingService } from '@/services/bookingService';
-import { userService } from '@/services/userService';
+import { guardService } from '@/services/guardService';
 import Colors from '@/constants/colors';
 import type { Booking, Guard } from '@/types';
 
 export default function CompanyHomeScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const [allBookings, setAllBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [companyGuards, setCompanyGuards] = useState<Guard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,13 +30,19 @@ export default function CompanyHomeScreen() {
       console.log('[CompanyHome] Setting up real-time listener for company:', user.id);
       setIsLoading(true);
 
-      userService.listGuardsForCompany(user.id).then((guards) => {
-        setCompanyGuards(guards as Guard[]);
+      guardService.listGuardsForCompany(user.id).then((guards) => {
+        setCompanyGuards(guards);
       });
 
-      const unsubscribe = bookingService.subscribeToBookings((bookings) => {
-        console.log('[CompanyHome] Real-time update - bookings:', bookings.length);
-        setAllBookings(bookings);
+      // Las reglas de RTDB solo dejan leer /bookings completo a admin — una
+      // empresa que usara subscribeToBookings aqui se quedaba con la lista
+      // vacia (permission-denied cae al cache local, vacio en un dispositivo
+      // nuevo), por eso el dashboard siempre mostraba 0 en todo.
+      // subscribeToCompanyBookings ya compone el guardBookingIndex de cada
+      // escolta de la empresa, igual que arregla bookings.tsx.
+      const unsubscribe = bookingService.subscribeToCompanyBookings(user.id, (companyBookings) => {
+        console.log('[CompanyHome] Real-time update - bookings:', companyBookings.length);
+        setBookings(companyBookings);
         setIsLoading(false);
       });
 
@@ -46,11 +52,6 @@ export default function CompanyHomeScreen() {
       };
     }, [user])
   );
-
-  const bookings = useMemo(() => {
-    const guardIds = new Set(companyGuards.map(g => g.id));
-    return allBookings.filter(b => b.guardId && guardIds.has(b.guardId));
-  }, [allBookings, companyGuards]);
 
   const activeBookings = bookings.filter(b => b.status === 'active' || b.status === 'accepted');
   const completedBookings = bookings.filter(b => b.status === 'completed');

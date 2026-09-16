@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Clipboard from 'expo-clipboard';
-import { httpsCallable } from 'firebase/functions';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import {
   View,
   Text,
@@ -18,9 +18,15 @@ import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { UserPlus, Mail, Shield, CheckCircle, XCircle, Upload, FileText, Copy, FolderOpen } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userService';
-import { functions as getFunctions, auth as getAuth } from '@/lib/firebase';
+import { secondaryAuth, secondaryDb } from '@/lib/firebase';
 import type { Guard } from '@/types';
 import Colors from '@/constants/colors';
+
+function randomTempPassword(): string {
+  // Nunca se usa para entrar: se manda sendPasswordResetEmail justo despues
+  // de crear la cuenta, asi que solo tiene que cumplir el minimo de Firebase.
+  return `Tmp${Math.random().toString(36).slice(2)}${Date.now().toString(36)}!A1`;
+}
 
 const CSV_TEMPLATE = 'firstName,lastName,email,phone,hourlyRate\nJuan,Perez,juan.perez@example.com,+525512345678,180';
 
@@ -106,23 +112,64 @@ export default function CompanyGuardsScreen() {
     }, [loadGuards])
   );
 
+  // Crea cada cuenta con el SDK de cliente en una app de Firebase secundaria
+  // (ver lib/firebase.ts) en vez de una Cloud Function: createCompanyGuards
+  // quedo inalcanzable en produccion por una politica de organizacion de GCP
+  // que bloquea el acceso publico al servicio Cloud Run subyacente, fuera de
+  // lo que este proyecto puede resolver por si solo. Esta ruta no depende de
+  // Cloud Functions ni de una cuenta de servicio: cada escolta se crea con
+  // su propia sesion temporal, autorizado por la misma regla de Firestore
+  // que ya deja a cualquier usuario nuevo escribir SU PROPIO documento al
+  // registrarse.
   const createGuardsRemote = async (guards: NewGuardInput[]): Promise<CreateGuardResult[]> => {
-    const call = httpsCallable(getFunctions(), 'createCompanyGuards');
-    const response = await call({ guards });
-    const data = response.data as { results: CreateGuardResult[] };
+    if (!user) {
+      return guards.map((g) => ({ email: g.email, success: false, error: 'Not authenticated' }));
+    }
 
-    // Firebase Auth sends this email itself, free, using its built-in
-    // template — no third-party email service needed. Admin SDK can create
-    // the account but can't trigger that email, only the client SDK can.
-    await Promise.all(
-      data.results
-        .filter(r => r.success)
-        .map(r => sendPasswordResetEmail(getAuth(), r.email).catch((e) =>
-          console.error('[CompanyGuards] Failed to send reset email to', r.email, e)
-        ))
-    );
+    const results: CreateGuardResult[] = [];
 
-    return data.results;
+    for (const g of guards) {
+      try {
+        const credential = await createUserWithEmailAndPassword(secondaryAuth(), g.email, randomTempPassword());
+        const uid = credential.user.uid;
+        const now = new Date().toISOString();
+        await setDoc(doc(secondaryDb(), 'users', uid), {
+          email: g.email,
+          role: 'guard',
+          firstName: g.firstName,
+          lastName: g.lastName,
+          phone: g.phone,
+          language: 'es',
+          kycStatus: 'pending',
+          createdAt: now,
+          isActive: true,
+          emailVerified: false,
+          updatedAt: now,
+          companyId: user.id,
+          hourlyRate: g.hourlyRate,
+          isFreelancer: false,
+        });
+
+        // Firebase Auth manda este correo el mismo, gratis, con su plantilla
+        // propia — no hace falta ningun servicio de correo de terceros.
+        await sendPasswordResetEmail(secondaryAuth(), g.email).catch((e) =>
+          console.error('[CompanyGuards] Failed to send reset email to', g.email, e)
+        );
+
+        results.push({ email: g.email, success: true, uid });
+      } catch (error: any) {
+        console.error('[CompanyGuards] Failed to create guard:', g.email, error);
+        const message =
+          error?.code === 'auth/email-already-in-use'
+            ? 'Email already in use'
+            : error?.message || 'Failed to create account';
+        results.push({ email: g.email, success: false, error: message });
+      } finally {
+        await signOut(secondaryAuth()).catch(() => {});
+      }
+    }
+
+    return results;
   };
 
   const handleSendInvite = async () => {

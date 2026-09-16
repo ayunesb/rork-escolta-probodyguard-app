@@ -22,7 +22,7 @@ import * as admin from 'firebase-admin';
  * documento. Esta funcion es el barrido de una sola vez para ponerlas al
  * dia; se puede volver a correr sin riesgo, no hace nada destructivo.
  */
-export const backfillRoleMirrors = onCall(async (request: CallableRequest) => {
+export const backfillRoleMirrors = onCall({ invoker: 'public' }, async (request: CallableRequest) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'User must be authenticated');
   }

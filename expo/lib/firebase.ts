@@ -1,10 +1,11 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { 
-  getAuth, 
-  initializeAuth, 
-  Auth, 
+import {
+  getAuth,
+  initializeAuth,
+  Auth,
   connectAuthEmulator,
-  browserLocalPersistence
+  browserLocalPersistence,
+  inMemoryPersistence,
 } from 'firebase/auth';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getDatabase, Database, connectDatabaseEmulator } from 'firebase/database';
@@ -229,4 +230,31 @@ export const functions = (): Functions => {
   } catch {
     throw new Error('[Firebase] Functions not initialized and fallback failed. Call initializeFirebaseServices() first.');
   }
+};
+
+// App secundaria SOLO para que una empresa cree la cuenta de un escolta sin
+// cerrar su propia sesion. crear un usuario con el SDK de cliente autentica
+// automaticamente como ese usuario nuevo en el mismo Auth — si usara el auth
+// principal, la empresa quedaria deslogueada y logueada como su escolta
+// recien creado. Con persistencia en memoria (no localStorage/AsyncStorage)
+// para que no deje sesion residual del escolta al recargar la pagina.
+const SECONDARY_APP_NAME = 'GuardInviteSecondary';
+let secondaryAuthInstance: Auth | undefined;
+let secondaryDbInstance: Firestore | undefined;
+
+const getSecondaryApp = (): FirebaseApp => {
+  const existing = getApps().find((a) => a.name === SECONDARY_APP_NAME);
+  return existing ?? initializeApp(firebaseConfig, SECONDARY_APP_NAME);
+};
+
+export const secondaryAuth = (): Auth => {
+  if (secondaryAuthInstance) return secondaryAuthInstance;
+  secondaryAuthInstance = initializeAuth(getSecondaryApp(), { persistence: inMemoryPersistence });
+  return secondaryAuthInstance;
+};
+
+export const secondaryDb = (): Firestore => {
+  if (secondaryDbInstance) return secondaryDbInstance;
+  secondaryDbInstance = getFirestore(getSecondaryApp());
+  return secondaryDbInstance;
 };

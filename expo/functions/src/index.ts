@@ -1276,7 +1276,7 @@ interface ResultadoEscoltaCreado {
  * plantilla que ya trae Firebase Auth). El cliente llama a
  * sendPasswordResetEmail() por cada cuenta creada con exito.
  */
-export const createCompanyGuards = onCall(async (request: CallableRequest) => {
+export const createCompanyGuards = onCall({ invoker: 'public', ingressSettings: 'ALLOW_ALL' }, async (request: CallableRequest) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'User must be authenticated');
   }

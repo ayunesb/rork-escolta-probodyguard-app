@@ -82,6 +82,11 @@ export default function CompanyGuardDocumentsScreen() {
     );
   }
 
+  // Documents/{scopeId}/{userId}/... en Storage: scopeId es el companyId del
+  // escolta (siempre deberia estarlo, esta pantalla es solo para escoltas de
+  // empresa, pero se cae a su propio uid por si acaso).
+  const scopeId = guard.companyId || guard.id;
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -115,6 +120,7 @@ export default function CompanyGuardDocumentsScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         <KYCDocumentUpload
           userId={guard.id}
+          scopeId={scopeId}
           documentType="photo"
           label="Profile Photo"
           description="A clear photo of the guard's face, shown to clients."
@@ -125,6 +131,7 @@ export default function CompanyGuardDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={guard.id}
+          scopeId={scopeId}
           documentType="id"
           label="Government ID"
           description="A valid government-issued photo ID."
@@ -135,6 +142,7 @@ export default function CompanyGuardDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={guard.id}
+          scopeId={scopeId}
           documentType="license"
           label="Security License"
           description="Their private security license or credential."
@@ -145,6 +153,7 @@ export default function CompanyGuardDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={guard.id}
+          scopeId={scopeId}
           documentType="insurance"
           label="Insurance"
           description="Proof of liability insurance, if applicable."
@@ -155,6 +164,7 @@ export default function CompanyGuardDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={guard.id}
+          scopeId={scopeId}
           documentType="vehicle"
           label="Vehicle Documents"
           description="Registration and insurance for their vehicle, if provided."
@@ -165,6 +175,7 @@ export default function CompanyGuardDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={guard.id}
+          scopeId={scopeId}
           documentType="outfit"
           label="Outfit Photos"
           description="Photos of their uniform or work attire."

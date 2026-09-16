@@ -6,10 +6,6 @@ service firebase.storage {
       return request.auth != null;
     }
     
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
     function isValidImageFile() {
       return request.resource.contentType.matches('image/.*');
     }
@@ -23,44 +19,35 @@ service firebase.storage {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
     
-    match /documents/{userId}/{document} {
-      // El dueno siempre puede ver sus propios documentos. Admin revisa KYC
-      // de cualquiera; una empresa solo revisa los de SUS escoltas
-      // (companyId == su uid), mismo patron que ya usan firestore.rules y
-      // database.rules.json para /users y /bookings.
-      allow read: if isAuthenticated() && (
-        isOwner(userId) ||
-        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-        (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'company' &&
-         firestore.get(/databases/(default)/documents/users/$(userId)).data.companyId == request.auth.uid)
-      );
+    // firestore.get() cruzado desde Storage Rules NO funciona en este
+    // proyecto (probado en vivo: hasta el caso mas simple posible, sin
+    // ninguna otra condicion, devuelve 403 para un admin real leyendo su
+    // propio documento — no es un problema de logica de la regla, es una
+    // limitacion/permiso de infraestructura de este proyecto de GCP, fuera
+    // de lo que se puede arreglar desde aqui). Por eso esta regla NO llama a
+    // firestore.get() en ningun lado: el "dueno" del documento se codifica
+    // directo en la ruta como {scopeId}, que es el companyId del escolta si
+    // pertenece a una empresa, o su propio uid si es independiente. Asi la
+    // empresa puede subir/ver los documentos de SU escolta sin que la regla
+    // necesite consultar Firestore para saberlo.
+    match /documents/{scopeId}/{userId}/{document} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || request.auth.uid == scopeId);
 
-      // El dueno siempre puede subir los suyos; admin o la empresa dueña de
-      // ese escolta (companyId == su uid) tambien, para poder llenar la
-      // documentacion completa del personal en su nombre.
       allow write: if isAuthenticated() &&
+                     (request.auth.uid == userId || request.auth.uid == scopeId) &&
                      isValidDocumentFile() &&
-                     isValidSize(5) && (
-                       isOwner(userId) ||
-                       firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-                       (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'company' &&
-                        firestore.get(/databases/(default)/documents/users/$(userId)).data.companyId == request.auth.uid)
-                     );
+                     isValidSize(5);
     }
 
-    match /photos/{userId}/{photo} {
+    match /photos/{scopeId}/{userId}/{photo} {
       allow read: if isAuthenticated();
 
       allow write: if isAuthenticated() &&
+                     (request.auth.uid == userId || request.auth.uid == scopeId) &&
                      isValidImageFile() &&
-                     isValidSize(5) && (
-                       isOwner(userId) ||
-                       firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-                       (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'company' &&
-                        firestore.get(/databases/(default)/documents/users/$(userId)).data.companyId == request.auth.uid)
-                     );
+                     isValidSize(5);
     }
-    
+
     match /bookings/{bookingId}/{file} {
       allow read: if isAuthenticated();
       

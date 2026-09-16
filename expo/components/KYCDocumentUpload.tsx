@@ -10,6 +10,11 @@ export type DocumentType = 'id' | 'license' | 'vehicle' | 'insurance' | 'outfit'
 
 interface KYCDocumentUploadProps {
   userId: string;
+  // El companyId del escolta si pertenece a una empresa, o su propio uid si
+  // es independiente. Va en la ruta de Storage (documents/{scopeId}/{userId}/...)
+  // porque storage.rules no puede consultar Firestore para saber a quien
+  // pertenece este escolta — ver la nota en storage.rules.
+  scopeId: string;
   documentType: DocumentType;
   label: string;
   description?: string;
@@ -18,10 +23,10 @@ interface KYCDocumentUploadProps {
   initialImages?: string[];
 }
 
-async function uploadToStorage(userId: string, documentType: DocumentType, localUri: string): Promise<string> {
+async function uploadToStorage(scopeId: string, userId: string, documentType: DocumentType, localUri: string): Promise<string> {
   const response = await fetch(localUri);
   const blob = await response.blob();
-  const path = `documents/${userId}/${documentType}_${Date.now()}.jpg`;
+  const path = `documents/${scopeId}/${userId}/${documentType}_${Date.now()}.jpg`;
   const fileRef = storageRef(getStorage(), path);
   await uploadBytes(fileRef, blob, { contentType: blob.type || 'image/jpeg' });
   const url = await getDownloadURL(fileRef);
@@ -31,6 +36,7 @@ async function uploadToStorage(userId: string, documentType: DocumentType, local
 
 export default function KYCDocumentUpload({
   userId,
+  scopeId,
   documentType,
   label,
   description,
@@ -84,7 +90,7 @@ export default function KYCDocumentUpload({
       });
 
       if (!result.canceled && result.assets[0]) {
-        const remoteUrl = await uploadToStorage(userId, documentType, result.assets[0].uri);
+        const remoteUrl = await uploadToStorage(scopeId, userId, documentType, result.assets[0].uri);
         const newImages = [...images, remoteUrl];
         setImages(newImages);
         onUpload(newImages);
@@ -133,7 +139,7 @@ export default function KYCDocumentUpload({
       });
 
       if (!result.canceled && result.assets[0]) {
-        const remoteUrl = await uploadToStorage(userId, documentType, result.assets[0].uri);
+        const remoteUrl = await uploadToStorage(scopeId, userId, documentType, result.assets[0].uri);
         const newImages = [...images, remoteUrl];
         setImages(newImages);
         onUpload(newImages);

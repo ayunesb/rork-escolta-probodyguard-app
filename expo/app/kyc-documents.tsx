@@ -32,6 +32,10 @@ export default function KYCDocumentsScreen() {
     );
   }
 
+  // Documents/{scopeId}/{userId}/... en Storage: scopeId es el companyId si
+  // el escolta pertenece a una empresa, o su propio uid si es independiente.
+  const scopeId = user.companyId || user.id;
+
   const handleFieldUpdate = async (
     field: DocField,
     documentType: DocumentType,
@@ -81,6 +85,7 @@ export default function KYCDocumentsScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         <KYCDocumentUpload
           userId={user.id}
+          scopeId={scopeId}
           documentType="photo"
           label="Profile Photo"
           description="A clear photo of your face, shown to clients."
@@ -91,6 +96,7 @@ export default function KYCDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={user.id}
+          scopeId={scopeId}
           documentType="id"
           label="Government ID"
           description="A valid government-issued photo ID."
@@ -101,6 +107,7 @@ export default function KYCDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={user.id}
+          scopeId={scopeId}
           documentType="license"
           label="Security License"
           description="Your private security license or credential."
@@ -111,6 +118,7 @@ export default function KYCDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={user.id}
+          scopeId={scopeId}
           documentType="insurance"
           label="Insurance"
           description="Proof of liability insurance, if applicable."
@@ -121,6 +129,7 @@ export default function KYCDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={user.id}
+          scopeId={scopeId}
           documentType="vehicle"
           label="Vehicle Documents"
           description="Registration and insurance for your vehicle, if you provide one."
@@ -131,6 +140,7 @@ export default function KYCDocumentsScreen() {
 
         <KYCDocumentUpload
           userId={user.id}
+          scopeId={scopeId}
           documentType="outfit"
           label="Outfit Photos"
           description="Photos of your uniform or work attire."

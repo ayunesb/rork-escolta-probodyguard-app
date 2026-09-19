@@ -21,7 +21,7 @@ export default {
     splash: {
       image: './assets/splash.png',
       resizeMode: 'contain',
-      backgroundColor: '#ffffff'
+      backgroundColor: '#0A0A0A'
     },
     assetBundlePatterns: ['**/*'],
     ios: {
@@ -49,7 +49,7 @@ export default {
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0A0A0A'
       },
       package: 'com.escolta.pro',
       ...(hayAndroid ? { googleServicesFile: archivoAndroid } : {}),
@@ -105,7 +105,11 @@ export default {
       }
     },
     notification: {
-      icon: './assets/icon.png',
+      // Debe ser una silueta blanca sobre transparente: Android fuerza el
+      // icono de notificaciones a blanco solido en la barra de estado sin
+      // importar el color real del archivo, asi que un icono a color se ve
+      // como un bloque blanco sin forma. Ver assets/notification-icon.png.
+      icon: './assets/notification-icon.png',
       color: '#C9A227',
       androidMode: 'default'
     },

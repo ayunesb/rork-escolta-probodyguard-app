@@ -53,7 +53,16 @@ export default {
       },
       package: 'com.escolta.pro',
       ...(hayAndroid ? { googleServicesFile: archivoAndroid } : {}),
-      permissions: ['NOTIFICATIONS', 'POST_NOTIFICATIONS']
+      permissions: [
+        'NOTIFICATIONS',
+        'POST_NOTIFICATIONS',
+        'CAMERA',
+        'ACCESS_COARSE_LOCATION',
+        'ACCESS_FINE_LOCATION',
+        'ACCESS_BACKGROUND_LOCATION',
+        'FOREGROUND_SERVICE',
+        'FOREGROUND_SERVICE_LOCATION'
+      ]
     },
     web: {
       favicon: './assets/favicon.png',
@@ -105,6 +114,21 @@ export default {
       ['expo-notifications', {
         icon: './assets/icon.png',
         color: '#C9A227'
+      }],
+      // microphonePermission: false a proposito — no hay ninguna funcion de
+      // audio/voz en la app, expo-image-picker agrega RECORD_AUDIO por
+      // default si no se bloquea explicitamente.
+      ['expo-image-picker', {
+        photosPermission: 'Escolta Pro uses your photo library so you can upload ID, license and profile documents for account verification.',
+        cameraPermission: 'Escolta Pro uses your camera so guards can capture ID, license and outfit photos for account verification.',
+        microphonePermission: false
+      }],
+      ['expo-location', {
+        locationWhenInUsePermission: "Escolta Pro uses your location to find nearby guards, set pickup addresses, and show a guard's live position during an active service.",
+        locationAlwaysAndWhenInUsePermission: "Escolta Pro shares a guard's location with their client during an active protection service, including while the app is in the background, so the client can track their guard's arrival and route.",
+        isIosBackgroundLocationEnabled: true,
+        isAndroidBackgroundLocationEnabled: true,
+        isAndroidForegroundServiceEnabled: true
       }]
     ]
   }
